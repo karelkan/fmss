@@ -18,7 +18,7 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
 - [x] Teostusplaan ja tehnoloogia valik ([PLAAN.md](PLAAN.md))
 - [x] 1. Simulatsiooniloogika disain ([DISAIN.md](DISAIN.md))
 - [x] 2. Prototüüp ja valideerimine ([VALIDEERIMINE.md](VALIDEERIMINE.md), `npm test`)
-- [ ] 3. Karkass (teemad EGA / kaasaegne, menüü, avaekraan)
+- [x] 3. Karkass (teemad EGA / kaasaegne, menüü, avaekraan, andmemudel – [DISAIN.md](DISAIN.md) osa 13)
 - [ ] 4. Täissimulaator
 - [ ] 5. Animaator
 - [ ] 6. Redaktor
@@ -27,3 +27,15 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
 - [ ] 9. Aruanded
 - [ ] 10. Avaldamine (GitHub Pages)
 - [ ] 11. Adviser
+
+## Käivitamine
+
+```bash
+python3 -m http.server 8000
+```
+
+Seejärel ava brauseris http://localhost:8000/. Testid (Node 20+): `npm test`.
+
+## Litsentsid
+
+EGA font: **PxPlus IBM EGA 8x14** kogumikust [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/) (VileR), litsents [CC BY-SA 4.0](fonts/LICENSE-CC-BY-SA-4.0.txt). Fail `fonts/WebPlus_IBM_EGA_8x14.woff` on muutmata.

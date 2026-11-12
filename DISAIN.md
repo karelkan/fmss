@@ -270,6 +270,10 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 ```
 
 - Objektide seos ruudustikuga: lahtril on ikooni tüüp `T` ja järjenumber `N` vastavas massiivis (originaali väljad, lk 51). Rada ja jaamad tuletatakse `Enumerate`-ga.
+- `N` on **1-põhine** järjenumber (nagu nimed MT1, BUF1): rajaikoonil `Tracks`-is, pingil `Machines`-is, puhvril `Buffers`-is. `FromCS`, `ToCS`, `SysOut` ja konnektoritel `N` puudub. **[T]**
+- Punktiirühendus (loogiline ühendus, pikkus 0, lk 54) on rajaikoon väljaga `"Dot": true`; sellel pole `N`-i. Jaam tekib seal, kus punktiirühendus liitub rajaga (hargnemisikoon `Tee*`). **[T]**
+- `Storage: null` tähendab, et kesklattu pole (stsenaarium C0).
+- Mudeli struktuuri kontrollib `CheckModel` (`src/fms_glb.js`) laadimisel; rajavõrgu kontroll (`DetectOpenCons`, `FindConflicts`) tuleb koos `Enumerate`-ga.
 - Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal).
 
 ---
@@ -504,5 +508,55 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `PickupCandidate` | jaamas alust ootav detail | [U] |
 | `FromCSQueue` | FromCS jaamas ootavad detailid | [T] |
 | `ProcAllEvents` | sisetsükkel: kõik käesoleva hetke sündmused | [U] |
+| `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, viited) | [U] |
+| `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
 | abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationDistance`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `proto/fms_sim.js`-is | [T]/[U] |
 | `Animator`, `SimStatus`, `Transport` | kuvamine | [O] |
+
+**Mudeli konstandid** (`src/fms_glb.js`)
+
+| Nimi | Roll | |
+|---|---|---|
+| `IconTypes` | ikooni tüüp → objekti liik ja massiiv, millele `N` viitab (joon. 5.4) | [O] |
+| `MODEL_VERSION` | mudelifaili vormingu versioon (`Meta.Version`) | [U] |
+| `MAX_WORKPIECE_TYPES` | detailitüüpe kõige rohkem (16) | [O] |
+| `TRACK_MODES`, `BUFFER_DISCIPLINES` | lubatud raja liigid ja puhvri distsipliinid | [O] |
+
+**Kasutajaliides** (etapp 3, osa 13)
+
+| Nimi | Roll | |
+|---|---|---|
+| `Texts`, `FormatText` | kõik kasutajale näidatavad tekstid (`fms_lng.js`); kohatäidete `{Nimi}` asendus | [O] / [U] |
+| `EnvironmentOptions`, `LoadOptions`, `SaveOptions` | keskkonna seaded (teema, värvid) brauseri mälus (`fms_opt.js`, originaalis `FMSS.CFG`) | [O] |
+| `DemoModels` | kaasas olevad näidismudelid (`models/`) | [U] |
+| `ParseModelText`, `ModelFileName` | failisisust kontrollitud mudel; mudeli nimest failinimi | [U] |
+| `LoadDemoModel`, `ChooseLocalFile`, `SaveModel` | Load (näidis / fail arvutist), Save (allalaadimine) | [O] |
+| `RecentModels`, `RememberModel` | Pick – 10 viimast mudelit brauseri mälus | [O] / [U] |
+| `ROW_HEIGHT`, `EGA_WIDTH`, `EGA_HEIGHT`, `EgaPalette` | tekstirea kõrgus; EGA ekraan 640 × 350; 16 värvi | [U] / [O] |
+| `CreateEgaTheme`, `CreateModernTheme`, `LoadEgaFont` | välimused; EGA pikslifondi laadimine | [U] |
+| `ScreenCanvas`, `ScreenContext`, `ActiveTheme` | põhilõuend, selle kontekst, kehtiv välimus | [U] |
+| `MainMenu`, `MENU_ACTIVE`, `MenuPath` | peamenüü; menüü on avatud; valitud punktid tasemete kaupa | [O] / [O] / [U] |
+| `DialogStack`, `FullScreenPainter`, `FullScreenInput`, `DesktopPainter`, `Hotkeys`, `RedrawPending` | dialoogid; avaekraani joonistaja ja sisend; töölaua joonistaja; kiirklahvid; joonistamine järjekorras | [U] |
+| `InitScreen`, `SetTheme`, `ResizeScreen`, `SetFullScreen`, `SetDesktop`, `SetHotkeys` | graafikateegi seadistamine | [O] / [U] |
+| `RequestRedraw`, `Redraw`, `DesktopRect` | ekraani joonistamine; töölaua ala | [U] |
+| `ParseLabel`, `MenuBarLayout`, `DropdownRect`, `StatusLayout` | menüü nimi ja kiirklahv; menüüde ja olekurea paigutus | [U] |
+| `OpenMenu`, `CloseMenu`, `ChooseMenuItem` | menüü avamine, sulgemine, valiku täitmine | [O] / [U] |
+| `MessageBox`, `ListBox`, `InputBox`, `DialogOpen`, `DialogLayout` | dialoogid: teade, nimekiri, tekstiväli | [O] / [U] |
+| `KeyName`, `HandleKeyDown`, `HandlePointer` | klaviatuur ja hiir | [U] / [O] |
+| `CurrentModel`, `CurrentFile` | laaditud mudel ja selle failinimi | [U] |
+| `SPLASH_ACTIVE`, `SplashStart`, `SplashTimer`, `ShowSplash` | avaekraan | [U] |
+| `EgaTheme`, `CurrentTheme`, `ChangeTheme`, `ChangeColorScheme` | välimuse valik (F2, Options) | [U] |
+| `BuildMainMenu`, `NotYet`, `DrawDesktop`, `AcceptLoadedModel`, `Main` | peamenüü; „tuleb etapis N“ punkt; töölaud; laaditud mudeli vastuvõtt; peaprogramm | [O] / [U] |
+| abiprotseduurid | `MenuItems`, `SelectedItem`, `DropdownItems`, `DrawMenuBar`, `DrawDropdown`, `DrawStatusLine`, `MoveInDropdown`, `HandleMenuKey`, `OpenDialog`, `CloseDialog`, `DrawDialog`, `HandleDialogKey`, `HandleDialogPointer`, `MenuLoad`, `MenuPick`, `MenuNew`, `MenuSave`, `MenuWriteAs`, `AskQuit`, `ShowHelp` – vt kommentaarid `src/windows.js`-is ja `src/fms.js`-is | [U] |
+
+---
+
+## 13. Kasutajaliides (etapp 3) **[O + U]**
+
+- **Moodulid** originaali järgi: `fms.js` (FMS.PAS), `windows.js` (WINDOWS.PAS), `fms_glb.js`, `fms_file.js`, `fms_opt.js`, `fms_lng.js`; uus `fms_theme.js` (välimused). Kood on kaustas `src/`, käivitab `index.html`.
+- **Üks lõuend** (Canvas), kogu liides joonistatakse ise nagu originaalis. `windows.js` teab ainult paigutust ja loogikat ning kasutab värvide asemel **rolle** (`MenuBar`, `WindowText` …); teema annab rollidele värvid ja joonistab primitiivid (ristkülik, tekst, paneel, nupp).
+- **Loogiline ekraan**: rida on 14 pikslit. EGA: 640 × 350 (80 × 25 märki), 16 värvi, font PxPlus IBM EGA 8x14, tähed teravaks (lävend), suurendus täisarvuline ja venitus 4:3 nagu EGA monitoril. Kaasaegne: sama paigutus, kuid ekraan on nii suur kui aken (kuni 1,5 CSS-pikslit loogilise piksli kohta), süsteemifont, ümarad nurgad, hele / tume / süsteemi järgi.
+- **Menüü** nagu joon. 6.1–6.2: peamenüü üleval, alammenüüd vertikaalselt, nende alammenüüd nihkega paremal. Menüü nimed inglise keeles (originaal), vihjed ja teated eesti keeles. Hiljem valmivad punktid on hallid, aga valitavad – valik ütleb, mis etapis need tulevad. Directory, Change dir, Rename, Delete on välja lülitatud (brauseris pole ketast).
+- **Klahvid**: F10 menüü, Alt + täht, nooled, Enter, Esc, F1 abi, F2 välimus, Alt-X lõpetamine. Olekureal on klahvid või valitud menüüpunkti vihje; klahvid on ka hiirega klõpsatavad.
+- **Failid**: Load (näidismudel serverist või fail arvutist), Save / Write as (allalaadimine), Pick (10 viimast brauseri mälus). Laadimisel kontrollib `CheckModel` faili ja näitab vead eesti keeles.
+- **Avaekraan**: DOS-i käsurida `C:\FMSS>FMS`, siis pealkiri ja read ükshaaval; esimene klahv lõpetab animatsiooni, teine viib töölauale. Quit viib tagasi avaekraanile.
