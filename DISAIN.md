@@ -2,6 +2,8 @@
 
 Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). **Mustand** – etapis 2 valideeritakse prototüübiga ja parandatakse.
 
+Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
+
 Iga otsuse juures on märge:
 - **[O]** – originaal, nagu dokumendis;
 - **[T]** – originaali täpsustus (dokumendis puudu või ebaselge, lahendus on originaali vaimus);
@@ -49,7 +51,7 @@ Uus lahendus:
   - **jaam** (`Station`): koht, kus 0-pikkusega punktiirühendus seob raja objektiga (puhver, `FromCS`, `ToCS`, `SysOut`, konnektor). Kärud peatuvad ainult jaamades. **[O]** (lk 54)
   - **lõik** (`Edge`): järjestikused rajaikoonid kahe sõlme vahel; teab oma rada, ikoone (joonistamiseks) ja pikkust cm-tes.
 - Pikkus:
-  - mudelil on mõõtkava (`scale`, cm ikooni kohta). Sirge ikoon = 1 ühik, kaar = π/4 ühikut;
+  - mudelil on mõõtkava (`Scale`, cm ikooni kohta). Sirge ikoon = 1 ühik, kaar = π/4 ühikut;
   - lõigule saab anda käsitsi pikkuse (**metrokaart**). See jaotub lõigu ikoonidele ühtlaselt, nii et lõigu sees on kiirus ekraanil ühtlane. Kokkusurutud lõik tähistatakse kaardil katkestusmärgiga `≈`.
 - Asukoht rajal = (lõik, kaugus lõigu algusest cm). Suletud konveieril lihtsalt kaugus silmuse algusest `0 … L`.
 - Lõigul on suund: pidevatel radadel alati raja liikumissuund; diskreetsetel radadel kas **ühesuunaline** või **kahesuunaline** (vt osa 11).
@@ -64,15 +66,15 @@ Uus lahendus:
 
 | Parameeter | Tähendus |
 |---|---|
-| `speed` | cm/s |
-| `carts` | kohtade (alustade, `Pallette`) arv konveieril |
-| `placesPerCart` | mitu detaili alusele mahub (esimeses järgus 1) |
-| `loadTime` | detaili peale- või mahalaadimise aeg, s |
-| `accessTime` | esmakordse pöördumise aeg, s (esimeses järgus ei kasuta) |
-| `direction` | liikumissuund |
+| `Speed` | cm/s |
+| `Carts` | kohtade (alustade, `Pallette`) arv konveieril |
+| `PlacesPerCart` | mitu detaili alusele mahub (esimeses järgus 1) |
+| `LoadTime` | detaili peale- või mahalaadimise aeg, s |
+| `AccessTime` | esmakordse pöördumise aeg, s (esimeses järgus ei kasuta) |
+| `Direction` | liikumissuund |
 
-- Alused on konveieril võrdsete vahedega `L / carts` ja liiguvad koos: konveieril on üks nihe `s`, alus `i` asub kohal `(s + i·L/carts) mod L`. **[T]**
-- Olek: `stopCount` – mitu laadimist parasjagu käib. Kui `stopCount > 0`, seisab **kogu konveier** (lk 45). **[O]**
+- Alused on konveieril võrdsete vahedega `Length / Carts` ja liiguvad koos: konveieril on üks nihe `Offset`, alus `palletIndex` asub kohal `(Offset + palletIndex · Length / Carts) mod Length`. **[T]**
+- Olek: `StopCount` – mitu laadimist parasjagu käib. Kui `StopCount > 0`, seisab **kogu konveier** (lk 45). **[O]**
 - Alus peatub jaamas ainult siis, kui seal on **tegevus**:
   - **mahalaadimine**: alusel on detail, mille sihtkoht on see jaam;
   - **pealelaadimine**: alus on tühi ja jaamas ootab detail, millele on sihtkoht juba broneeritud (vt 5.2).
@@ -82,7 +84,7 @@ Uus lahendus:
 
 ### 3.2 Puhver **[O + T]**
 
-- Parameetrid: `capacity`, `discipline` (FIFO / FILO / RANDOM), `loadTime`, `kind` (`InBuf`, `OutBuf`, `InOutBuf`, `TurnBuf`).
+- Parameetrid: `Capacity`, `Discipline` (FIFO / FILO / RANDOM), `LoadTime`, `Kind` (`InBuf`, `OutBuf`, `InOutBuf`, `TurnBuf`).
 - Puhver seob tööpingi raja jaamaga: rada ↔ puhver ↔ tööpink. **[O]** (lk 32)
 - Puhvri kohtadel on suund:
   - **sisse** (rajalt pingi poole) – detail ootab tööpinki;
@@ -93,7 +95,7 @@ Uus lahendus:
 
 ### 3.3 Tööpink **[O + T]**
 
-- Parameetrid: `name`, `model`, `loadTime`, `setupTime`, `ops` (sooritatavad operatsioonid). Esimeses järgus mahub pinki 1 detail.
+- Parameetrid: `Name`, `Model`, `LoadTime`, `SetupTime`, `Ops` (sooritatavad operatsioonid). Esimeses järgus mahub pinki 1 detail.
 - Olekud:
 
 ```
@@ -104,13 +106,13 @@ IDLE ───────────────► LOADING ──► SETUP �
                        DOWN – rike (etapp 8)
 ```
 
-- `SETUP` kestus: `setupTime`, kui operatsioon erineb pingi eelmisest operatsioonist, muidu 0. **[T]**
+- `SETUP` kestus: `SetupTime`, kui operatsioon erineb pingi eelmisest operatsioonist, muidu 0. **[T]**
 - Pink võtab detaili puhvrist **ainult siis, kui selle detaili jaoks on puhvris väljumise koht broneeritud**. Nii ei jää pink kunagi töödeldud detailiga kinni. **[U]**
 
 ### 3.4 Keskladu ja süsteemi väljund **[T]**
 
 - `FromCS` – uute detailide allikas. Esimeses järgus on toorikuid piiramatult; määrav on Planneri sissetoomise reegel.
-- `ToCS` – valmis detailide ladu (mahutavus `capacity`).
+- `ToCS` – valmis detailide ladu (mahutavus `Capacity`).
 - `SysOut` – süsteemist väljumine, piiramatu.
 - Valmis detail läheb `ToCS`-i, kui see on olemas ja seal on ruumi, muidu `SysOut`-i. Praak läheb alati `SysOut`-i.
 
@@ -118,14 +120,14 @@ IDLE ───────────────► LOADING ──► SETUP �
 
 | Väli | Sisu |
 |---|---|
-| `id` | number |
-| `type` | detailitüüp (`Workpieces`, max 16) |
-| `route` | valitud marsruut |
-| `opIndex` | järgmine operatsioon marsruudis |
-| `loc` | kus on: (objekt, koht) – jaam, alus, puhver, pink |
-| `dest` | broneeritud sihtkoht või puudub |
-| `tIn`, `tOut` | sisenemise ja väljumise aeg |
-| `tProc`, `tSetup`, `tTrans`, `tLoad`, `tWait` | kogunenud ajad tsükliaja jaoks |
+| `Id` | number |
+| `Type` | detailitüüp (`Workpieces`, max 16) |
+| `Route` | valitud marsruut |
+| `OpIndex` | järgmine operatsioon marsruudis |
+| `Location` | kus on: (objekt, koht) – jaam, alus, puhver, pink |
+| `Destination` | broneeritud sihtkoht või puudub |
+| `TimeIn`, `TimeOut` | sisenemise ja väljumise aeg |
+| `TimeProcess`, `TimeSetup`, `TimeTransport`, `TimeLoad`, `TimeWait` | kogunenud ajad tsükliaja jaoks |
 
 ---
 
@@ -142,7 +144,7 @@ Originaali väljad `Event`, `WP`, `ObjType`, `ObjCode`, `Track`, `Time`, `Next` 
 | Sündmus | Kes lisab | Mida handler teeb |
 |---|---|---|
 | `InSys` | Planner | Loob detaili `FromCS`-i jaama, valib marsruudi, kutsub Plannerit sihtkoha valimiseks. |
-| `MoveZ` | `LoadProc` | `stopCount--`; kui 0, konveier liigub edasi. |
+| `MoveZ` | `LoadProc` | `StopCount--`; kui 0, konveier liigub edasi. |
 | `StopMov` | `MinuteMan` | Alus seisab jaamas. Määrab, kas maha- või pealelaadimine, ja lisab `Load` ajaks `t + loadTime`. |
 | `Load` | `StopMovProc`, Planner, `ProcessProc` | Viib detaili lähtekohast sihtkohta, vabastab broneeringu. Edasi oleneb sihtkohast (vt 4.3). |
 | `Turn` | `LoadProc`, `ProcessProc` | Ümberhäälestus läbi → `Process` ajaks `t + kestus`. |
@@ -162,7 +164,7 @@ Operatsiooni kestus: ühtlane jaotus vahemikus `mean ± dev`, ümardatud täisse
 | puhvri väljaminev koht (pingist) | Planner (pink vaba, detailile otsitakse sihtkoht) |
 | `ToCS` / `SysOut` | detail lahkub, statistika; `MoveZ`; Planner (võib tuua uue detaili) |
 
-Laadimise kestus **[T]**: rada ↔ jaam – raja `loadTime`; puhver ↔ tööpink – pingi `loadTime`; rada ↔ keskladu – lao `loadTime`.
+Laadimise kestus **[T]**: rada ↔ jaam – raja `LoadTime`; puhver ↔ tööpink – pingi `LoadTime`; rada ↔ keskladu – lao `LoadTime`.
 
 ### 4.4 Seos originaali graafiga (joon. 5.1)
 
@@ -207,7 +209,7 @@ Planner ise **ei muuda olekuid**, vaid otsustab ja lisab sündmusi (`InSys`, `Lo
 Ka broneerimisega võib tekkida ringootamine: pingi A väljaminev detail ootab kohta pingi B puhvris ja vastupidi, ning kõik puhvrid on täis.
 
 - **Vältimine**: sissetoomise piir `Kl`, broneerimine ning reegel, et pink ei alusta ilma väljaminevat kohta broneerimata.
-- **Avastamine**: kui süsteemis on detaile, aga `T_stall` sekundit (vaikimisi 600) pole ükski detail liikunud ega töödeldud → ummik.
+- **Avastamine**: kui süsteemis on detaile, aga `StallTime` sekundit (vaikimisi 600) pole ükski detail liikunud ega töödeldud → ummik.
 - **Lahendus**: kauem oodanud väljaminev detail saadetakse ajutiselt kesklattu (`ToCS`) ja Planner toob selle hiljem tagasi. Kui keskladu puudub või on täis, simulatsioon peatub ja teatab ummikust (see on ka kasulik tulemus: struktuur ei sobi antud koormusele).
 
 Etapi 2 stressitest peab näitama, kas see piisab.
@@ -216,12 +218,12 @@ Etapi 2 stressitest peab näitama, kas see piisab.
 
 ## 6. `MinuteMan` (pidevad konveierid) **[O + T]**
 
-Iga konveieri kohta, kui `stopCount = 0`:
+Iga konveieri kohta, kui `StopCount = 0`:
 
-1. uus nihe `s' = s + speed · 1 s`;
+1. uus nihe `newOffset = Offset + Speed · 1 s`;
 2. iga aluse kohta vaadatakse, kas ta ületas selle sekundi jooksul mõne jaama, kus on tema jaoks tegevus (3.1);
-3. kui jah, võetakse **lähim** selline ületus: nihe pannakse nii, et alus seisab täpselt jaamas, `stopCount++`, lisatakse `StopMov` käesolevale hetkele;
-4. muidu `s := s'`.
+3. kui jah, võetakse **lähim** selline ületus: nihe pannakse nii, et alus seisab täpselt jaamas, `StopCount++`, lisatakse `StopMov` käesolevale hetkele;
+4. muidu `Offset := newOffset`.
 
 Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad järgmistel sekunditel.
 
@@ -229,7 +231,7 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 
 ## 7. Statistika **[O + T]**
 
-- Detaili kohta: `tIn`, `tOut`, töötlemis-, häälestus-, transpordi-, laadimis- ja ooteaeg. Tsükliaeg `Tts` ja osakaalud: töötlemine, ootamine, transport (ptk 8.5 originaalis).
+- Detaili kohta: `TimeIn`, `TimeOut`, töötlemis-, häälestus-, transpordi-, laadimis- ja ooteaeg. Tsükliaeg `Tts` ja osakaalud: töötlemine, ootamine, transport (ptk 8.5 originaalis).
 - Pingi kohta: aeg igas olekus → rakendatus.
 - Puhvri kohta: keskmine ja maksimaalne täituvus.
 - Konveieri kohta: liikumise ja seismise osakaal.
@@ -241,24 +243,25 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 
 ```json
 {
-  "meta":   { "name": "Näidis", "version": 1 },
-  "scale":  100,
-  "grid":   { "w": 13, "h": 4, "cells": [ { "x": 0, "y": 0, "t": "FromCS" } ] },
-  "edgeLengths": [ { "cells": [[3,2],[4,2]], "length": 1500 } ],
-  "tracks":    [ { "name": "Konveier", "mode": "continuous", "carts": 8, "placesPerCart": 1,
-                   "speed": 20, "loadTime": 10, "accessTime": 0 } ],
-  "machines":  [ { "name": "MT1", "model": "", "loadTime": 15, "setupTime": 60,
-                   "ops": ["treimine", "puurimine"] } ],
-  "buffers":   [ { "capacity": 3, "discipline": "FIFO", "loadTime": 5 } ],
-  "storage":   { "capacity": 50, "loadTime": 20 },
-  "workpieces":[ { "name": "Võll", "priority": 1, "batch": 10,
-                   "routes": [ { "priority": 1,
-                                 "ops": [ { "op": "treimine", "mean": 300, "dev": 30 } ] } ] } ],
-  "sim":       { "seed": 1, "duration": 28800, "Kl": 0.85, "stall": 600 }
+  "Meta":    { "Name": "Näidis", "Version": 1 },
+  "Scale":   100,
+  "Layout":  { "Dim": { "X": 13, "Y": 4 },
+               "Cells": [ { "X": 0, "Y": 0, "T": "FromCS", "N": 1 } ] },
+  "EdgeLengths": [ { "Cells": [[3,2],[4,2]], "Length": 1500 } ],
+  "Tracks":     [ { "Name": "Konveier", "Mode": "Continuous", "Carts": 8, "PlacesPerCart": 1,
+                    "Speed": 20, "LoadTime": 10, "AccessTime": 0 } ],
+  "Machines":   [ { "Name": "MT1", "Model": "", "LoadTime": 15, "SetupTime": 60,
+                    "Ops": ["treimine", "puurimine"] } ],
+  "Buffers":    [ { "Capacity": 3, "Discipline": "FIFO", "LoadTime": 5 } ],
+  "Storage":    { "Capacity": 50, "LoadTime": 20 },
+  "Workpieces": [ { "Name": "Võll", "Priority": 1, "Batch": 10,
+                    "Routes": [ { "Priority": 1,
+                                  "Ops": [ { "Op": "treimine", "Mean": 300, "Dev": 30 } ] } ] } ],
+  "Sim":        { "Seed": 1, "Duration": 28800, "Kl": 0.85, "StallTime": 600 }
 }
 ```
 
-- Objektide seos ruudustikuga: lahtril on tüüp ja indeks vastavasse massiivi (originaali `T`, `N`). Rada ja jaamad tuletatakse `Enumerate`-ga.
+- Objektide seos ruudustikuga: lahtril on ikooni tüüp `T` ja järjenumber `N` vastavas massiivis (originaali väljad, lk 51). Rada ja jaamad tuletatakse `Enumerate`-ga.
 - Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal).
 
 ---
@@ -278,7 +281,7 @@ Invariandid, mida kontrollitakse igal sekundil:
 - detailide arv: sisse tulnud − lahkunud = süsteemis olevad;
 - igal kohal (alus, puhvri koht, pink) on max 1 detail, broneeringud ei ületa mahutavust;
 - `SYSTEM_TIME` ei vähene, Event Listis pole sündmust `Time < SYSTEM_TIME` pärast sisetsüklit;
-- `stopCount ≥ 0` ja seisev konveier ainult siis, kui mõni laadimine käib;
+- `StopCount ≥ 0` ja seisev konveier ainult siis, kui mõni laadimine käib;
 - (diskreetsed rajad) igas tsoonis on max 1 käru ja käru on ainult tsoonis, mille ta on broneerinud.
 
 ---
@@ -287,7 +290,7 @@ Invariandid, mida kontrollitakse igal sekundil:
 
 1. **Avatud konveier** (mitte silmus): mis juhtub detailiga, mis jõuab raja lõppu? Ettepanek: konveier seiskub, kuni see maha laaditakse; Planner ei saada detaili teele, kui sihtkoht pole raja suunas eespool.
 2. **Konnektor** (radade ühendus): kas see on lihtsalt kahe raja jaam, kus detail tõstetakse ühelt rajalt teisele (puhver mahutavusega 0, `Load` + `Load`)? Ettepanek: jah.
-3. **`accessTime`** (keskmine pöördusaeg): tähendus on ebaselge. Ettepanek: lisaviivitus enne esimest laadimist, kui konveier oli seisnud – või jätta kasutamata.
+3. **`AccessTime`** (keskmine pöördusaeg): tähendus on ebaselge. Ettepanek: lisaviivitus enne esimest laadimist, kui konveier oli seisnud – või jätta kasutamata.
 4. **Mitu detaili alusel** (`placesPerCart > 1`) ja **mitu detaili pingis**: esimeses järgus 1, hiljem laiendada.
 
 ---
@@ -333,11 +336,11 @@ Transpordisoov tekib siis, kui Planner on detailile sihtkoha broneerinud (osa 5.
 
 Originaalis avastati kahe käru ohtlik lähenemine (`Collision`), kärud seisati ja Planner programmeeris need ümber. Tänapäevane ja töökindlam viis on **kokkupõrkeid vältida** tsoonide broneerimisega, nagu raudtee blokisignalisatsioonis:
 
-- **Tsoon** = lõik või sõlm (ristmik, hargnemine). Pikad lõigud võib tükeldada mitmeks tsooniks (pikkus `zoneLength`, vaikimisi kogu lõik).
+- **Tsoon** = lõik või sõlm (ristmik, hargnemine). Pikad lõigud võib tükeldada mitmeks tsooniks (pikkus `ZoneLength`, vaikimisi kogu lõik).
 - Tsoonis on korraga **üks käru**.
 - Käru broneerib järgmise tsooni **enne** sinna sisenemist. Kui tsoon on kinni, peatub käru oma tsooni lõpus olekus `WAIT_ZONE`.
 - Tsoon vabaneb, kui käru on sellest täielikult väljunud.
-- Ühesuunalisel lõigul võib tsoonis olla ka mitu käru üksteise järel (järjekorras), kui `zoneLength` on väiksem kui lõik. **[T]**
+- Ühesuunalisel lõigul võib tsoonis olla ka mitu käru üksteise järel (järjekorras), kui `ZoneLength` on väiksem kui lõik. **[T]**
 
 ### 11.5 `Collision` – vastastikune ootamine **[O nimi, U tähendus]**
 
@@ -356,7 +359,7 @@ Seetõttu:
 
 Iga käru kohta, kes on sõiduolekus:
 
-1. arvutab uue asukoha `kaugus + speed · 1 s` mööda oma teekonda;
+1. arvutab uue asukoha `Distance + Speed · 1 s` mööda oma teekonda;
 2. kui teel on tsooni piir ja järgmine tsoon pole broneeritud → üritab broneerida; kui ei saa, peatub piiril (`WAIT_ZONE`);
 3. kui jõuab sihtjaama → peatub täpselt jaamas, lisab `StopMov` käesolevale hetkele;
 4. vabastab tsoonid, millest on täielikult väljunud.
@@ -368,18 +371,105 @@ Sündmused jäävad samaks: `MoveZ` (käru alustab sõitu), `StopMov` (jõudis j
 ### 11.7 Andmemudeli lisad
 
 ```json
-"tracks": [ { "name": "AGV", "mode": "discrete", "carts": 3, "placesPerCart": 1,
-              "speed": 50, "loadTime": 15, "accessTime": 0,
-              "dispatch": "nearest", "zoneLength": 0 } ],
-"edgeDirections": [ { "cells": [[5,1],[6,1]], "dir": "oneway", "from": [5,1] } ],
-"parking": [ [2,3] ]
+"Tracks": [ { "Name": "AGV", "Mode": "Discrete", "Carts": 3, "PlacesPerCart": 1,
+              "Speed": 50, "LoadTime": 15, "AccessTime": 0,
+              "Dispatch": "Nearest", "ZoneLength": 0 } ],
+"EdgeDirections": [ { "Cells": [[5,1],[6,1]], "Dir": "OneWay", "From": [5,1] } ],
+"Parking": [ [2,3] ]
 ```
 
-- `zoneLength: 0` tähendab: tsoon = terve lõik.
-- Lõigud on vaikimisi kahesuunalised; `edgeDirections` muudab ühesuunaliseks.
+- `ZoneLength: 0` tähendab: tsoon = terve lõik.
+- Lõigud on vaikimisi kahesuunalised; `EdgeDirections` muudab ühesuunaliseks.
 
 ### 11.8 Riskid, mida prototüüp kontrollib
 
 - Ummikud kahesuunalistel lõikudel ja ristmikel (stsenaariumid E, F).
 - Kas tsooniks sobib terve lõik või tuleb pikad lõigud tükeldada (läbilaskevõime vs keerukus).
 - Kas kärud jõuavad tühisõitudega töö järel (kärude arv vs läbilaskevõime).
+
+---
+
+## 12. Nimetamine ja sõnastik
+
+Eesmärk: kood peab olema inimloetav. Nimest peab olema näha, **mis rolli asi täidab** ja **kas see on kogu programmi (globaalne) või kohalik mõiste**. Originaali nimed jäävad; uued nimed on samas stiilis.
+
+### 12.1 Reeglid
+
+| Mis | Stiil | Näited |
+|---|---|---|
+| Globaalne protseduur / funktsioon | `PascalCase`, verb ees, ingliskeelne | `GetEvent`, `PutEvent`, `FindMach`, `ReserveSlot` |
+| Sündmuse käsitleja (EventHandler) | sündmuse nimi + `Proc` | `StopMovProc`, `LoadProc` |
+| Globaalne andmestruktuur | `PascalCase`, nimisõna; massiiv lõpeb `Array` või on mitmuses | `MachineArray`, `SysWPArray`, `Tracks`, `Workpieces` |
+| Globaalne olek, lipp, simulatsiooni kell | `UPPER_SNAKE` | `SYSTEM_TIME`, `NO_EVENTS`, `SIMULATION_DONE` |
+| Kirje väli ja mudelifaili (JSON) võti | `PascalCase` | `Event`, `WP`, `ObjType`, `LoadTime`, `PlacesPerCart` |
+| Olekumasina olek | `UPPER_SNAKE` | `IDLE`, `PROCESSING`, `WAIT_ZONE` |
+| Sündmuse, objekti, ikooni tüüp | originaali nimi `PascalCase` | `InSys`, `MoveZ`, `Machine`, `Pallette`, `ArcNE` |
+| Kohalik muutuja, parameeter | `camelCase`, täissõnad | `machineIndex`, `freeSlots`, `nextEvent` |
+| Tsükliloendur | `i`, `j` ainult lühikeses tsüklis | |
+
+Sellest tuleneb lihtne lugemisreegel: **suur algustäht = kogu programmi mõiste, väike algustäht = kohalik**.
+
+Lisaks:
+- **Lühendid**: ainult originaalist pärit (`WP`, `MT`, `BUF`, `CS`, `TR`, `TM`, `Pal`, `Mach`, `Buf`, `Proc`, `Sys`, `Kl`) ja üldtuntud (`AGV`, `Id`). Uut lühendit ei tehta – kirjutatakse täissõna.
+- **Keel**: nimed inglise keeles nagu originaalis; kommentaarid ja kasutajale nähtavad tekstid eesti keeles (tekstid failis `fms_lng.js`).
+- **Ühikud** on välja nimes, kui need pole ilmsed: `LoadTime` (s), `Speed` (cm/s), `Length` (cm) on dokumenteeritud siin; uutel väljadel lisatakse ühik nimesse, kui see on teine (nt `DelayMinutes`).
+- **Iga globaalse protseduuri ees** on lühike kommentaar: mida teeb, kes kutsub, milliseid sündmusi lisab.
+- **Iga uus globaalne nimi** lisatakse allolevasse sõnastikku koos märkega [O] / [T] / [U].
+
+### 12.2 Sõnastik – globaalsed nimed
+
+**Kell ja juhtimine**
+
+| Nimi | Roll | |
+|---|---|---|
+| `SYSTEM_TIME` | simulatsiooni kell, sekundit algusest | [O] |
+| `NO_EVENTS` | lipp: käesolevaks hetkeks pole rohkem sündmusi | [O] |
+| `SIMULATION_DONE` | lipp: simulatsioon on läbi | [O] |
+| `SimInit` | algväärtused, mälu, kärude algasendid | [O] |
+| `SimStep` | üks peatsükli samm (üks sekund) | [U] |
+| `CheckInvariants` | kontrollib invariante (testides) | [U] |
+
+**Sündmuste nimekiri**
+
+| Nimi | Roll | |
+|---|---|---|
+| `FirstAtMoment` | viit Event Listi esimesele kirjele | [O] |
+| `PutEvent` | lisab sündmuse aja järgi õigesse kohta | [O] |
+| `GetEvent` | võtab esimese sündmuse, mille `Time ≤ SYSTEM_TIME` | [O] / [T] |
+| `ProcEvent` | võtab sündmuse ja kutsub selle käsitleja | [O] |
+| `EventHandlers` | sündmuse tüüp → käsitleja (`*Proc`) | [O] |
+
+**Mudeli andmed**
+
+| Nimi | Roll | |
+|---|---|---|
+| `Layout`, `LayoutDim` | ikoonide ruudustik ja selle mõõdud | [O] |
+| `Tracks` | rajad | [O] |
+| `MachineArray` | tööpingid (parameetrid + olek) | [O] |
+| `BufferArray` | puhvrid | [O] |
+| `Storage` | keskladu | [T] |
+| `Workpieces` | detailitüübid (max 16) | [O] |
+| `SysWPArray` | süsteemis olevad konkreetsed detailid | [O] |
+| `NodeArray` | rajavõrgu sõlmed | [U] |
+| `EdgeArray` | rajavõrgu lõigud | [U] |
+| `StationArray` | jaamad (kus kärud peatuvad ja laaditakse) | [U] |
+| `ZoneArray` | liiklustsoonid diskreetsetel radadel | [U] |
+| `PalletArray` | kärud / alused | [T] |
+| `TransportRequests` | ootel transpordisoovid | [U] |
+| `Stats` | kogutud statistika | [T] |
+
+**Protseduurid**
+
+| Nimi | Roll | |
+|---|---|---|
+| `Enumerate` | ruudustikust rajavõrk, jaamad, seosed | [O nimi, U sisu] |
+| `DetectOpenCons`, `FindConflicts` | andmekontroll | [O] |
+| `MinuteMan` | liigutab konveiereid ja kärusid ühe sekundi võrra | [O] |
+| `Planner` | otsused: sissetoomine, marsruut, sihtkoht, pingi laadimine, konfliktid | [O] |
+| `FindMach`, `FindBuf`, `FindSysPos`, `FindPal` | sobivaima pingi / puhvri / väljundi / käru otsing | [O] |
+| `ProgTM` | käru teekonna arvutamine | [O] |
+| `ShortestPath` | lühim tee rajavõrgus (Dijkstra) | [U] |
+| `ReserveSlot`, `ReleaseSlot` | koha broneerimine ja vabastamine | [U] |
+| `ReserveZone`, `ReleaseZone` | tsooni broneerimine ja vabastamine | [U] |
+| `DetectDeadlock` | ummiku avastamine (ootegraaf, `StallTime`) | [U] |
+| `Animator`, `SimStatus`, `Transport` | kuvamine | [O] |
