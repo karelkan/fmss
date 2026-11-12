@@ -103,3 +103,25 @@ Animaator ([src/anima.js](src/anima.js), DISAIN.md osa 14) ainult loeb simulaato
 
 **Mida see EI kontrolli:** pilti ennast automaatselt (joonistamist kontrolliti silmaga), puutetundlikku ekraani, mitut rada ja diskreetseid radu (etapp 7).
 
+---
+
+# Etapp 6: redaktor
+
+Redaktori loogika ([src/fms_ed.js](src/fms_ed.js), DISAIN.md osa 15) muudab mudelit ja on brauserist sõltumatu – testid: [test/editor.test.js](test/editor.test.js).
+
+## 6a: Layout ja View
+
+| Test | Tulemus |
+|---|---|
+| **Automaatne ikoonivalik** – kõik 15 külgede kombinatsiooni; `IconFromPorts` on `CellPorts`-i pöördfunktsioon kõigil 11 raja ikoonil | ✔ |
+| **Lohistamine** – vahelahtrid külgnaabrite kaudu (diagonaal vaheldub), tagasi liikudes kaob lõik; L-kujuline rada, raja otsast pööramine (kaar, mitte hargnemine), hargnemine, ristmik, suletud silmus (4 kaart) | ✔ |
+| **Reeglid** – rada ei lähe objekti ega punktiiri sisse ega ruudustikust välja; punktiir objektist sirgele rajale annab hargnemise, kaarele ja raja otsa mitte | ✔ |
+| **Objektid** – uus kirje vaikeväärtustega, sama liiki ikoon jätab andmed alles, teist liiki asendab; punktiir ↔ rada; `ToCS` loob kesklao | ✔ |
+| **Kustutamine** – hargnemine ja ristmik kaotavad haru; puhvri kustutamisel nummerdatakse ülejäänud ümber ja andmed liiguvad kaasa; rada jääb alles; ruudustiku vähendamine kustutab välja jäävad ikoonid ja pingi andmed | ✔ |
+| **Suunanool** – E → W → puudub; kaob, kui ikoon muutub hargnemiseks; hargnemisel ja objektil ei saa | ✔ |
+| **Iga muudatuse järel** läbib mudel `CheckModel`-i | ✔ |
+| **Põhitest**: näidis-PTS tühjast ruudustikust redaktori operatsioonidega (üks lohistamine silmuse jaoks, 7 objekti paletist, 5 punktiirühendust, 1 suunanool) → **samad lahtrid** kui `models/demo.fms.json`; pärast andmete lisamist sama `Enumerate`-i võrk ja **sama 8 h simulatsiooni aruanne** | ✔ |
+| **Brauseris** (käsitsi), EGA ja kaasaegne: silmus nelja lohistamisega (nurgad ise), puhver ja punktiir (hargnemine tekib), suunanool, Ctrl-Z / Ctrl-Y, Shift + nooltega rada koos pöördega, kustutamine lohistades, objekti liigutamine, kerimine (13 × 7 EGA-s 6 rida), View, „(muudetud)“ töölaual ja küsimus enne Load-i; konsoolis vigu pole | ✔ |
+
+**Leid.** Esimene versioon võttis lahtri olemasolevad küljed ikoonist. Siis muutus raja ots (sirge, millel üks külg on vaba) juurdejoonistamisel hargnemiseks, mitte kaareks. Parandus: arvesse lähevad ainult naabriga ühendatud küljed (`LinkedPorts`).
+

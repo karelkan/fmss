@@ -5,6 +5,7 @@ import { Texts, FormatText } from './fms_lng.js';
 import { EmptyModel, ModelSummary } from './fms_glb.js';
 import { Enumerate } from './fms_sim.js';
 import { StartAnimator, StopAnimator, ClockText } from './anima.js';
+import { EditLayout, ViewLayout, StopEditor } from './fms_ed.js';
 import { EnvironmentOptions, LoadOptions, SaveOptions } from './fms_opt.js';
 import {
   DemoModels, LoadDemoModel, ChooseLocalFile, SaveModel, RecentModels, RememberModel,
@@ -22,6 +23,7 @@ import {
 
 let CurrentModel = null;      // [U] laaditud mudel (DISAIN.md osa 8)
 let CurrentFile = '';         // [U] mudeli failinimi
+let MODEL_CHANGED = false;    // [U] mudelit on pärast laadimist / salvestamist muudetud
 let SPLASH_ACTIVE = false;    // [U] avaekraan on ees
 let SplashStart = 0;          // [U] avaekraani animatsiooni algus (ms)
 let SplashTimer = null;       // [U] avaekraani animatsiooni taimer
@@ -177,7 +179,7 @@ function DrawDesktop(theme, desktop) {
   if (CurrentModel) {
     const summary = ModelSummary(CurrentModel);
     rows.push([Texts.DesktopModelName, summary.Name || Texts.DesktopUntitled]);
-    rows.push([Texts.DesktopModelFile, CurrentFile || '—']);
+    rows.push([Texts.DesktopModelFile, (CurrentFile || '—') + (MODEL_CHANGED ? Texts.DesktopChanged : '')]);
     rows.push([Texts.DesktopModelGrid, FormatText(Texts.DesktopModelGridValue, summary.Dim)]);
     rows.push([Texts.DesktopModelCounts, FormatText(Texts.DesktopModelCountsValue, summary)]);
   } else {
@@ -209,10 +211,20 @@ function AcceptLoadedModel(result, text, fileName) {
     return;
   }
   StopAnimator();
+  StopEditor();
   CurrentModel = result.Model;
   CurrentFile = fileName;
+  MODEL_CHANGED = false;
   RememberModel(fileName, text);
   RequestRedraw();
+}
+
+// [U] ConfirmDiscard – kui mudel on salvestamata, küsib enne, kui see asendatakse.
+function ConfirmDiscard(action) {
+  if (!MODEL_CHANGED) { action(); return; }
+  MessageBox(Texts.ChangedTitle, [Texts.ChangedText], [Texts.ButtonYes, Texts.ButtonNo], (button) => {
+    if (button === 0) action();
+  });
 }
 
 function MenuLoad() {
@@ -240,8 +252,10 @@ function MenuPick() {
 
 function MenuNew() {
   StopAnimator();
+  StopEditor();
   CurrentModel = EmptyModel('');
   CurrentFile = '';
+  MODEL_CHANGED = false;
   RequestRedraw();
 }
 
@@ -249,6 +263,7 @@ function MenuSave() {
   if (!CurrentModel) return;
   if (!CurrentFile) { MenuWriteAs(); return; }
   SaveModel(CurrentModel, CurrentFile);
+  MODEL_CHANGED = false;
   MessageBox(Texts.MenuSave.replace('&', ''), [FormatText(Texts.SaveDone, { File: CurrentFile })]);
 }
 
@@ -259,6 +274,7 @@ function MenuWriteAs() {
     CurrentModel.Meta.Name = name.trim();
     CurrentFile = ModelFileName(name);
     SaveModel(CurrentModel, CurrentFile);
+    MODEL_CHANGED = false;
     MessageBox(Texts.WriteAsTitle, [FormatText(Texts.SaveDone, { File: CurrentFile })]);
   });
 }
@@ -293,6 +309,7 @@ function MenuSimulate() {
     return;
   }
   const model = CurrentModel;
+  StopEditor();
   StartAnimator({
     Model: structuredClone(model),
     Network: result.Network,
@@ -331,6 +348,28 @@ function SimSummaryLines(report, warnings) {
   for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });
   lines.push('', Texts.SimLater);
   return lines;
+}
+
+// =====================================================================
+// Redaktor (fms_ed.js)
+// =====================================================================
+
+// [O] MenuLayout – Edit → Layout: ruudustik ja ikoonid. Mudeli puudumisel alustatakse tühjaga.
+function MenuLayout() {
+  StopAnimator();
+  if (!CurrentModel) { CurrentModel = EmptyModel(''); CurrentFile = ''; MODEL_CHANGED = false; }
+  EditLayout({
+    Model: CurrentModel,
+    OnChange: () => { MODEL_CHANGED = true; },
+    OnExit: RequestRedraw,
+  });
+}
+
+// [O] MenuView – Edit → View: kogu mudel korraga.
+function MenuView() {
+  if (!CurrentModel) { MessageBox(Texts.MenuView.replace('&', ''), [Texts.SimNoModel]); return; }
+  StopAnimator();
+  ViewLayout({ Model: CurrentModel, OnExit: RequestRedraw });
 }
 
 // =====================================================================
@@ -376,9 +415,9 @@ function BuildMainMenu() {
   return [
     {
       Label: Texts.MenuFile, Hint: Texts.HintFile, Items: () => [
-        { Label: Texts.MenuLoad, Hint: Texts.HintLoad, Action: MenuLoad },
-        { Label: Texts.MenuPick, Hint: Texts.HintPick, Action: MenuPick },
-        { Label: Texts.MenuNew, Hint: Texts.HintNew, Action: MenuNew },
+        { Label: Texts.MenuLoad, Hint: Texts.HintLoad, Action: () => ConfirmDiscard(MenuLoad) },
+        { Label: Texts.MenuPick, Hint: Texts.HintPick, Action: () => ConfirmDiscard(MenuPick) },
+        { Label: Texts.MenuNew, Hint: Texts.HintNew, Action: () => ConfirmDiscard(MenuNew) },
         { Label: Texts.MenuSave, Hint: Texts.HintSave, Action: MenuSave, Enabled: modelLoaded() },
         { Label: Texts.MenuWriteAs, Hint: Texts.HintWriteAs, Action: MenuWriteAs, Enabled: modelLoaded() },
         { Separator: true },
@@ -390,8 +429,8 @@ function BuildMainMenu() {
     },
     {
       Label: Texts.MenuEdit, Hint: Texts.HintEdit, Items: () => [
-        NotYet(Texts.MenuLayout, 6),
-        NotYet(Texts.MenuView, 6),
+        { Label: Texts.MenuLayout, Hint: Texts.HintLayout, Action: MenuLayout },
+        { Label: Texts.MenuView, Hint: Texts.HintView, Action: MenuView, Enabled: modelLoaded() },
         NotYet(Texts.MenuConfig, 6, { Items: [NotYet(Texts.MenuConfigAll, 6), NotYet(Texts.MenuConfigChoose, 6)] }),
         NotYet(Texts.MenuTransport, 6, { Items: TrackItems }),
         NotYet(Texts.MenuWorkpieceData, 6, { Items: WorkpieceItems }),
@@ -437,8 +476,8 @@ function BuildMainMenu() {
 }
 
 function AskQuit() {
-  MessageBox(Texts.QuitTitle, [Texts.QuitText], [Texts.ButtonYes, Texts.ButtonNo], (button) => {
-    if (button === 0) ShowSplash();
+  MessageBox(Texts.QuitTitle, [MODEL_CHANGED ? Texts.ChangedText : Texts.QuitText], [Texts.ButtonYes, Texts.ButtonNo], (button) => {
+    if (button === 0) { StopEditor(); StopAnimator(); ShowSplash(); }
   });
 }
 

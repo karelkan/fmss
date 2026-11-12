@@ -438,10 +438,11 @@ function ObjectLabel(model, cell) {
 }
 
 // [U] DrawLayout – kogu ruudustik: taust, ruudustiku punktid, ikoonid.
-//     style.MachineRole(cell) – pingi värv olekust. Kutsub: Animator (ka redaktor, etapp 6).
+//     style.MachineRole(cell) – pingi värv olekust; style.Grid: false – ilma ruudustiku punktideta
+//     (View). Kutsub: Animator, redaktor (fms_ed.js).
 export function DrawLayout(theme, view, model, style = {}) {
   const { Dim: dim } = view;
-  for (let y = 0; y <= dim.Y; y++) {
+  for (let y = 0; style.Grid !== false && y <= dim.Y; y++) {
     for (let x = 0; x <= dim.X; x++) {
       const point = ToScreen(view, { X: x, Y: y });
       theme.FillRect(Math.round(point.X), Math.round(point.Y), 1, 1, 'LayoutGrid');

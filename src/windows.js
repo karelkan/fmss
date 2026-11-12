@@ -92,9 +92,9 @@ export function SetDesktop(painter, menu) {
 }
 
 // [U] SetDesktopView – töölaua vaade, mis asendab töölaua joonistaja (animaator); null = tagasi.
-//     view: Painter(theme, desktop); Input({ Kind: 'key' | 'down' | 'move' | 'up' | 'wheel', Name, Point,
-//     Delta }) → true / 'capture' / false; StatusKeys(theme) – olekurea klahvid; StatusHint() – vihje.
-//     Kutsub: anima.js.
+//     view: Painter(theme, desktop); Input({ Kind: 'key' | 'down' | 'move' | 'up' | 'wheel', Name, Shift,
+//     Point, Delta }) → true / 'capture' / false; StatusKeys(theme) – olekurea klahvid; StatusHint() – vihje.
+//     Kutsub: anima.js, fms_ed.js.
 export function SetDesktopView(view) {
   DesktopView = view;
   POINTER_CAPTURED = false;
@@ -535,8 +535,10 @@ function HandleDialogPointer(dialog, point) {
 
 // [U] KeyName – klahvi nimi: 'F2', 'Alt-X', 'Enter', 'a' …
 //     Alt + täht loetakse klahvi asukohast (Macis annab Option + täht muu märgi).
+//     Ctrl (Macis ka Cmd) + täht → 'Ctrl-Z' (redaktori Undo).
 function KeyName(event) {
   if (event.altKey && /^Key[A-Z]$/.test(event.code)) return `Alt-${event.code.slice(3)}`;
+  if ((event.ctrlKey || event.metaKey) && /^Key[A-Z]$/.test(event.code)) return `Ctrl-${event.code.slice(3)}`;
   return event.key;
 }
 
@@ -566,8 +568,8 @@ function HandleKeyDown(event) {
       if (!MenuItems(MainMenu[index])) ChooseMenuItem(0);
       handled = true;
     }
-  } else if (DesktopView?.Input && !event.ctrlKey && !event.metaKey) {
-    handled = Boolean(DesktopView.Input({ Kind: 'key', Name: name }));
+  } else if (DesktopView?.Input && (name.startsWith('Ctrl-') || (!event.ctrlKey && !event.metaKey))) {
+    handled = Boolean(DesktopView.Input({ Kind: 'key', Name: name, Shift: event.shiftKey }));
   }
   if (handled || DialogStack.length || MENU_ACTIVE) event.preventDefault();
 }

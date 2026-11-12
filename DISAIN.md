@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Osa 11 (AGV-d) on veel valideerimata.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15. Osa 11 (AGV-d) on veel valideerimata.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -614,6 +614,28 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | abiprotseduurid ja konstandid | `StepSimulation`, `CheckFinished`, `ScheduleFrame`, `WakeAnimator`, `ToggleRun`, `StepOnce`, `NextEvent`, `SetSpeed`, `ToggleMax`, `StopRun`, `ExitAnimator`, `SlotPoint`, `QueuePoint`, `DrawWorkpiece`, `DrawBufferSlots`, `DrawStorages`, `DrawSpindle`, `DrawMachineLetters`, `DrawTrackIcon`, `DrawDirectionArrow`, `MACHINE_ROLES`, `MACHINE_LINK_SIDES` jt – vt päisekommentaarid | [U] |
 | teema primitiivid | `Line`, `Ellipse`, `Polygon`, `StrokeRect`, `RoundRect`, `Clip`, `Alpha`, `Slider` (teema meetodid); EGA-s `EgaLine`, `EgaArc`, `EgaFillEllipse`, `EgaFillPolygon` | [U] |
 
+**Redaktor** (`src/fms_ed.js`, etapp 6, osa 15)
+
+| Nimi | Roll | |
+|---|---|---|
+| `EditLayout`, `ViewLayout` | Layout (ruudustik ja palett); View (kogu mudel ilma ruudustikuta) | [O] / [U] |
+| `MenuLayout`, `MenuView` | Edit → Layout, Edit → View (`fms.js`) | [O] |
+| `StopEditor`, `EditorActive`, `ExitEditor`, `EditState` | sulgemine (uus mudel, Simulate); kas avatud; Esc; redaktori olek (`null` – suletud) | [U] |
+| `MODEL_CHANGED`, `ConfirmDiscard` | mudel on salvestamata; küsimus enne Load / Pick / New (`fms.js`) | [U] |
+| `OPERATIONS` | tööpinkide operatsioonid (tabel 4.2) – valikud redaktoris (`fms_glb.js`) | [O] |
+| `PALETTE`, `PaletteTool` | ikoonipalett (tööriistad + originaali ikoonid); mida punkt teeb | [U] |
+| `MAX_LAYOUT_DIM`, `UNDO_LIMIT` | ruudustik kuni 41 × 23 (originaali View); Undo samme 100 | [O] / [U] |
+| `CellPorts`, `LinkedPorts`, `PortLinked`, `IsDotTarget` | raja küljed ikoonis; naabriga ühendatud küljed; kas punktiir võib lõppeda objektiga | [T] / [U] |
+| `IconFromPorts`, `SetCellPorts` | automaatne ikoonivalik külgedest; lahtri ikoon uute külgede järgi | [U] |
+| `LaySegment`, `LayPath`, `CellSteps`, `DirectionBetween`, `ExtendDragPath` | lõik kahe lahtri vahel; rada mööda teed; vahelahtrid; naabri suund; lohistamise tee (tagasi = lõik kaob) | [U] |
+| `PlaceIcon`, `EraseCell`, `MoveCell`, `CycleDirection` | ikoon paletist (originaali klõps); kustutamine; liigutamine; suunanool | [O] / [U] |
+| `ResizeLayout`, `CellsOutside`, `ParseDim` | ruudustiku mõõdud; välja jäävad ikoonid; „13 x 7“ | [U] |
+| `EnsureTrack`, `AddObject`, `DropUnusedObject`, `CleanEdgeLengths`, `UniqueName` | uus rada; uus pink / puhver; viimase ikooniga kaovad andmed ja numbrid nihkuvad; metrokaardi pikkuste puhastus; MT1, MT2 … | [U] |
+| `RestoreModel`, `BeginChange`, `CommitChange`, `UndoEdit`, `RedoEdit`, `ModelEdited` | mudeli sisu asendus (sama objekt); Undo / Redo | [U] |
+| `EditorLayout`, `LayoutPainter`, `ViewPainter`, `DrawBufferKind` | akna osad (infurida, ruudustik, palett); joonistajad; puhvri liigi märk | [U] |
+| `LayoutInput`, `LayoutKey`, `LayoutHint`, `ClickCell`, `StepWithTool`, `DragTo`, `FinishDrag`, `AskGridSize` | hiir ja klahvid; olekurea vihje; klõps; Shift + nool; lohistamine; ruudustiku suurus | [U] |
+| abiprotseduurid ja konstandid | `LayoutGrid`, `InsideGrid`, `CellAt`, `SegmentEnd`, `ClampCursor`, `ClampScroll`, `GridView`, `CellUnder`, `ScrollArrows`, `DrawToolGlyph`, `DrawPaletteItem`, `DEFAULT_TRACK`, `DEFAULT_MACHINE`, `DEFAULT_BUFFER`, `DEFAULT_STORAGE` – vt päisekommentaarid | [U] |
+
 ---
 
 ## 13. Kasutajaliides (etapp 3) **[O + U]**
@@ -657,3 +679,22 @@ EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 v�
 **Ainult kaasaegses välimuses** **[U]**:
 - **Event List riba**: ajatelg (logaritmiline, nüüd … 1 h) alates nähtavast ajast; sündmused kaartidena (värv tüübi järgi, nt `Load WP12`), sama aja sündmused ühes veerus FIFO järjekorras (3 rida, ülejäänu „+n“). Lisandunud kaart libiseb kohale, töödeldud kaob vasakule (`DiffEventList` – kirjeid võrreldakse viite järgi). Kaardile osutades tõstetakse esile seotud pink / puhver / jaam / alus / detail ja olekureale tuleb sündmuse aeg. `L` – ahelloendi vaade (kastid `Event`, `WP`, `Time` ja `Next`-nooled, `FirstAtMoment` … `nil`). Kiirusel üle ×50 ja max-režiimis ainult arvud.
 - Pingi spindel pöörleb töötlemisel, häälestusel pöörleb aeglaselt hammasratas.
+
+---
+
+## 15. Redaktor (etapp 6) **[O + U]**
+
+Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 × 4 ikooni, ruudustik), all ikoonipalett; ikoon valitakse paletist hiirega ja pannakse ruudule; servades kerimisnooled. `View` – sama väiksemas mõõtkavas (41 × 23), ilma ruudustikuta. Teostus: `src/fms_ed.js`.
+
+**Layout** **[O + U]**
+- Aken: infurida (mudel, ruudustik, aktiivne rada, kursor), ruudustik ja palett. EGA-s ikoon 48 × 35 nagu animaatoris; nähtav osa sõltub ekraanist (EGA-s 13 × 6), ülejäänu kerimisnoolte, hiire ratta või kursoriga. Kaasaegses välimuses on ikoon nii suur, kui ruumi on (36 … 72 pikslit).
+- **Palett** **[O]**: kõik originaali ikoonid (joon. 5.4) + punktiirühendus + tööriistad (vali / liiguta, kustuta, suunanool). Klõps paneb **täpselt valitud ikooni** (originaali moodi).
+- **Rada lohistades** **[U]**: rajaikooni või punktiiri tööriistaga lohistades saab iga lahter küljed, kust rada sisse ja välja läheb, ja ikoon valitakse külgedest (`IconFromPorts`): kaks külge – sirge või kaar, kolm – hargnemine, neli – ristmik. Arvesse lähevad ainult **ühendatud** küljed (`LinkedPorts`) – seepärast saab raja otsast pöörata (ots muutub kaareks, mitte hargnemiseks). Kiire hiire korral täidetakse vahele jäävad lahtrid (`CellSteps`); tagasi liikudes kaob viimane lõik (tee arvutatakse iga kord algseisust uuesti). Klaviatuuril sama: Shift + nool kursorist.
+- **Reeglid** (sama mis `Enumerate`-s): pidev rada ei lähe objekti ega punktiiri sisse; punktiir lõpeb puhvri, lao või väljundiga ja liitub ainult raja **sirgega risti** – nii tekib hargnemine (jaam); punktiir ei hargne. Mittesobiv lõik jääb tegemata ja olekureal on teade.
+- **Objektid**: pink ja puhver saavad paigutamisel uue kirje vaikeväärtustega (pink `MT1` …, esimene operatsioon `OPERATIONS`-ist). Sama liiki ikoon samas lahtris muudab ainult ikooni (objekt ja andmed jäävad). `ToCS` loob kesklao andmed, kui neid polnud.
+- **Kustutamine**: naabruses olev hargnemine / ristmik kaotab selle poole haru. Pingi või puhvri viimase ikooniga kaovad ka tema andmed ja järgmiste numbrid (`N`, `BUFn`) nihkuvad – pinkide nimed jäävad. **Rajad jäävad alles** (rada joonistatakse tihti ümber; rada kustutatakse Transport-menüüst). Metrokaardi pikkus (`EdgeLengths`), mille lahter pole enam rada, kaob.
+- **Suunanool** **[O]**: klõps raja sirgel või kaarel – puudub → üks suund → teine → puudub. Kui ikoon muutub (nt sirgest saab hargnemine), kaob nool, mis enam ei sobi.
+- **Muu**: vali / liiguta – lohista ikoon tühja lahtrisse; `T` – aktiivne rada (uute rajaikoonide `N`; viimane valik on uus rada); `G` – ruudustiku mõõdud (kuni 41 × 23, välja jäävad ikoonid kustutatakse küsimusega); Ctrl-Z / Ctrl-Y – Undo / Redo (100 sammu, kogu mudeli hetktõmmised); Esc – töölauale.
+- Mudel muutub kohapeal (`CurrentModel`). Salvestamata muudatus on töölaual näha ja Load / Pick / New / Quit küsivad enne kinnitust (`ConfirmDiscard`).
+
+**View** **[O]**: kogu mudel korraga, ilma ruudustiku punktideta; ainult vaatamiseks (Esc).

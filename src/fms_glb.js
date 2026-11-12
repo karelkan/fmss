@@ -67,6 +67,10 @@ export const MODEL_VERSION = 1;              // [U] mudelifaili vorming (Meta.Ve
 export const MAX_WORKPIECE_TYPES = 16;       // [O] detailitüüpe kõige rohkem (lk 33)
 export const TRACK_MODES = ['Continuous', 'Discrete'];       // [O] pidev / diskreetne rada
 export const BUFFER_DISCIPLINES = ['FIFO', 'FILO', 'RANDOM']; // [O] puhvri distsipliin
+// [O] OPERATIONS – tööpinkide operatsioonid (tabel 4.2, originaal.md 2.2). Simulatsioonile on
+//     oluline ainult see, et need on erinevad; redaktor pakub neid valikuks (uus pink saab esimese).
+export const OPERATIONS = ['treimine', 'puurimine', 'sisetreimine', 'freesimine', 'lihvimine',
+  'kammlõikamine', 'hambalõikamine', 'erosioontöötlus', 'pesemine', 'mõõtmine'];
 
 // =====================================================================
 // Mudel
