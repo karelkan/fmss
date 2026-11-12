@@ -414,6 +414,20 @@ Lisaks:
 - **Keel**: nimed inglise keeles nagu originaalis; kommentaarid ja kasutajale nähtavad tekstid eesti keeles (tekstid failis `fms_lng.js`).
 - **Ühikud** on välja nimes, kui need pole ilmsed: `LoadTime` (s), `Speed` (cm/s), `Length` (cm) on dokumenteeritud siin; uutel väljadel lisatakse ühik nimesse, kui see on teine (nt `DelayMinutes`).
 - **Iga globaalse protseduuri ees** on lühike kommentaar: mida teeb, kes kutsub, milliseid sündmusi lisab.
+- **Päritolu tunnus** on päisekommentaari esimene märk, mitte nime osa (staatus võib muutuda, nimi ei muutu). Tunnused on samad mis selles dokumendis: `[O]`, `[T]`, `[U]`, `[O nimi, U sisu]`. Globaalsetel andmetel on tunnus deklaratsiooni real (`fms_glb.js`). Kõik uued asjad leiab käsuga `grep -rn "// \[U" .`
+
+```js
+// [O] FindMach – leiab sobivaima tööpingi detaili järgmisele operatsioonile.
+//     Kutsub: Planner. Sündmusi ei lisa.
+function FindMach(workpiece) { … }
+
+// [U] ReserveSlot – broneerib puhvri koha enne detaili teelesaatmist.
+//     Kutsub: Planner, FindMach. Sündmusi ei lisa.
+function ReserveSlot(buffer, direction) { … }
+
+let FirstAtMoment = null;   // [O] viit Event Listi esimesele kirjele
+let EdgeArray = [];         // [U] rajavõrgu lõigud
+```
 - **Iga uus globaalne nimi** lisatakse allolevasse sõnastikku koos märkega [O] / [T] / [U].
 
 ### 12.2 Sõnastik – globaalsed nimed
