@@ -10,11 +10,11 @@ Kolm osa:
 2. **Simulaator** – diskreetsündmuste simulatsioon; sündmused ajaliselt järjestatud ahelloendis `event_list` (kirje: viide järgmisele, sündmuse aeg, parameetrid).
 3. **Visualiseerija** – 2D vaade lihtsate ikoonidega.
 
-Originaali täpne kirjeldus: [originaal.md](originaal.md).
+Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomitöö (TTÜ 1993, mittelõplik versioon, lisad puuduvad): [docs/skaneeringud/](docs/skaneeringud/).
 
 ## Seis
 
-- [ ] Originaaldokumendi ümberkirjutus (`originaal.md`)
+- [x] Originaaldokumendi ümberkirjutus (`originaal.md`)
 - [ ] Teostusplaan ja tehnoloogia valik
 - [ ] Simulaatori tuum
 - [ ] Editor
