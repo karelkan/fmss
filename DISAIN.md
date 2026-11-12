@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15. Osa 11 (AGV-d) on veel valideerimata.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Osa 11 (AGV-d) on veel valideerimata.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -84,7 +84,7 @@ Etapis 4 toetab `Enumerate` **ühte suletud pidevat konveierit**. Mitu rada, kon
 | 1. topoloogia pole suletud | rada katkeb, ikoonid ei sobi kokku, punktiirühendus ei vii objektini / pole rajaga ühendatud | viga |
 | 2. pidevatel radadel on harusid | haru, mis pole punktiirühendus; ristmik | viga |
 | 3. kesklaos liiga vähe kohti | `Capacity ≤ ParkingReserve` | hoiatus |
-| 4. pingid ei tee marsruudi operatsioone | operatsiooni ei tee ükski pink (`CheckModel`) või ükski **joonisel olev** pink | viga |
+| 4. pingid ei tee marsruudi operatsioone | operatsiooni ei tee ükski **joonisel olev** pink (`FindConflicts`; etapist 6 mitte enam `CheckModel`-is, et redaktoris pooleli mudel jääks salvestatavaks) | viga |
 | 5. pideval rajal pole suunda | noolt pole; nooled vastuolus | viga |
 | 6. radadel rohkem kohti kui puhvrites | `Carts × PlacesPerCart > Σ Capacity` | hoiatus |
 | 7. puhvrid järjestikku | puhver vahetult teise puhvri kohal | viga |
@@ -552,7 +552,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `PickupCandidate` | jaamas alust ootav detail | [U] |
 | `FromCSQueue` | FromCS jaamas ootavad detailid | [T] |
 | `ProcAllEvents` | sisetsükkel: kõik käesoleva hetke sündmused | [U] |
-| `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, viited) | [U] |
+| `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, piirid, viited); kasutavad ka redaktori vormid | [U] |
 | `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
 | abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationDistance`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
 | `Animator`, `SimStatus`, `Transport` | kuvamine: pinkide, puhvrite ja ladude seis; üldseis ühe reana; alused ja detailid (`anima.js`, osa 14) | [O] |
@@ -634,6 +634,18 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `RestoreModel`, `BeginChange`, `CommitChange`, `UndoEdit`, `RedoEdit`, `ModelEdited` | mudeli sisu asendus (sama objekt); Undo / Redo | [U] |
 | `EditorLayout`, `LayoutPainter`, `ViewPainter`, `DrawBufferKind` | akna osad (infurida, ruudustik, palett); joonistajad; puhvri liigi märk | [U] |
 | `LayoutInput`, `LayoutKey`, `LayoutHint`, `ClickCell`, `StepWithTool`, `DragTo`, `FinishDrag`, `AskGridSize` | hiir ja klahvid; olekurea vihje; klõps; Shift + nool; lohistamine; ruudustiku suurus | [U] |
+| `DeleteTrack`, `SegmentCells`, `EdgeLengthOf`, `SetEdgeLength` | raja kustutamine (ikoonid + andmed, numbrid nihkuvad); lõik hargnemiste vahel; metrokaardi pikkus | [U] |
+| `ModelProblems`, `ProblemCell`, `ProblemsText` | vead ja hoiatused (`CheckModel`, siis `Enumerate`); veateate lahter joonisel; infurea arvud | [U] |
+| `NoteEditorChange`, `SetEditorCursor`, `EditorCursorRect` | vormi muudatus Layout-i Undo-sse; kursor objektile; kursori ala (vorm ei kata seda) | [U] |
+| `EditConfig`, `EditMachTool`, `EditBuffer`, `EditStorageData`, `EditTransportSystem`, `EditWorkpieceData` | objekti andmed vormis (`fms_ed_data.js`, originaali `FMS_ED1.PAS` protseduurid) | [O] |
+| `EditModelData`, `EditRoute`, `RouteList`, `RouteText`, `RouteFields`, `ReadRouteDraft` | mudeli üldandmed (nimi, mõõtkava, `Sim`); marsruut (operatsioonide tabel); marsruutide nimekiri ja rida | [U] |
+| `NewWorkpiece`, `CopyWorkpiece`, `FlushWorkpiece` | uus detailitüüp; Copy; Flush | [U] / [O] / [O] |
+| `ConfigAllCells`, `KnownOperations` | Config → All järjekord; operatsioonide valik (pinkide omad, `OPERATIONS`, marsruutide omad) | [U] |
+| `SubmitModelForm`, `FormValues`, `ParseNumber`, `NumberText`, `ModelForm`, `Done` | vormi kontroll `CheckModel`-iga mudeli koopial ja rakendamine; väärtused; arv ↔ tekst (koma); tavaline vorm; sulgemine | [U] |
+| `ProblemLines`, `ShowProblems`, `SHOWN_PROBLEMS` | Edit → Check / Layout-is K: vead ja hoiatused nimekirjas, valik viib kohale | [U] |
+| `MenuConfigAll`, `MenuConfigChoose`, `MenuCheck`, `NoteChange`, `FormContext` | Config (`fms.js`); Check; vormi muudatus (Undo, „muudetud“); vormi kontekst | [O] / [O] / [U] / [U] / [U] |
+| `MenuNewTrack`, `MenuNewWorkpiece`, `MenuCopyWorkpiece`, `MenuFlushWorkpiece`, `ItemNumber` | Transport → Uus rada; Workpiece data → Uus / Copy / Flush; menüü number 1 … 9, A … | [U] |
+| `FormBox`, `FormLayout`, `DrawForm`, `HandleFormKey`, `HandleFormPointer`, `PressFormButton`, `ChangeField`, `FieldWidth`, `LabelWidth`, `FieldText` | vormidialoog (`windows.js`): tekst, arv, valik, märkeruut, silt; Tab / nooled / hiir; vead välja juures; koht nii, et objekt jääb näha | [U] |
 | abiprotseduurid ja konstandid | `LayoutGrid`, `InsideGrid`, `CellAt`, `SegmentEnd`, `ClampCursor`, `ClampScroll`, `GridView`, `CellUnder`, `ScrollArrows`, `DrawToolGlyph`, `DrawPaletteItem`, `DEFAULT_TRACK`, `DEFAULT_MACHINE`, `DEFAULT_BUFFER`, `DEFAULT_STORAGE` – vt päisekommentaarid | [U] |
 
 ---
@@ -698,3 +710,12 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 - Mudel muutub kohapeal (`CurrentModel`). Salvestamata muudatus on töölaual näha ja Load / Pick / New / Quit küsivad enne kinnitust (`ConfirmDiscard`).
 
 **View** **[O]**: kogu mudel korraga, ilma ruudustiku punktideta; ainult vaatamiseks (Esc).
+
+**Andmed vormides** (`src/fms_ed_data.js`, etapp 6b) **[O + U]**
+- **Config** **[O]**: *All* – kõik objektid joonisel järjest (pingid, puhvrid, rada, keskladu; ülevalt alla), objekt on Layout-is esile tõstetud ja vorm avaneb ekraani all – või üleval, kui all kataks objekti (`FormBox` `Avoid`). OK → järgmine, Loobu / Esc lõpetab. *Choose* – Layout tööriistaga „vali“: klõps või Enter objektil avab selle vormi.
+- **Vormid**: tööpink (nimi, mudel, ajad, operatsioonid märkeruutudega + uus), puhver (kohad, pöördusmeetod, aeg), keskladu (kas on, kohad, aeg), rada (tabel 4.1; raja lahtrist avades ka **lõigu pikkus** – metrokaart, tühi = mõõtkavast), detail (nimi, prioriteet, partii) → **marsruudid** (nimekiri + uus) → marsruut (prioriteet ja operatsioonide tabel: operatsioon, keskmine, kõrvalekalle; + op / − op / Kustuta), **Model data** [U] (nimi, mõõtkava, seeme, kestus, Kl, seisu piir).
+- **Kontroll** [U]: vormi väärtused pannakse mudeli koopiasse ja kontrollitakse sama `CheckModel`-iga, mis faili laadimisel; vead on välja juures (silt punane, teade vormi all). Arvus sobib koma ja punkt.
+- **Menüüd**: Transport – rajad + *Uus rada*; vormis *Kustuta rada* (ikoonid ja andmed, järgmiste numbrid nihkuvad). Workpiece data – detailid → *Edit* / *Copy* / *Flush* + *Uus detail* (kuni 16). Storage data, Model data.
+- **Andmekontroll ja hoiatused** [U]: Layout-i infureal on vigade ja hoiatuste arv (`ModelProblems`: `CheckModel`, siis `Enumerate`; arvutatakse iga muudatuse järel). **K** või Edit → **Check** näitab nimekirja; Enter viib vea kohale joonisel (`ProblemCell`: lahter, pink, puhver või rada).
+- **Pooleli mudel jääb salvestatavaks**: „operatsiooni ei tee ükski pink“ on nüüd ainult `Enumerate`-i viga (osa 2.2) – muidu muutuks mudel pärast pingi kustutamist laadimatuks.
+- Vormi muudatus läheb Layout-i Undo-sse (`NoteEditorChange`) ja märgib mudeli muudetuks.

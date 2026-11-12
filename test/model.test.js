@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { CheckModel, EmptyModel, IconTypes, MAX_WORKPIECE_TYPES } from '../src/fms_glb.js';
 import { ParseModelText, ModelFileName } from '../src/fms_file.js';
+import { Enumerate } from '../src/fms_sim.js';
 import { Texts, FormatText } from '../src/fms_lng.js';
 
 const ROOT = new URL('../', import.meta.url);
@@ -66,10 +67,12 @@ test('lahtrid: ruudustikust väljas, topelt, vale ikoon, puuduv objekt', () => {
   assertError(model, `Layout.Cells[${count}].N`);
 });
 
-test('operatsioon, mida ükski pink ei tee, leitakse', () => {
+test('operatsioon, mida ükski pink ei tee: fail on korras, viga annab Enumerate (etapp 6)', () => {
   const model = demo();
   model.Workpieces[1].Routes[0].Ops[0].Op = 'lihvimine';
-  assertError(model, 'Workpieces[2].Routes[1].Ops[1].Op');
+  assert.deepEqual(CheckModel(model), []);
+  const result = Enumerate(model);
+  assert.ok(result.Errors.some((error) => error.Path === 'Workpieces[2].Routes[1].Ops[1].Op'), JSON.stringify(result.Errors));
 });
 
 test(`detailitüüpe kõige rohkem ${MAX_WORKPIECE_TYPES}`, () => {

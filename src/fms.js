@@ -2,10 +2,14 @@
 // Vastab originaali moodulile FMS.PAS. Menüü: originaali joon. 6.1–6.2 (originaal.md 8.1).
 
 import { Texts, FormatText } from './fms_lng.js';
-import { EmptyModel, ModelSummary } from './fms_glb.js';
+import { EmptyModel, ModelSummary, MAX_WORKPIECE_TYPES } from './fms_glb.js';
 import { Enumerate } from './fms_sim.js';
 import { StartAnimator, StopAnimator, ClockText } from './anima.js';
-import { EditLayout, ViewLayout, StopEditor } from './fms_ed.js';
+import { EditLayout, ViewLayout, StopEditor, EnsureTrack, NoteEditorChange, SetEditorCursor, EditorCursorRect } from './fms_ed.js';
+import {
+  EditConfig, ConfigAllCells, EditTransportSystem, EditWorkpieceData, NewWorkpiece, CopyWorkpiece, FlushWorkpiece,
+  EditStorageData, EditModelData, ShowProblems,
+} from './fms_ed_data.js';
 import { EnvironmentOptions, LoadOptions, SaveOptions } from './fms_opt.js';
 import {
   DemoModels, LoadDemoModel, ChooseLocalFile, SaveModel, RecentModels, RememberModel,
@@ -355,13 +359,92 @@ function SimSummaryLines(report, warnings) {
 // =====================================================================
 
 // [O] MenuLayout – Edit → Layout: ruudustik ja ikoonid. Mudeli puudumisel alustatakse tühjaga.
-function MenuLayout() {
+//     tool – algne tööriist ('Select' – Config → Choose); kui Layout on juba avatud, jääb Undo alles.
+function MenuLayout(tool = undefined, message = '') {
   StopAnimator();
   if (!CurrentModel) { CurrentModel = EmptyModel(''); CurrentFile = ''; MODEL_CHANGED = false; }
   EditLayout({
     Model: CurrentModel,
-    OnChange: () => { MODEL_CHANGED = true; },
+    Tool: tool,
+    Message: message,
+    OnChange: () => { MODEL_CHANGED = true; RequestRedraw(); },
     OnExit: RequestRedraw,
+    OnEditCell: (cell) => EditConfig(CurrentModel, cell, FormContext()),
+    OnCheck: MenuCheck,
+  });
+}
+
+// [U] NoteChange – vorm muutis mudelit: Layout-i Undo ja kontroll, „muudetud“ töölaual.
+function NoteChange(before) {
+  if (JSON.stringify(CurrentModel) === before) return;
+  if (!NoteEditorChange(CurrentModel, before)) MODEL_CHANGED = true;
+  RequestRedraw();
+}
+
+// [U] FormContext – vormide ühine kontekst (fms_ed_data.js): muudatuse teade; Layout-is
+//     ei kata vorm valitud objekti.
+function FormContext(extra = {}) {
+  return { OnChange: NoteChange, Avoid: EditorCursorRect(), ...extra };
+}
+
+// [O] MenuConfigAll – Config → All: kõik objektid joonisel järjest; objekt on Layout-is esile
+//     tõstetud ja vorm avaneb ekraani all (või üleval, kui objekt on all). Loobu / Esc lõpetab.
+function MenuConfigAll() {
+  MenuLayout('Select');
+  const cells = ConfigAllCells(CurrentModel);
+  const step = (index) => {
+    if (index >= cells.length) return;
+    const cell = cells[index];
+    SetEditorCursor(cell.X, cell.Y);
+    EditConfig(CurrentModel, cell, FormContext({ Then: (saved) => { if (saved) step(index + 1); } }));
+  };
+  step(0);
+}
+
+// [O] MenuConfigChoose – Config → Choose: Layout tööriistaga „vali“; klõps / Enter avab andmed.
+function MenuConfigChoose() {
+  MenuLayout('Select', Texts.EdChooseHint);
+}
+
+// [U] MenuCheck – Edit → Check: vead ja hoiatused; valik viib Layout-is vea kohale.
+function MenuCheck() {
+  if (!CurrentModel) return;
+  ShowProblems(CurrentModel, (cell) => {
+    MenuLayout();
+    SetEditorCursor(cell.X, cell.Y);
+  });
+}
+
+function MenuNewTrack() {
+  const before = JSON.stringify(CurrentModel);
+  EnsureTrack(CurrentModel, CurrentModel.Tracks.length + 1);
+  NoteChange(before);
+  EditTransportSystem(CurrentModel, CurrentModel.Tracks.length, FormContext());
+}
+
+function MenuNewWorkpiece() {
+  const before = JSON.stringify(CurrentModel);
+  const number = NewWorkpiece(CurrentModel);
+  if (number === null) { MessageBox(Texts.MenuWorkpieceData.replace('&', ''), [FormatText(Texts.FormMaxWorkpieces, { Max: MAX_WORKPIECE_TYPES })]); return; }
+  NoteChange(before);
+  EditWorkpieceData(CurrentModel, number, FormContext());
+}
+
+function MenuCopyWorkpiece(number) {
+  const before = JSON.stringify(CurrentModel);
+  const copy = CopyWorkpiece(CurrentModel, number);
+  if (copy === null) { MessageBox(Texts.MenuWorkpieceData.replace('&', ''), [FormatText(Texts.FormMaxWorkpieces, { Max: MAX_WORKPIECE_TYPES })]); return; }
+  NoteChange(before);
+  EditWorkpieceData(CurrentModel, copy, FormContext());
+}
+
+function MenuFlushWorkpiece(number) {
+  const name = CurrentModel.Workpieces[number - 1].Name;
+  MessageBox(Texts.MenuWorkpieceData.replace('&', ''), [FormatText(Texts.FormFlushAsk, { Name: name })], [Texts.ButtonYes, Texts.ButtonNo], (button) => {
+    if (button !== 0) return;
+    const before = JSON.stringify(CurrentModel);
+    FlushWorkpiece(CurrentModel, number);
+    NoteChange(before);
   });
 }
 
@@ -392,21 +475,36 @@ function NoDisk(label) {
   return { Label: label, Hint: Texts.HintNoDisk, Enabled: false };
 }
 
+// Menüü numbrid: 1 … 9, siis A, B … (kiirklahv).
+const ItemNumber = (i) => (i < 9 ? String(i + 1) : String.fromCharCode(65 + i - 9));
+
 function TrackItems() {
-  const tracks = CurrentModel ? CurrentModel.Tracks : [];
-  if (tracks.length === 0) return [{ Label: Texts.NoTracks, Enabled: false }];
-  return tracks.map((track, i) => NotYet(`&${i + 1} ${track.Name}`, 6));
+  const tracks = CurrentModel.Tracks;
+  return [
+    ...tracks.map((track, i) => ({
+      Label: `&${ItemNumber(i)} ${track.Name}`, Hint: Texts.HintTrack,
+      Action: () => EditTransportSystem(CurrentModel, i + 1, FormContext()),
+    })),
+    ...(tracks.length ? [{ Separator: true }] : []),
+    { Label: Texts.MenuNewTrack, Hint: Texts.HintNewTrack, Action: MenuNewTrack },
+  ];
 }
 
 function WorkpieceItems() {
-  const workpieces = CurrentModel ? CurrentModel.Workpieces : [];
-  if (workpieces.length === 0) return [{ Label: Texts.NoWorkpieces, Enabled: false }];
-  return workpieces.map((workpiece, i) => ({
-    Label: `&${i + 1} ${workpiece.Name}`,
-    Hint: FormatText(Texts.HintNotYet, { Stage: 6 }),
-    Dim: true,
-    Items: [NotYet(Texts.MenuWpEdit, 6), NotYet(Texts.MenuWpCopy, 6), NotYet(Texts.MenuWpFlush, 6)],
-  }));
+  const workpieces = CurrentModel.Workpieces;
+  return [
+    ...workpieces.map((workpiece, i) => ({
+      Label: `&${ItemNumber(i)} ${workpiece.Name}`,
+      Hint: Texts.HintWorkpiece,
+      Items: [
+        { Label: Texts.MenuWpEdit, Hint: Texts.HintWpEdit, Action: () => EditWorkpieceData(CurrentModel, i + 1, FormContext()) },
+        { Label: Texts.MenuWpCopy, Hint: Texts.HintWpCopy, Action: () => MenuCopyWorkpiece(i + 1) },
+        { Label: Texts.MenuWpFlush, Hint: Texts.HintWpFlush, Action: () => MenuFlushWorkpiece(i + 1) },
+      ],
+    })),
+    ...(workpieces.length ? [{ Separator: true }] : []),
+    { Label: Texts.MenuNewWorkpiece, Hint: Texts.HintNewWorkpiece, Action: MenuNewWorkpiece },
+  ];
 }
 
 // [O] BuildMainMenu – peamenüü (originaal.md 8.1).
@@ -429,12 +527,20 @@ function BuildMainMenu() {
     },
     {
       Label: Texts.MenuEdit, Hint: Texts.HintEdit, Items: () => [
-        { Label: Texts.MenuLayout, Hint: Texts.HintLayout, Action: MenuLayout },
+        { Label: Texts.MenuLayout, Hint: Texts.HintLayout, Action: () => MenuLayout() },
         { Label: Texts.MenuView, Hint: Texts.HintView, Action: MenuView, Enabled: modelLoaded() },
-        NotYet(Texts.MenuConfig, 6, { Items: [NotYet(Texts.MenuConfigAll, 6), NotYet(Texts.MenuConfigChoose, 6)] }),
-        NotYet(Texts.MenuTransport, 6, { Items: TrackItems }),
-        NotYet(Texts.MenuWorkpieceData, 6, { Items: WorkpieceItems }),
-        NotYet(Texts.MenuStorageData, 6),
+        {
+          Label: Texts.MenuConfig, Hint: Texts.HintConfig, Enabled: modelLoaded(), Items: [
+            { Label: Texts.MenuConfigAll, Hint: Texts.HintConfigAll, Action: MenuConfigAll },
+            { Label: Texts.MenuConfigChoose, Hint: Texts.HintConfigChoose, Action: MenuConfigChoose },
+          ],
+        },
+        { Label: Texts.MenuTransport, Hint: Texts.HintTransport, Enabled: modelLoaded(), Items: TrackItems },
+        { Label: Texts.MenuWorkpieceData, Hint: Texts.HintWorkpieceData, Enabled: modelLoaded(), Items: WorkpieceItems },
+        { Label: Texts.MenuStorageData, Hint: Texts.HintStorageData, Enabled: modelLoaded(), Action: () => EditStorageData(CurrentModel, FormContext()) },
+        { Label: Texts.MenuModelData, Hint: Texts.HintModelData, Enabled: modelLoaded(), Action: () => EditModelData(CurrentModel, FormContext()) },
+        { Separator: true },
+        { Label: Texts.MenuCheck, Hint: Texts.HintCheck, Enabled: modelLoaded(), Action: MenuCheck },
       ],
     },
     {

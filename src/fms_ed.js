@@ -16,7 +16,8 @@
 // kolm – hargnemine (Tee*), neli – ristmik. Külgi, mis naabriga pole ühendatud, arvesse ei võeta
 // (LinkedPorts) – nii saab raja otsast pöörata.
 
-import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS } from './fms_glb.js';
+import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS, CheckModel } from './fms_glb.js';
+import { Enumerate } from './fms_sim.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
 import { DrawLayout, DrawIcon, LayoutView } from './anima.js';
@@ -138,7 +139,7 @@ function SetCellPorts(cell, ports) {
 }
 
 // [U] UniqueName – esimene vaba nimi kujul prefix + number (MT1, MT2 …).
-function UniqueName(prefix, used) {
+export function UniqueName(prefix, used) {
   for (let number = 1; ; number++) {
     if (!used.includes(`${prefix}${number}`)) return `${prefix}${number}`;
   }
@@ -399,6 +400,84 @@ export function ParseDim(text) {
   return dim;
 }
 
+// [U] DeleteTrack – kustutab raja: selle ikoonid joonisel ja andmed; järgmiste radade numbrid
+//     nihkuvad ühe võrra. Kutsub: Transport-vorm (fms_ed_data.js), testid.
+export function DeleteTrack(model, number) {
+  const ownCell = cell => IconTypes[cell.T]?.Array === 'Tracks' && !cell.Dot;
+  for (const cell of model.Layout.Cells.filter(cell => ownCell(cell) && cell.N === number)) EraseCell(model, cell.X, cell.Y);
+  model.Tracks.splice(number - 1, 1);
+  for (const cell of model.Layout.Cells) {
+    if (ownCell(cell) && cell.N > number) cell.N -= 1;
+  }
+  CleanEdgeLengths(model);
+}
+
+// [U] SegmentCells – raja lõik, kuhu lahter (x, y) kuulub: järjestikused sirged ja kaared kahe
+//     hargnemise (või ristmiku, raja otsa) vahel – nagu Enumerate-i MeasureTrack-is. Tagastab
+//     { Cells: [[x, y] …] raja järjekorras, Units – pikkus ikoonides koos hargnemiste pooltega }
+//     või null (lahter pole lõigu sisemine: hargnemine, punktiir, objekt). Kutsub: Transport-vorm.
+export function SegmentCells(model, x, y) {
+  const grid = LayoutGrid(model);
+  const start = grid.get(CellKey(x, y));
+  const isInner = cell => cell && IconTypes[cell.T].Kind === 'Track' && !cell.Dot && CellPorts(cell).length === 2;
+  if (!isInner(start)) return null;
+  const sides = [];
+  let units = 0;
+  const unitOf = cell => (IconTypes[cell.T].Arc ? Math.PI / 4 : 1);
+  const seen = new Set([CellKey(start.X, start.Y)]);
+  for (const port of CellPorts(start)) {
+    const cells = [];
+    let cell = start;
+    let exit = port;
+    for (;;) {
+      const step = DIRECTIONS[exit];
+      const next = grid.get(CellKey(cell.X + step.DX, cell.Y + step.DY));
+      if (!next || IconTypes[next.T].Kind !== 'Track' || next.Dot || next.N !== start.N || !CellPorts(next).includes(step.Opposite)) break;
+      if (!isInner(next)) { units += 0.5; break; }   // hargnemine: pool sellest kuulub lõiku
+      if (seen.has(CellKey(next.X, next.Y))) break;  // silmus ilma hargnemiseta
+      seen.add(CellKey(next.X, next.Y));
+      cells.push(next);
+      cell = next;
+      exit = CellPorts(next).find(other => other !== step.Opposite);
+    }
+    sides.push(cells);
+  }
+  const ordered = [...sides[0].reverse(), start, ...sides[1]];
+  units += ordered.reduce((sum, cell) => sum + unitOf(cell), 0);
+  return { Cells: ordered.map(cell => [cell.X, cell.Y]), Units: units };
+}
+
+// [U] EdgeLengthOf, SetEdgeLength – lõigu käsitsi pikkus (metrokaart, EdgeLengths) või null;
+//     uus pikkus (null – mõõtkavast). Kirje kuulub lõigule, kui kõik selle lahtrid on lõigus.
+const EdgeInSegment = (edge, cells) => edge.Cells.every(([x, y]) => cells.some(([cx, cy]) => cx === x && cy === y));
+export function EdgeLengthOf(model, cells) {
+  return (model.EdgeLengths ?? []).find(edge => EdgeInSegment(edge, cells))?.Length ?? null;
+}
+export function SetEdgeLength(model, cells, length) {
+  model.EdgeLengths = (model.EdgeLengths ?? []).filter(edge => !EdgeInSegment(edge, cells));
+  if (length !== null) model.EdgeLengths.push({ Cells: cells.map(([x, y]) => [x, y]), Length: length });
+}
+
+// [U] ModelProblems – mudeli vead ja hoiatused redaktori jaoks: kõigepealt faili struktuur
+//     (CheckModel), kui see on korras, siis rajavõrk ja andmed (Enumerate, DISAIN.md 2.2).
+//     Tagastab { Errors, Warnings } – [{ Path, Message }]. Kutsub: Layout, Edit → Check.
+export function ModelProblems(model) {
+  const errors = CheckModel(model);
+  if (errors.length > 0) return { Errors: errors, Warnings: [] };
+  const result = Enumerate(model);
+  return { Errors: result.Errors, Warnings: result.Warnings };
+}
+
+// [U] ProblemCell – veateate koht joonisel: „Layout (x, y)“, pink, puhver või rada → lahter; null.
+export function ProblemCell(model, path) {
+  const match = /^Layout \((\d+), (\d+)\)/.exec(path);
+  if (match) return { X: Number(match[1]), Y: Number(match[2]) };
+  const object = /^(Machines|Buffers|Tracks)\[(\d+)\]/.exec(path);
+  if (!object) return null;
+  const cell = model.Layout.Cells.find(candidate => !candidate.Dot && IconTypes[candidate.T]?.Array === object[1] && candidate.N === Number(object[2]));
+  return cell ? { X: cell.X, Y: cell.Y } : null;
+}
+
 // [U] RestoreModel – asendab mudeli sisu (sama objekt jääb, sest fms.js hoiab sellele viidet).
 export function RestoreModel(model, snapshot) {
   for (const key of Object.keys(model)) delete model[key];
@@ -442,6 +521,7 @@ function RedoEdit(edit) {
 // Mudel muutus: raja number jääb piiridesse, fms.js saab teada (muudetud mudel).
 function ModelEdited(edit) {
   edit.Track = Math.max(1, Math.min(edit.Track, edit.Model.Tracks.length + 1));
+  edit.Problems = ModelProblems(edit.Model);
   ClampCursor(edit);
   if (edit.OnChange) edit.OnChange();
   RequestRedraw();
@@ -627,6 +707,13 @@ function InfoText(edit) {
   });
 }
 
+// [U] ProblemsText – kontrolli tulemus infureal: vigade ja hoiatuste arv (K – nimekiri).
+function ProblemsText(edit) {
+  const { Errors: errors, Warnings: warnings } = edit.Problems;
+  if (errors.length === 0 && warnings.length === 0) return Texts.EdProblemsNone;
+  return FormatText(Texts.EdProblems, { Errors: errors.length, Warnings: warnings.length });
+}
+
 // Lahtri ristkülik ekraanil (raam kursori ja lohistamise jaoks).
 function CellRect(view, x, y) {
   return { X: Math.round(view.X + x * view.CW), Y: Math.round(view.Y + y * view.CH), Width: Math.round(view.CW), Height: Math.round(view.CH) };
@@ -643,12 +730,17 @@ function LayoutPainter(theme, desktop) {
   const ega = layout.Ega;
 
   // Infurida
+  const problems = ProblemsText(edit);
+  const problemsRole = edit.Problems.Errors.length ? 'Error' : (ega ? 'SimStatusText' : 'WindowLabel');
+  const problemsX = layout.Info.X + layout.Info.Width - theme.TextWidth(problems) - (ega ? 8 : 16);
   if (ega) {
     theme.FillRect(layout.Info.X, layout.Info.Y, layout.Info.Width, layout.Info.Height, 'SimStatusBar');
     theme.Text(layout.Info.X + 8, layout.Info.Y, InfoText(edit), 'SimStatusText');
+    theme.Text(problemsX, layout.Info.Y, problems, problemsRole);
     theme.FillRect(desktop.X, layout.Info.Y + layout.Info.Height, desktop.Width, desktop.Height - layout.Info.Height, 'LayoutBack');
   } else {
     theme.Text(layout.Info.X + 16, layout.Info.Y + 4, InfoText(edit), 'WindowText');
+    theme.Text(problemsX, layout.Info.Y + 4, problems, problemsRole);
     const panel = { X: desktop.X + 8, Y: layout.Area.Y - 6, Width: desktop.Width - 16, Height: layout.Area.Height + 12 };
     theme.Panel(panel.X, panel.Y, panel.Width, panel.Height, 'Window');
     theme.RoundRect(panel.X + 1, panel.Y + 1, panel.Width - 2, panel.Height - 2, 5, 'LayoutBack');
@@ -737,7 +829,9 @@ function ClickCell(edit, x, y) {
   const tool = PaletteTool(item);
   const before = BeginChange(edit);
   switch (tool) {
-    case 'Select': break;
+    case 'Select':
+      if (CellAt(edit.Model, x, y) && edit.OnEditCell) edit.OnEditCell(CellAt(edit.Model, x, y));
+      return;
     case 'Erase': EraseCell(edit.Model, x, y); break;
     case 'Direction':
       if (!CycleDirection(edit.Model, x, y)) edit.Message = Texts.EdNoDirection;
@@ -824,6 +918,7 @@ function LayoutKey(edit, name, shift) {
       RequestRedraw();
       return true;
     case 'g': case 'G': AskGridSize(edit); return true;
+    case 'k': case 'K': if (edit.OnCheck) edit.OnCheck(); return true;
     case 'Ctrl-Z': if (shift) RedoEdit(edit); else UndoEdit(edit); RequestRedraw(); return true;
     case 'Ctrl-Y': RedoEdit(edit); RequestRedraw(); return true;
     case 'Escape': ExitEditor(); return true;
@@ -865,6 +960,11 @@ function FinishDrag(edit) {
   if (drag.Kind === 'Move' && drag.Target) {
     if (MoveCell(edit.Model, drag.Path[0], drag.Target)) edit.Cursor = { ...drag.Target };
     else if (drag.Target.X !== drag.Path[0].X || drag.Target.Y !== drag.Path[0].Y) edit.Message = Texts.EdCellBusy;
+  }
+  if (drag.Kind === 'Move' && !drag.Target) {   // klõps ilma liigutamata: objekti andmed (Config)
+    RequestRedraw();
+    ClickCell(edit, drag.Path[0].X, drag.Path[0].Y);
+    return;
   }
   CommitChange(edit, drag.Before);
   RequestRedraw();
@@ -970,12 +1070,19 @@ function ViewInput(input) {
 // [O] EditLayout – Layout: topoloogia redigeerimine (ruudustik ja ikoonipalett).
 //     options: Model (muudetakse kohapeal), OnChange() – mudel muutus, OnExit() – aken suleti.
 //     Kutsub: fms.js (Edit → Layout).
-export function EditLayout({ Model: model, OnChange: onChange = null, OnExit: onExit = null }) {
+//     OnEditCell(lahter) – objekti andmed (Config; klõps või Enter tööriistaga „vali“),
+//     OnCheck() – vigade nimekiri (K). Tool: 'Select' – alusta tööriistaga „vali“ (Config → Choose).
+//     Kui Layout on juba avatud sama mudeliga, jääb Undo alles.
+export function EditLayout({ Model: model, OnChange: onChange = null, OnExit: onExit = null, OnEditCell: onEditCell = null,
+  OnCheck: onCheck = null, Tool: tool = undefined, Message: message = '' }) {
+  const previous = EditState && EditState.Mode === 'Layout' && EditState.Model === model ? EditState : null;
   EditState = {
-    Mode: 'Layout', Model: model, OnChange: onChange, OnExit: onExit,
-    Tool: PALETTE.findIndex(item => item.Id === 'HorTr'), HoverItem: null,
-    Cursor: { X: 0, Y: 0 }, Scroll: { X: 0, Y: 0 }, Track: 1,
-    Undo: [], Redo: [], Drag: null, Message: '', Theme: null, Layout: null, Arrows: [],
+    Mode: 'Layout', Model: model, OnChange: onChange, OnExit: onExit, OnEditCell: onEditCell, OnCheck: onCheck,
+    Tool: tool ? PALETTE.findIndex(item => item.Id === tool) : (previous ? previous.Tool : PALETTE.findIndex(item => item.Id === 'HorTr')),
+    HoverItem: null,
+    Cursor: previous ? previous.Cursor : { X: 0, Y: 0 }, Scroll: previous ? previous.Scroll : { X: 0, Y: 0 },
+    Track: previous ? previous.Track : 1, Undo: previous ? previous.Undo : [], Redo: previous ? previous.Redo : [],
+    Drag: null, Message: message, Theme: null, Layout: null, Arrows: [], Problems: ModelProblems(model),
   };
   SetDesktopView({ Painter: LayoutPainter, Input: LayoutInput, StatusKeys: LayoutStatusKeys, StatusHint: LayoutHint });
 }
@@ -998,6 +1105,38 @@ export function StopEditor() {
   if (!EditState) return;
   EditState = null;
   SetDesktopView(null);
+}
+
+// [U] NoteEditorChange – mudelit muudeti väljaspool Layout-i (vorm): Undo-sse ja kontroll uuesti.
+//     Tagastab, kas Layout oli avatud. Kutsub: fms.js.
+export function NoteEditorChange(model, before) {
+  const edit = EditState;
+  if (!edit || edit.Mode !== 'Layout' || edit.Model !== model) return false;
+  if (JSON.stringify(model) === before) return true;
+  edit.Undo.push(before);
+  if (edit.Undo.length > UNDO_LIMIT) edit.Undo.shift();
+  edit.Redo = [];
+  ModelEdited(edit);
+  return true;
+}
+
+// [U] SetEditorCursor – kursor lahtrisse (Config → All, vigade nimekiri). Kutsub: fms.js.
+export function SetEditorCursor(x, y) {
+  if (!EditState || EditState.Mode !== 'Layout') return;
+  EditState.Cursor = { X: x, Y: y };
+  ClampCursor(EditState);
+  RequestRedraw();
+}
+
+// [U] EditorCursorRect – kursori lahter ekraanil (loogilistes pikslites) või null: vorm
+//     (FormBox Avoid) avaneb all või üleval nii, et objekt jääb näha (originaalis avanes aken
+//     ekraani all). Kutsub: fms.js.
+export function EditorCursorRect() {
+  const edit = EditState;
+  if (!edit || edit.Mode !== 'Layout' || !edit.Layout) return null;
+  const layout = edit.Layout;
+  ClampScroll(edit, layout);
+  return CellRect(GridView(edit, layout), edit.Cursor.X, edit.Cursor.Y);
 }
 
 // [U] EditorActive – kas redaktor (Layout või View) on avatud.

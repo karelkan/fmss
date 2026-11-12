@@ -21,9 +21,9 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
 - [x] 3. Karkass (teemad EGA / kaasaegne, menüü, avaekraan, andmemudel – [DISAIN.md](DISAIN.md) osa 13)
 - [x] 4. Täissimulaator (`src/fms_sim.js`: `Enumerate` ruudustikust, andmekontroll, statistika; *Simulate* jookseb lõpuni ja näitab kokkuvõtet – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 4)
 - [x] 5. Animaator (`src/anima.js`: *Simulate* avab animatsiooni – kärud, pinkide ja puhvrite olekud, kiirus ×1…×1000, samm / järgmine sündmus; kaasaegses välimuses juhtriba ja Event List ekraanil – [DISAIN.md](DISAIN.md) osa 14, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 5)
-- [ ] 6. Redaktor
-  - [x] 6a. Layout ja View (`src/fms_ed.js`: rada lohistades, ikoon valitakse ise; palett, kustutamine, suunanool, Undo, kerimine; salvestamata muudatuse hoiatus – [DISAIN.md](DISAIN.md) osa 15, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 6)
-  - [ ] 6b. Config, Transport, Workpiece data, Storage data, Model data; andmekontrollid ja hoiatused
+- [x] 6. Redaktor ([DISAIN.md](DISAIN.md) osa 15, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 6)
+  - [x] 6a. Layout ja View (`src/fms_ed.js`: rada lohistades, ikoon valitakse ise; palett, kustutamine, suunanool, Undo, kerimine; salvestamata muudatuse hoiatus)
+  - [x] 6b. Andmed vormides (`src/fms_ed_data.js`, `FormBox`): Config (All / Choose), Transport (ka lõigu pikkus ja raja kustutamine), Workpiece data (Edit / Copy / Flush, marsruudid), Storage data, Model data; vigade ja hoiatuste arv Layout-is ja nimekiri (K, Edit → Check)
 - [ ] 7. Diskreetsed rajad
 - [ ] 8. Rikked ja juhuslikkus
 - [ ] 9. Aruanded

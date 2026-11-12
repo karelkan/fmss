@@ -125,3 +125,22 @@ Redaktori loogika ([src/fms_ed.js](src/fms_ed.js), DISAIN.md osa 15) muudab mude
 
 **Leid.** Esimene versioon võttis lahtri olemasolevad küljed ikoonist. Siis muutus raja ots (sirge, millel üks külg on vaba) juurdejoonistamisel hargnemiseks, mitte kaareks. Parandus: arvesse lähevad ainult naabriga ühendatud küljed (`LinkedPorts`).
 
+## 6b: vormid ja kontrollid
+
+| Test | Tulemus |
+|---|---|
+| **Vormi kontroll** – väärtused rakenduvad ja muudatusest teatatakse (Undo); `CheckModel`-i piirid (nt 0 kohta, murdarv) tulevad õige välja juurde, mudel jääb muutmata; „pole arv“ enne `CheckModel`-i; koma ja punkt | ✔ |
+| **Raja kustutamine** – ikoonid ja andmed kaovad, järgmise raja number nihkub, teised objektid jäävad | ✔ |
+| **Lõik ja metrokaart** – `SegmentCells` leiab sama lõigu mis `Enumerate` (ka kaartega); pikkuse muutmine muudab silmuse pikkust täpselt `uus − mõõtkavast` võrra; tulemus on sama mis käsitsi kirjutatud `EdgeLengths` (animaatori test); asendamine ja eemaldamine | ✔ |
+| **Detailid** – Copy (sügav koopia, nimi „(koopia)“), New, Flush, 16 piir; kõik läbivad `CheckModel`-i | ✔ |
+| **Config → All** järjekord (pingid, puhvrid, rada, keskladu – igaüks üks kord) | ✔ |
+| **Kontroll** – näidismudel korras; katkine silmus annab vea koos lahtriga; pingi / puhvri / lahtri tee → lahter | ✔ |
+| **Pooleli mudel** – pingi kustutamise järel on fail laaditav (`ParseModelText`), puuduva operatsiooni viga annab `Enumerate` | ✔ |
+| **Brauseris** (käsitsi), EGA ja kaasaegne: Config → All (MT1 → MT2 → BUF1, objekt esile tõstetud, vorm ei kata), vigane väärtus → teade välja juures, Config → Choose raja lahtril koos lõigu pikkusega, detail → marsruudid → marsruut (+ op), Model data, kontrolli nimekiri (infureal punane arv), Undo pärast kustutamist, Simulate pärast redigeerimist; konsoolis vigu pole | ✔ |
+
+**Leid.** Esimese versiooniga muutus mudel pärast pingi kustutamist **laadimatuks**: `CheckModel` nõudis, et iga marsruudi operatsiooni teeks mõni pink, ja salvestatud faili ei saanud enam avada. Parandus: see on andmete kooskõla, mitte faili struktuur – kontroll jäi ainult `Enumerate`-i (seal oli see juba olemas „joonisel olevate pinkide“ kohta). Test `model.test.js` muudeti vastavalt.
+
+**Leid.** Kõrge vorm (rada koos lõigu pikkusega) kattis EGA-s valitud lahtri. Parandus: vorm valib koha (all või üleval), mis katab objekti kõige vähem.
+
+**Mida see EI kontrolli:** vormide joonistust automaatselt (kontrolliti silmaga); diskreetseid radu ja konnektoreid (redaktor lubab need joonistada, Simulate annab etapi 7 teate).
+

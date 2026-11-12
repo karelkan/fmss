@@ -6,13 +6,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel, EmptyModel, IconTypes } from '../src/fms_glb.js';
+import { CheckModel, EmptyModel, IconTypes, OPERATIONS, MAX_WORKPIECE_TYPES } from '../src/fms_glb.js';
 import { Enumerate, SimRun } from '../src/fms_sim.js';
 import {
   IconFromPorts, CellPorts, LaySegment, LayPath, CellSteps, ExtendDragPath, PlaceIcon, EraseCell,
   MoveCell, CycleDirection, ResizeLayout, CellsOutside, ParseDim, RestoreModel, CellAt, PALETTE,
-  PaletteTool, MAX_LAYOUT_DIM,
+  PaletteTool, MAX_LAYOUT_DIM, DeleteTrack, SegmentCells, EdgeLengthOf, SetEdgeLength, ModelProblems, ProblemCell,
 } from '../src/fms_ed.js';
+import {
+  SubmitModelForm, FormValues, ParseNumber, NumberText, KnownOperations, NewWorkpiece, CopyWorkpiece, FlushWorkpiece,
+  ConfigAllCells, RouteText, ProblemLines,
+} from '../src/fms_ed_data.js';
+import { ParseModelText } from '../src/fms_file.js';
 
 const ROOT = new URL('../', import.meta.url);
 const demoText = readFileSync(new URL('models/demo.fms.json', ROOT), 'utf8');
@@ -332,4 +337,168 @@ test('Näidismudel redaktoriga: sama võrk ja sama simulatsiooni aruanne', () =>
   assert.deepEqual(built.Errors, []);
   assert.deepEqual(built.Network, expected.Network);
   assert.deepEqual(SimRun(built.Network), SimRun(expected.Network));
+});
+
+// ---------------------------------------------------------------------
+// 6b: rajad, lõigu pikkus, vormid, detailid, kontroll
+// ---------------------------------------------------------------------
+
+test('DeleteTrack: raja ikoonid ja andmed kaovad, järgmise raja number nihkub', () => {
+  const model = Blank();
+  LayPath(model, Cells([0, 0], [3, 0]), { Track: 1 });
+  LayPath(model, Cells([0, 2], [3, 2]), { Track: 2 });
+  model.Tracks[1].Name = 'Teine';
+  PlaceIcon(model, 5, 5, Item('FromCS'));
+  DeleteTrack(model, 1);
+  assert.deepEqual(model.Tracks.map(track => track.Name), ['Teine']);
+  assert.ok(model.Layout.Cells.filter(cell => cell.T !== 'FromCS').every(cell => cell.Y === 2 && cell.N === 1));
+  assert.equal(IconAt(model, 5, 5), 'FromCS');
+  assert.deepEqual(CheckModel(model), []);
+});
+
+test('SegmentCells: lõik kahe hargnemise vahel (nagu Enumerate), pikkus koos hargnemiste pooltega', () => {
+  const model = demo();
+  const InOrder = (cells, expected) => assert.ok(
+    JSON.stringify(cells) === JSON.stringify(expected) || JSON.stringify(cells) === JSON.stringify([...expected].reverse()),
+    JSON.stringify(cells));   // raja järjekorras, ükskõik kummas suunas
+  const top = SegmentCells(model, 5, 3);
+  InOrder(top.Cells, [[4, 3], [5, 3], [6, 3]]);
+  assert.equal(top.Units, 4);
+  const corner = SegmentCells(model, 11, 3);   // MT2 jaam (7,3) … ToCS jaam (10,4), kaks kaart
+  InOrder(corner.Cells, [[8, 3], [9, 3], [10, 3], [11, 3], [11, 4]]);
+  assert.ok(Math.abs(corner.Units - (4 + Math.PI / 2)) < 1e-9);
+  assert.equal(SegmentCells(model, 3, 3), null);   // hargnemine
+  assert.equal(SegmentCells(model, 3, 2), null);   // punktiir
+});
+
+test('SetEdgeLength: metrokaardi pikkus muudab raja pikkust täpselt lõigu võrra', () => {
+  const model = demo();
+  const lengthBefore = Enumerate(model).Network.Tracks[0].Length;
+  const corner = SegmentCells(model, 9, 3);
+  SetEdgeLength(model, corner.Cells, 1000);
+  assert.equal(EdgeLengthOf(model, corner.Cells), 1000);
+  const result = Enumerate(model);
+  assert.deepEqual(result.Errors, []);
+  const expected = lengthBefore - corner.Units * model.Scale + 1000;
+  assert.ok(Math.abs(result.Network.Tracks[0].Length - expected) < 0.01, `${result.Network.Tracks[0].Length} ≠ ${expected}`);
+  SetEdgeLength(model, corner.Cells, 800);   // asendab, ei lisa teist
+  assert.equal(model.EdgeLengths.length, 1);
+  SetEdgeLength(model, corner.Cells, null);
+  assert.deepEqual(model.EdgeLengths, []);
+});
+
+test('SetEdgeLength: sama mis käsitsi kirjutatud EdgeLengths (animaatori test)', () => {
+  const model = demo();
+  SetEdgeLength(model, SegmentCells(model, 5, 3).Cells, 1000);
+  const manual = demo();
+  manual.EdgeLengths = [{ Cells: [[4, 3], [5, 3], [6, 3]], Length: 1000 }];
+  assert.deepEqual(Enumerate(model).Network, Enumerate(manual).Network);
+});
+
+test('ParseNumber, NumberText: koma ja punkt; tühi ja tekst → NaN', () => {
+  assert.equal(ParseNumber('0,85'), 0.85);
+  assert.equal(ParseNumber(' 12 '), 12);
+  assert.ok(Number.isNaN(ParseNumber('')));
+  assert.ok(Number.isNaN(ParseNumber('kaks')));
+  assert.equal(NumberText(0.85), '0,85');
+  const { Values, Errors } = FormValues([
+    { Key: 'A', Kind: 'Number', Text: '3' }, { Key: 'B', Kind: 'Number', Text: '', Optional: true },
+    { Key: 'C', Kind: 'Choice', Choices: ['pidev', 'diskreetne'], Values: ['Continuous', 'Discrete'], Value: 1 },
+    { Key: 'D', Kind: 'Check', Value: true }, { Key: 'E', Kind: 'Text', Text: '  MT9 ' }, { Key: 'F', Kind: 'Label', Label: 'x' },
+  ]);
+  assert.deepEqual(Errors, []);
+  assert.deepEqual(Values, { A: 3, B: null, C: 'Discrete', D: true, E: 'MT9' });
+});
+
+// Puhvri vorm nagu EditBuffer-is.
+function BufferFields(capacity, loadTime) {
+  return [
+    { Key: 'Capacity', Label: 'Kohti', Kind: 'Number', Text: capacity, Path: 'Buffers[1].Capacity' },
+    { Key: 'LoadTime', Label: 'Laadimisaeg, s', Kind: 'Number', Text: loadTime, Path: 'Buffers[1].LoadTime' },
+  ];
+}
+const ApplyBuffer = (target, values) => Object.assign(target.Buffers[0], values);
+
+test('SubmitModelForm: korras väärtused rakenduvad ja muudatusest teatatakse', () => {
+  const model = demo();
+  let before = null;
+  const errors = SubmitModelForm(model, BufferFields('5', '7,5'), ApplyBuffer, ['Buffers[1]'], (json) => { before = json; });
+  assert.deepEqual(errors, []);
+  assert.equal(model.Buffers[0].Capacity, 5);
+  assert.equal(model.Buffers[0].LoadTime, 7.5);
+  assert.equal(JSON.parse(before).Buffers[0].Capacity, 3);
+});
+
+test('SubmitModelForm: CheckModel-i piirid tulevad välja juurde, mudel jääb muutmata', () => {
+  const model = demo();
+  let called = false;
+  const onChange = () => { called = true; };
+  let errors = SubmitModelForm(model, BufferFields('0', '5'), ApplyBuffer, ['Buffers[1]'], onChange);
+  assert.equal(errors.length, 1);
+  assert.equal(errors[0].Key, 'Capacity');
+  assert.match(errors[0].Message, /^Kohti: /);
+  errors = SubmitModelForm(model, BufferFields('2,5', 'palju'), ApplyBuffer, ['Buffers[1]'], onChange);
+  assert.deepEqual(errors.map(error => error.Key), ['LoadTime']);   // arv puudub → enne CheckModel-i
+  errors = SubmitModelForm(model, BufferFields('2,5', '1'), ApplyBuffer, ['Buffers[1]'], onChange);
+  assert.match(errors[0].Message, /täisarv/);
+  assert.equal(model.Buffers[0].Capacity, 3);
+  assert.equal(called, false);
+});
+
+test('KnownOperations: pinkide omad ees, siis originaali loend, kordusteta', () => {
+  const model = demo();
+  model.Machines[0].Ops.push('keevitamine');
+  const ops = KnownOperations(model);
+  assert.deepEqual(ops.slice(0, 4), ['treimine', 'puurimine', 'keevitamine', 'freesimine']);
+  assert.equal(new Set(ops).size, ops.length);
+  for (const op of OPERATIONS) assert.ok(ops.includes(op));
+});
+
+test('Workpiece data: New, Copy, Flush; kõige rohkem 16 tüüpi', () => {
+  const model = demo();
+  const copy = CopyWorkpiece(model, 1);
+  assert.equal(model.Workpieces[copy - 1].Name, 'Võll (koopia)');
+  assert.deepEqual(model.Workpieces[copy - 1].Routes, model.Workpieces[0].Routes);
+  assert.notEqual(model.Workpieces[copy - 1].Routes, model.Workpieces[0].Routes);
+  const created = NewWorkpiece(model);
+  assert.equal(model.Workpieces[created - 1].Routes[0].Ops[0].Op, 'treimine');
+  assert.deepEqual(CheckModel(model), []);
+  FlushWorkpiece(model, 1);
+  assert.equal(model.Workpieces[0].Name, 'Äärik');
+  while (model.Workpieces.length < MAX_WORKPIECE_TYPES) NewWorkpiece(model);
+  assert.equal(NewWorkpiece(model), null);
+  assert.equal(CopyWorkpiece(model, 1), null);
+  assert.equal(new Set(model.Workpieces.map(workpiece => workpiece.Name)).size, MAX_WORKPIECE_TYPES);
+  assert.deepEqual(CheckModel(model), []);
+  assert.equal(RouteText(demo().Workpieces[0].Routes[0], 0), '1. (prioriteet 1) treimine → freesimine');
+});
+
+test('ConfigAllCells: pingid, puhvrid, rada ja keskladu ülevalt alla, igaüks üks kord', () => {
+  const cells = ConfigAllCells(demo()).map(cell => [cell.X, cell.Y, cell.T]);
+  assert.deepEqual(cells, [[3, 0, 'MachToolDown'], [7, 0, 'MachToolDown'], [3, 1, 'InOutBuf'], [7, 1, 'TurnBuf'], [1, 3, 'ArcSE'], [2, 6, 'FromCS']]);
+});
+
+test('Kontroll: näidismudel on korras; viga leiab koha joonisel', () => {
+  assert.deepEqual(ModelProblems(demo()), { Errors: [], Warnings: [] });
+  const model = demo();
+  EraseCell(model, 6, 4);   // silmus katki
+  const problems = ProblemLines(model);
+  assert.ok(problems.Errors >= 1);
+  assert.ok(problems.Lines[0].Text.startsWith('Viga: '));
+  assert.ok(problems.Lines[0].Cell);
+  assert.deepEqual(ProblemCell(demo(), 'Machines[2].Ops'), { X: 7, Y: 0 });
+  assert.deepEqual(ProblemCell(demo(), 'Buffers[1]'), { X: 3, Y: 1 });
+  assert.deepEqual(ProblemCell(demo(), 'Layout (4, 5)'), { X: 4, Y: 5 });
+  assert.equal(ProblemCell(demo(), 'Workpieces[1].Name'), null);
+});
+
+test('Pingi kustutamine joonisel: fail jääb laaditavaks, viga annab kontroll', () => {
+  const model = demo();
+  EraseCell(model, 7, 0);   // MT2 – ainus freesija
+  assert.equal(model.Machines.length, 1);
+  assert.deepEqual(CheckModel(model), []);
+  assert.deepEqual(ParseModelText(JSON.stringify(model), 'x.fms.json').Errors, []);
+  PlaceIcon(model, 7, 0, Item('MachToolDown'));   // uus pink (treimine) samasse kohta
+  const { Errors: errors } = ModelProblems(model);
+  assert.ok(errors.some(error => /freesimine/.test(error.Message)), JSON.stringify(errors));
 });

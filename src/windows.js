@@ -382,6 +382,27 @@ export function InputBox(title, prompt, initialText, onClose) {
   });
 }
 
+// [U] FormBox – vorm väljadega (redaktor: Config, Transport, Workpiece data …).
+//     fields: [{ Key, Label, Kind: 'Text' | 'Number' | 'Choice' | 'Check' | 'Label', Text, Value, Choices,
+//               Row, X, LabelWidth, Width }] – Row ja X (märkides) on koht vormis; Text – teksti- ja
+//               arvuvälja sisu; Value – valiku indeks või märkeruudu true/false.
+//     onButton(nupu indeks | null (Esc), form) tagastab: true – sulge; massiiv vigu
+//               [{ Key, Message }] – jää avatuks (tühi massiiv: väljad muutusid, joonista uuesti);
+//               funktsioon – sulge ja kutsu see (nt järgmise dialoogi avamiseks).
+//     options: Lines – tekst väljade kohal; Position: 'Center' | 'Bottom' | 'Top'; Avoid – ala ekraanil
+//     ({ X, Y, Width, Height }), mida vorm ei tohiks katta (valitud objekt): siis üleval või all,
+//     kumb katab vähem; Focus – välja võti.
+export function FormBox(title, fields, buttons, onButton, options = {}) {
+  const form = { Fields: fields, Errors: [], Focus: 0 };
+  if (options.Focus) form.Focus = Math.max(0, fields.findIndex((field) => field.Key === options.Focus));
+  while (fields[form.Focus]?.Kind === 'Label') form.Focus += 1;
+  OpenDialog({
+    Title: title, Lines: options.Lines ?? [], Form: form, Buttons: buttons, ButtonIndex: 0,
+    Position: options.Position ?? (options.Avoid ? 'Bottom' : 'Center'), Avoid: options.Avoid ?? null, OnButton: onButton,
+    OnClose: () => { const result = onButton(null, form); if (typeof result === 'function') result(); },
+  });
+}
+
 // [U] DialogOpen – kas mõni dialoog on avatud.
 export function DialogOpen() {
   return DialogStack.length > 0;
@@ -407,6 +428,202 @@ function LineText(line) {
 
 function LineMono(line) {
   return typeof line !== 'string' && Boolean(line.Mono);
+}
+
+// [U] FieldWidth – välja laius märkides (sisestusväli või valik); märkeruut on „[√] silt“.
+function FieldWidth(field) {
+  if (field.Kind === 'Label') return Array.from(field.Label).length;
+  if (field.Kind === 'Check') return 4 + Array.from(field.Label).length;
+  if (field.Width) return field.Width;
+  if (field.Kind === 'Choice') return Math.max(...field.Choices.map((choice) => Array.from(choice).length)) + 4;
+  return field.Kind === 'Number' ? 8 : 16;
+}
+
+// [U] LabelWidth – sildi laius märkides: välja oma või kõigi sama veeru väljade pikim silt + 1.
+function LabelWidth(form, field) {
+  if (field.Kind === 'Check' || field.Kind === 'Label') return 0;
+  if (field.LabelWidth !== undefined) return field.LabelWidth;
+  const sameColumn = form.Fields.filter((other) => other.Kind !== 'Check' && other.Kind !== 'Label' && (other.X ?? 0) === (field.X ?? 0) && other.LabelWidth === undefined);
+  return Math.max(...sameColumn.map((other) => Array.from(other.Label).length)) + 1;
+}
+
+// [U] FormLayout – vormi osade asukohad: väljad (silt, sisestusala), veateate rida, nupud.
+function FormLayout(dialog) {
+  const theme = ActiveTheme;
+  const form = dialog.Form;
+  const charWidth = 8;
+  const rows = Math.max(0, ...form.Fields.map((field) => (field.Row ?? 0) + 1));
+  const fieldsWidth = Math.max(0, ...form.Fields.map((field) => ((field.X ?? 0) + LabelWidth(form, field) + FieldWidth(field)) * charWidth));
+  const buttonWidths = dialog.Buttons.map((label) => Math.max(BUTTON_MIN_WIDTH, theme.TextWidth(label) + 24));
+  const buttonsWidth = buttonWidths.reduce((sum, width) => sum + width, 0) + BUTTON_GAP * Math.max(0, buttonWidths.length - 1);
+  const errorText = form.Errors.length ? form.Errors[0].Message : '';
+  const contentWidth = Math.max(theme.TextWidth(dialog.Title) + 32, buttonsWidth, fieldsWidth,
+    ...dialog.Lines.map((line) => theme.TextWidth(LineText(line), { Mono: LineMono(line) })), theme.TextWidth(errorText));
+  const width = Math.min(theme.Width - 16, Math.ceil((contentWidth + 2 * DIALOG_PAD_X) / 8) * 8);
+  const totalRows = 1 + dialog.Lines.length + (dialog.Lines.length ? 0.5 : 0) + rows + 1 + 2;
+  const height = Math.round((totalRows + 0.5) * ROW_HEIGHT);
+  const x = Math.round((theme.Width - width) / 2 / 8) * 8;
+  const bottomY = Math.max(ROW_HEIGHT, theme.Height - ROW_HEIGHT - height - 10);
+  const topY = 2 * ROW_HEIGHT;
+  let y;
+  if (dialog.Avoid) {
+    const overlap = (top) => Math.max(0, Math.min(top + height, dialog.Avoid.Y + dialog.Avoid.Height) - Math.max(top, dialog.Avoid.Y));
+    y = overlap(bottomY) <= overlap(topY) ? bottomY : topY;
+  } else if (dialog.Position === 'Bottom') y = bottomY;
+  else if (dialog.Position === 'Top') y = topY;
+  else y = Math.round((ROW_HEIGHT + (theme.Height - 2 * ROW_HEIGHT - height) / 2) / ROW_HEIGHT) * ROW_HEIGHT;
+  y = Math.max(ROW_HEIGHT, y);
+
+  let rowY = y + ROW_HEIGHT + ROW_HEIGHT / 2;
+  const lines = dialog.Lines.map(() => { const lineY = rowY; rowY += ROW_HEIGHT; return lineY; });
+  if (dialog.Lines.length) rowY += ROW_HEIGHT / 2;
+  const left = x + DIALOG_PAD_X;
+  const fields = form.Fields.map((field) => {
+    const fieldY = rowY + (field.Row ?? 0) * ROW_HEIGHT;
+    const labelX = left + (field.X ?? 0) * charWidth;
+    const inputX = labelX + LabelWidth(form, field) * charWidth;
+    const inputWidth = (field.Kind === 'Check' ? 3 : FieldWidth(field)) * charWidth - (field.Kind === 'Check' ? 0 : 8);
+    return { LabelX: labelX, InputX: inputX, InputWidth: inputWidth, Y: fieldY, Width: inputX + FieldWidth(field) * charWidth - labelX };
+  });
+  rowY += rows * ROW_HEIGHT;
+  const errorY = rowY;
+  rowY += ROW_HEIGHT;
+  let buttonX = x + Math.round((width - buttonsWidth) / 2);
+  const buttons = buttonWidths.map((buttonWidth) => {
+    const place = { X: buttonX, Y: rowY + ROW_HEIGHT / 2, Width: buttonWidth };
+    buttonX += buttonWidth + BUTTON_GAP;
+    return place;
+  });
+  return { X: x, Y: y, Width: width, Height: height, Lines: lines, Fields: fields, ErrorY: errorY, Buttons: buttons, ErrorText: errorText };
+}
+
+// [U] FieldText – välja näidatav väärtus.
+function FieldText(field, theme) {
+  if (field.Kind === 'Choice') return field.Choices[field.Value] ?? '';
+  if (field.Kind === 'Check') return field.Value ? `[${theme.Symbols.Check}]` : '[ ]';
+  return field.Text;
+}
+
+// [U] DrawForm – vormi joonistamine: väljad, vead, nupud.
+function DrawForm(theme, dialog) {
+  const layout = FormLayout(dialog);
+  const form = dialog.Form;
+  theme.Panel(layout.X, layout.Y, layout.Width, layout.Height, 'Window');
+  theme.WindowTitle(layout.X, layout.Y + 2, layout.Width, dialog.Title);
+  dialog.Lines.forEach((line, i) => {
+    const role = typeof line === 'string' ? 'WindowText' : (line.Role || 'WindowText');
+    theme.Text(layout.X + DIALOG_PAD_X, layout.Lines[i], LineText(line), role, { Mono: LineMono(line) });
+  });
+  const errorKeys = new Set(form.Errors.map((error) => error.Key));
+  form.Fields.forEach((field, i) => {
+    const place = layout.Fields[i];
+    const focused = form.Focus === i;
+    const labelRole = errorKeys.has(field.Key) ? 'Error' : (field.Kind === 'Check' ? 'WindowText' : 'WindowLabel');
+    if (field.Kind === 'Label') { theme.Text(place.LabelX, place.Y, field.Label, 'WindowLabel'); return; }
+    if (field.Kind === 'Check') {
+      if (focused) theme.FillRect(place.LabelX - 2, place.Y, place.Width - 4, ROW_HEIGHT, 'MenuSelected');
+      const role = focused ? 'MenuSelectedText' : labelRole;
+      theme.Text(place.LabelX, place.Y, FieldText(field, theme), role);
+      theme.Text(place.LabelX + 4 * 8, place.Y, field.Label, role);
+      return;
+    }
+    theme.Text(place.LabelX, place.Y, field.Label, labelRole);
+    const choice = field.Kind === 'Choice';
+    theme.FillRect(place.InputX, place.Y, place.InputWidth, ROW_HEIGHT, focused && choice ? 'MenuSelected' : 'Input');
+    const textRole = focused && choice ? 'MenuSelectedText' : 'InputText';
+    let text = FieldText(field, theme);
+    const maxChars = Math.max(1, Math.floor(place.InputWidth / 8) - 1);
+    if (!choice && Array.from(text).length > maxChars) text = Array.from(text).slice(-maxChars).join('');
+    theme.Text(place.InputX + 4, place.Y, choice ? `${text}` : text, textRole);
+    if (choice) theme.Text(place.InputX + place.InputWidth - 12, place.Y, theme.Symbols.Submenu, textRole);
+    if (focused && !choice) theme.Caret(place.InputX + 4 + theme.TextWidth(text), place.Y);
+  });
+  if (layout.ErrorText) theme.Text(layout.X + DIALOG_PAD_X, layout.ErrorY, layout.ErrorText, 'Error');
+  dialog.Buttons.forEach((label, i) => {
+    const place = layout.Buttons[i];
+    theme.Button(place.X, place.Y, place.Width, label, form.Focus === form.Fields.length + i);
+  });
+}
+
+// [U] PressFormButton – vormi nupp: onButton otsustab, kas sulgeda (true / funktsioon) või näidata vigu (massiiv).
+function PressFormButton(dialog, index) {
+  const form = dialog.Form;
+  const focusedButton = form.Focus - form.Fields.length;   // väljad võivad muutuda (+ rida), nupp jääb
+  const result = dialog.OnButton(index, form);
+  if (result === true || typeof result === 'function') {
+    DialogStack.splice(DialogStack.indexOf(dialog), 1);
+    RequestRedraw();
+    if (typeof result === 'function') result();
+    return;
+  }
+  form.Errors = Array.isArray(result) ? result : [];
+  if (focusedButton >= 0) form.Focus = form.Fields.length + focusedButton;
+  const errorField = form.Fields.findIndex((field) => form.Errors.some((error) => error.Key === field.Key));
+  if (errorField >= 0) form.Focus = errorField;
+  form.Focus = Math.min(form.Focus, form.Fields.length + dialog.Buttons.length - 1);
+  RequestRedraw();
+}
+
+// [U] ChangeField – välja väärtuse muutmine: valik edasi / tagasi, märkeruut sisse / välja.
+function ChangeField(field, step) {
+  if (field.Kind === 'Choice') field.Value = (field.Value + step + field.Choices.length) % field.Choices.length;
+  else if (field.Kind === 'Check') field.Value = !field.Value;
+}
+
+// [U] HandleFormKey – vormi klahvid: Tab / nooled liiguvad, tühik muudab valikut, Enter – nupp.
+function HandleFormKey(dialog, event) {
+  const form = dialog.Form;
+  const name = event.key;
+  const count = form.Fields.length + dialog.Buttons.length;
+  const field = form.Fields[form.Focus] ?? null;
+  const buttonIndex = form.Focus - form.Fields.length;
+  const move = (step) => {
+    do form.Focus = (form.Focus + step + count) % count; while (form.Fields[form.Focus]?.Kind === 'Label');
+    RequestRedraw();
+    return true;
+  };
+  if (name === 'Escape') { CloseDialog(null); return true; }
+  if (name === 'Enter') { PressFormButton(dialog, buttonIndex >= 0 ? buttonIndex : 0); return true; }
+  if (name === 'Tab') return move(event.shiftKey ? -1 : 1);
+  if (name === 'ArrowDown') return field ? move(1) : true;
+  if (name === 'ArrowUp') return move(-1);
+  if (!field) {
+    if (name === 'ArrowLeft') return move(-1);
+    if (name === 'ArrowRight') return move(1);
+    if (name === ' ') { PressFormButton(dialog, buttonIndex); return true; }
+    return false;
+  }
+  if (field.Kind === 'Choice' || field.Kind === 'Check') {
+    if (name === ' ' || name === 'ArrowRight') { ChangeField(field, 1); RequestRedraw(); return true; }
+    if (name === 'ArrowLeft') { ChangeField(field, -1); RequestRedraw(); return true; }
+    return false;
+  }
+  if (name === 'Backspace') {
+    field.Text = Array.from(field.Text).slice(0, -1).join('');
+    RequestRedraw();
+    return true;
+  }
+  if (name.length === 1 && !event.ctrlKey && !event.metaKey) {
+    if (field.Kind === 'Number' && !/[0-9.,\-]/.test(name)) return true;
+    field.Text += name;
+    RequestRedraw();
+    return true;
+  }
+  return false;
+}
+
+// [U] HandleFormPointer – klõps väljal (fookus, valik, märkeruut) või nupul.
+function HandleFormPointer(dialog, point) {
+  const layout = FormLayout(dialog);
+  const form = dialog.Form;
+  const inside = (x, y, width, height) => point.X >= x && point.X < x + width && point.Y >= y && point.Y < y + height;
+  const buttonIndex = layout.Buttons.findIndex((place) => inside(place.X, place.Y, place.Width, ROW_HEIGHT));
+  if (buttonIndex >= 0) { form.Focus = form.Fields.length + buttonIndex; PressFormButton(dialog, buttonIndex); return; }
+  const fieldIndex = layout.Fields.findIndex((place) => inside(place.LabelX, place.Y, place.Width, ROW_HEIGHT));
+  if (fieldIndex < 0 || form.Fields[fieldIndex].Kind === 'Label') return;
+  if (form.Focus === fieldIndex || form.Fields[fieldIndex].Kind === 'Check') ChangeField(form.Fields[fieldIndex], 1);
+  form.Focus = fieldIndex;
+  RequestRedraw();
 }
 
 // [U] DialogLayout – dialoogi osade asukohad (joonistamiseks ja hiireklõpsu jaoks).
@@ -451,6 +668,7 @@ function DialogLayout(dialog) {
 }
 
 function DrawDialog(theme, dialog) {
+  if (dialog.Form) { DrawForm(theme, dialog); return; }
   const layout = DialogLayout(dialog);
   theme.Panel(layout.X, layout.Y, layout.Width, layout.Height, 'Window');
   theme.WindowTitle(layout.X, layout.Y + 2, layout.Width, dialog.Title);
@@ -484,6 +702,7 @@ function DialogResult(dialog, buttonIndex) {
 }
 
 function HandleDialogKey(dialog, event) {
+  if (dialog.Form) return HandleFormKey(dialog, event);
   const name = event.key;
   if (name === 'Escape') { CloseDialog(null); return true; }
   if (name === 'Enter') { CloseDialog(DialogResult(dialog, dialog.ButtonIndex ?? 0)); return true; }
@@ -521,6 +740,7 @@ function HandleDialogKey(dialog, event) {
 }
 
 function HandleDialogPointer(dialog, point) {
+  if (dialog.Form) { HandleFormPointer(dialog, point); return; }
   const layout = DialogLayout(dialog);
   const inside = (x, y, width, height) => point.X >= x && point.X < x + width && point.Y >= y && point.Y < y + height;
   const buttonIndex = layout.Buttons.findIndex((place) => inside(place.X, place.Y, place.Width, ROW_HEIGHT));

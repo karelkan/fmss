@@ -110,9 +110,10 @@ export function ModelSummary(model) {
 // Mudeli kontroll
 // =====================================================================
 
-// [U] CheckModel – kontrollib mudelifaili struktuuri: väljad, tüübid, väärtuste piirid,
-//     lahtrite viited objektidele ja operatsioonide olemasolu tööpinkides.
-//     Rajavõrgu kontroll (vabad otsad, hargnemised, seosed) on Enumerate-s (fms_sim.js).
+// [U] CheckModel – kontrollib mudelifaili struktuuri: väljad, tüübid, väärtuste piirid ja
+//     lahtrite viited objektidele. Rajavõrgu ja andmete kooskõla (vabad otsad, hargnemised,
+//     seosed, kas operatsiooni teeb mõni pink) on Enumerate-s (fms_sim.js), sest redaktoris
+//     võib mudel olla pooleli ja peab siiski salvestuma ja laaduma.
 //     Tagastab vigade loendi [{ Path, Message }]; tühi loend = mudel on korras.
 //     Kutsub: fms_file.js, testid. Sündmusi ei lisa.
 export function CheckModel(model) {
@@ -182,7 +183,6 @@ export function CheckModel(model) {
     checkNumber(track.AccessTime, `${path}.AccessTime`, { min: 0 });
   });
 
-  const machineOps = new Set();
   arrays.Machines.forEach((machine, i) => {
     const path = `Machines[${i + 1}]`;
     if (!checkObject(machine, path)) return;
@@ -193,7 +193,7 @@ export function CheckModel(model) {
     if (checkArray(machine.Ops, `${path}.Ops`)) {
       if (machine.Ops.length === 0) fail(`${path}.Ops`, Texts.CheckEmptyString);
       machine.Ops.forEach((op, j) => {
-        if (checkString(op, `${path}.Ops[${j + 1}]`)) machineOps.add(op);
+        checkString(op, `${path}.Ops[${j + 1}]`);
       });
     }
   });
@@ -233,9 +233,7 @@ export function CheckModel(model) {
       route.Ops.forEach((operation, k) => {
         const opPath = `${routePath}.Ops[${k + 1}]`;
         if (!checkObject(operation, opPath)) return;
-        if (checkString(operation.Op, `${opPath}.Op`) && !machineOps.has(operation.Op)) {
-          fail(`${opPath}.Op`, FormatText(Texts.CheckUnknownOp, { Op: operation.Op }));
-        }
+        checkString(operation.Op, `${opPath}.Op`);
         const meanOk = checkNumber(operation.Mean, `${opPath}.Mean`, { above: 0 });
         const devOk = checkNumber(operation.Dev, `${opPath}.Dev`, { min: 0 });
         if (meanOk && devOk && operation.Dev > operation.Mean) fail(`${opPath}.Dev`, Texts.CheckDevTooLarge);
