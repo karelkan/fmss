@@ -11,21 +11,24 @@ import { Texts, FormatText } from './fms_lng.js';
 
 // [O] IconTypes – ikooni tüüp → mis objekti see tähistab (Kind) ja mis massiivi N viitab (Array).
 //     Kind: Track – rajalõik; Connector – radade ühendus; Buffer, Storage, Output, Machine – objektid.
+//     [T] Ports – küljed, mille kaudu rada läbi ikooni kulgeb (N üles, E paremale, S alla, W vasakule);
+//     Branch – hargnemisikooni (Tee*) haru külg. Ristmikul (Cruise) kulgeb rada otse läbi (N–S, W–E).
+//     Arc – kaar (veerandring, pikkus π/4 ikooni). Kasutavad: CheckModel, Enumerate, redaktor, animaator.
 export const IconTypes = {
   Empty:            { Kind: 'Empty',     Array: null },
-  VertTr:           { Kind: 'Track',     Array: 'Tracks' },
-  HorTr:            { Kind: 'Track',     Array: 'Tracks' },
-  ArcNE:            { Kind: 'Track',     Array: 'Tracks' },
-  ArcSE:            { Kind: 'Track',     Array: 'Tracks' },
-  ArcNW:            { Kind: 'Track',     Array: 'Tracks' },
-  ArcSW:            { Kind: 'Track',     Array: 'Tracks' },
-  TeeN:             { Kind: 'Track',     Array: 'Tracks' },
-  TeeE:             { Kind: 'Track',     Array: 'Tracks' },
-  TeeS:             { Kind: 'Track',     Array: 'Tracks' },
-  TeeW:             { Kind: 'Track',     Array: 'Tracks' },
-  Cruise:           { Kind: 'Track',     Array: 'Tracks' },
-  VertCon:          { Kind: 'Connector', Array: null },
-  HorCon:           { Kind: 'Connector', Array: null },
+  VertTr:           { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'S'] },
+  HorTr:            { Kind: 'Track',     Array: 'Tracks', Ports: ['W', 'E'] },
+  ArcNE:            { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'E'], Arc: true },
+  ArcSE:            { Kind: 'Track',     Array: 'Tracks', Ports: ['S', 'E'], Arc: true },
+  ArcNW:            { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'W'], Arc: true },
+  ArcSW:            { Kind: 'Track',     Array: 'Tracks', Ports: ['S', 'W'], Arc: true },
+  TeeN:             { Kind: 'Track',     Array: 'Tracks', Ports: ['W', 'E'], Branch: 'N' },
+  TeeE:             { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'S'], Branch: 'E' },
+  TeeS:             { Kind: 'Track',     Array: 'Tracks', Ports: ['W', 'E'], Branch: 'S' },
+  TeeW:             { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'S'], Branch: 'W' },
+  Cruise:           { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'E', 'S', 'W'] },
+  VertCon:          { Kind: 'Connector', Array: null, Ports: ['N', 'S'] },
+  HorCon:           { Kind: 'Connector', Array: null, Ports: ['W', 'E'] },
   InBuf:            { Kind: 'Buffer',    Array: 'Buffers' },
   OutBuf:           { Kind: 'Buffer',    Array: 'Buffers' },
   InOutBuf:         { Kind: 'Buffer',    Array: 'Buffers' },
@@ -38,6 +41,23 @@ export const IconTypes = {
   MachToolThruDown: { Kind: 'Machine',   Array: 'Machines' },
   MachToolThruUp:   { Kind: 'Machine',   Array: 'Machines' },
 };
+
+// [T] DIRECTIONS – ruudustiku suunad: samm (DX, DY) ja vastaskülg. Y kasvab alla.
+export const DIRECTIONS = {
+  N: { DX: 0, DY: -1, Opposite: 'S' },
+  E: { DX: 1, DY: 0, Opposite: 'W' },
+  S: { DX: 0, DY: 1, Opposite: 'N' },
+  W: { DX: -1, DY: 0, Opposite: 'E' },
+};
+
+// [O/T] DirectionPorts – küljed, kuhu raja suunanool võib ikoonil näidata: ainult sirgel ja
+//     kaarel (kaks külge), mitte hargnemisel ega ristmikul. Nool näitab, kummast küljest
+//     kärud ikoonist väljuvad (DISAIN.md 2). Teistel ikoonidel tühi loend.
+export function DirectionPorts(iconType) {
+  const icon = IconTypes[iconType];
+  if (!icon || icon.Kind !== 'Track' || icon.Branch || icon.Ports.length !== 2) return [];
+  return icon.Ports;
+}
 
 // =====================================================================
 // Mudeli piirid ja lubatud väärtused
@@ -88,7 +108,7 @@ export function ModelSummary(model) {
 
 // [U] CheckModel – kontrollib mudelifaili struktuuri: väljad, tüübid, väärtuste piirid,
 //     lahtrite viited objektidele ja operatsioonide olemasolu tööpinkides.
-//     Rajavõrgu kontroll (vabad otsad, hargnemised – DetectOpenCons, FindConflicts) tuleb hiljem.
+//     Rajavõrgu kontroll (vabad otsad, hargnemised, seosed) on Enumerate-s (fms_sim.js).
 //     Tagastab vigade loendi [{ Path, Message }]; tühi loend = mudel on korras.
 //     Kutsub: fms_file.js, testid. Sündmusi ei lisa.
 export function CheckModel(model) {
@@ -245,6 +265,12 @@ export function CheckModel(model) {
         if (!checkOneOf(cell.T, `${path}.T`, Object.keys(IconTypes))) return;
         if (cell.Dot !== undefined && typeof cell.Dot !== 'boolean') {
           fail(`${path}.Dot`, FormatText(Texts.CheckOneOf, { Values: 'true, false' }));
+        }
+        // Suunanool (Dir): ainult raja sirgel või kaarel, mitte punktiirühendusel.
+        if (cell.Dir !== undefined) {
+          const allowed = cell.Dot ? [] : DirectionPorts(cell.T);
+          if (allowed.length === 0) fail(`${path}.Dir`, Texts.CheckDirIcon);
+          else checkOneOf(cell.Dir, `${path}.Dir`, allowed);
         }
         // Punktiirühendusel (Dot) pole oma objekti, seega ka viidet N.
         const arrayName = IconTypes[cell.T].Array;

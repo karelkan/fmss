@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Osa 11 (AGV-d) on veel valideerimata.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Osa 11 (AGV-d) on veel valideerimata.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -60,6 +60,36 @@ Uus lahendus:
 - Lõigul on suund: pidevatel radadel alati raja liikumissuund; diskreetsetel radadel kas **ühesuunaline** või **kahesuunaline** (vt osa 11).
 - Pidevatel radadel hargnemisi ei tohi olla (originaali kontroll nr 2), diskreetsetel on hargnemised ja ristmikud lubatud. **[O]**
 - Kõik on massiivides ja viidatakse indeksiga; ikoonide ahelloendeid pole vaja.
+
+### 2.1 `Enumerate` – teostus (etapp 4) **[T + U]**
+
+Etapis 4 toetab `Enumerate` **ühte suletud pidevat konveierit**. Mitu rada, konnektorid ja avatud konveier tulevad etapis 7 koos rajavõrgu graafiga; seni annab kontroll selge vea „… pole veel toetatud“.
+
+- **Ikoonide küljed** (`IconTypes[...].Ports`, `fms_glb.js`): `HorTr` W–E, `VertTr` N–S, kaared oma kahe küljega (`ArcSE` = S, E), `Tee*` läbib W–E või N–S ja haru (`Branch`) on nimes olev külg (`TeeN` → haru N), `Cruise` neli külge. Y kasvab alla.
+- **Suunanool** **[O]**: originaalis oli pideva raja liikumissuund nool ühe raja ikooni kõrval („kirjeldatakse ühel raja ikoonil“). Mudelis on see lahtri väli `"Dir": "N" | "E" | "S" | "W"` – **külg, kust kärud ikoonist väljuvad**. Lubatud ainult raja sirgel ja kaarel ning ainult ikooni külgede suunas (`DirectionPorts`): `HorTr` → `E`/`W`, `ArcSE` → `S`/`E`; hargnemisel, ristmikul ja punktiirühendusel noolt ei ole (`CheckModel`). Diskreetsel rajal noolt ei kasutata.
+- **Mitu noolt** **[T]**: lubatud, kui need on kooskõlas (sama ringi suund); vastuolu on viga. Originaali lahendust me ei tea.
+- **Silmus** (`TraceLoop`): alustatakse esimesest noolega ikoonist, väljutakse noole küljest ja liigutakse naabrite kaudu, kuni jõutakse tagasi. Vead: naaber puudub või ei sobi (rada pole suletud, viga 1), ristmik või haru, mis pole punktiirühendus (viga 2), sama lahter kaks korda, raja ikoon silmusest väljas.
+- **Jaam** (`FindStations`, `FollowDotLink`): igal hargnemisel peab haru olema punktiirühendus (üks või mitu `Dot`-ikooni, võib ka kohe objekt olla), mis viib puhvri, `FromCS`, `ToCS` või `SysOut`-ini. Jaama asukoht on hargnemisikooni keskpunkt.
+- **Pink ↔ puhver** (`LinkMachines`) **[T]**: puhver on vahetult pingi all või kohal. `MachToolDown` – üks puhver all (sisse ja välja), `MachToolUp` – üks puhver kohal, `MachToolThruDown` – sissetulev kohal, väljaminev all, `MachToolThruUp` – vastupidi. Sissetulev puhver on `InBuf`, `InOutBuf` või `TurnBuf`, väljaminev `OutBuf`, `InOutBuf` või `TurnBuf`.
+- **Lõik ja pikkus** (`MeasureTrack`): lõik on rada kahe järjestikuse hargnemise keskpunkti vahel (hargnemisikoonist pool kummalegi poole). Sirge = 1, kaar = π/4 ikooni, korda `Scale`. `EdgeLengths` kirje leiab lõigu, mille sisemiste lahtrite hulgas on **kõik** kirje lahtrid (piisab näiteks esimesest ja viimasest); käsitsi pikkus jaotub lõigu ikoonidele (ka hargnemise poolele) ühtlaselt. Kahe kõrvuti hargnemise vahelist lõiku ei saa üle kirjutada (sisemisi lahtreid pole).
+- **Nullpunkt** **[T]**: asukoht 0 on `FromCS` jaam; alguses on seal alus 0 (nagu prototüübis). Asukohad ümardatakse 0,001 cm-ni, et ujukomavead ei mõjutaks peatumist.
+- **Tulemus** – simulatsiooni võrk (`SimInit`-i sisend): `Tracks` (pikkus, ikoonid koos asukohtadega, lõigud), `Stations` (asukoha järjekorras), `Buffers` ja `Machines` – ainult need, mis on joonisel (`ModelIndex` = indeks mudelifailis), `Storage` (null, kui `ToCS`-i pole), `Workpieces`, `Sim`. Animaator (etapp 5) kasutab ikoonide asukohti kärude joonistamiseks.
+
+### 2.2 Andmekontroll (originaali vead 1–8) **[O + T]**
+
+`CheckModel` kontrollib faili struktuuri laadimisel, `Enumerate` (`TraceLoop`, `DetectOpenCons`, `CheckObjects`, `LinkMachines`, `FindConflicts`) võrku enne simulatsiooni. Vead peatavad, hoiatused mitte.
+
+| Originaali viga | Kontroll | |
+|---|---|---|
+| 1. topoloogia pole suletud | rada katkeb, ikoonid ei sobi kokku, punktiirühendus ei vii objektini / pole rajaga ühendatud | viga |
+| 2. pidevatel radadel on harusid | haru, mis pole punktiirühendus; ristmik | viga |
+| 3. kesklaos liiga vähe kohti | `Capacity ≤ ParkingReserve` | hoiatus |
+| 4. pingid ei tee marsruudi operatsioone | operatsiooni ei tee ükski pink (`CheckModel`) või ükski **joonisel olev** pink | viga |
+| 5. pideval rajal pole suunda | noolt pole; nooled vastuolus | viga |
+| 6. radadel rohkem kohti kui puhvrites | `Carts × PlacesPerCart > Σ Capacity` | hoiatus |
+| 7. puhvrid järjestikku | puhver vahetult teise puhvri kohal | viga |
+| 8. pingil puhver puudu | pingi ikooni järgi oodatud puhver puudub või on vale liiki | viga |
+| lisaks **[T]** | `FromCS` ja `SysOut` täpselt üks, `ToCS` kõige rohkem üks (ja siis `Storage` olemas); objekt joonisel üks kord ja ühendatud ühe jaamaga; puhver seotud ühe pingiga; detailitüübid ja pingid olemas; `EdgeLengths` leiab lõigu; joonisel puuduv rada / pink / puhver → hoiatus | |
 
 ---
 
@@ -240,10 +270,13 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 ## 7. Statistika **[O + T]**
 
 - Detaili kohta: `TimeIn`, `TimeOut`, töötlemis-, häälestus-, transpordi-, laadimis- ja ooteaeg. Tsükliaeg `Tts` ja osakaalud: töötlemine, ootamine, transport (ptk 8.5 originaalis).
-- Pingi kohta: aeg igas olekus → rakendatus.
+- Pingi kohta: aeg igas olekus → rakendatus, töötlemise / häälestuse / laadimise / jõudeoleku osakaal, tehtud operatsioonide arv.
 - Puhvri kohta: keskmine ja maksimaalne täituvus.
-- Konveieri kohta: liikumise ja seismise osakaal.
-- Süsteem: läbilaskevõime (detaili tunnis), detailide arv süsteemis aja jooksul.
+- Konveieri kohta: liikumise ja seismise osakaal, peatuste arv.
+- Detailitüübi kohta: sisse toodud, valmis, keskmine tsükliaeg.
+- Süsteem: läbilaskevõime (detaili tunnis), keskmine ja suurim detailide arv süsteemis, kesklattu pargitud.
+- **Aegrida** (`Stats.Timeline`, Dynamic-aruande jaoks, etapp 9) **[U]**: iga `SampleInterval` sekundi järel (vaikimisi 60, ka algus ja lõpp) detailid süsteemis, valmis, hõivatud pingid, puhvrite täituvus.
+- Kõik tuleb `SimReport`-ist; menüü *Simulate* näitab sellest lühikokkuvõtet (etapp 4), täielikud aruanded tulevad etapis 9.
 
 ---
 
@@ -254,7 +287,8 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
   "Meta":    { "Name": "Näidis", "Version": 1 },
   "Scale":   100,
   "Layout":  { "Dim": { "X": 13, "Y": 4 },
-               "Cells": [ { "X": 0, "Y": 0, "T": "FromCS", "N": 1 } ] },
+               "Cells": [ { "X": 2, "Y": 0, "T": "FromCS" },
+                          { "X": 5, "Y": 1, "T": "HorTr", "N": 1, "Dir": "E" } ] },
   "EdgeLengths": [ { "Cells": [[3,2],[4,2]], "Length": 1500 } ],
   "Tracks":     [ { "Name": "Konveier", "Mode": "Continuous", "Carts": 8, "PlacesPerCart": 1,
                     "Speed": 20, "LoadTime": 10, "AccessTime": 0 } ],
@@ -272,9 +306,10 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 - Objektide seos ruudustikuga: lahtril on ikooni tüüp `T` ja järjenumber `N` vastavas massiivis (originaali väljad, lk 51). Rada ja jaamad tuletatakse `Enumerate`-ga.
 - `N` on **1-põhine** järjenumber (nagu nimed MT1, BUF1): rajaikoonil `Tracks`-is, pingil `Machines`-is, puhvril `Buffers`-is. `FromCS`, `ToCS`, `SysOut` ja konnektoritel `N` puudub. **[T]**
 - Punktiirühendus (loogiline ühendus, pikkus 0, lk 54) on rajaikoon väljaga `"Dot": true`; sellel pole `N`-i. Jaam tekib seal, kus punktiirühendus liitub rajaga (hargnemisikoon `Tee*`). **[T]**
+- Suunanool on raja sirge või kaare väli `"Dir"` (osa 2.1). **[O]**
 - `Storage: null` tähendab, et kesklattu pole (stsenaarium C0).
-- Mudeli struktuuri kontrollib `CheckModel` (`src/fms_glb.js`) laadimisel; rajavõrgu kontroll (`DetectOpenCons`, `FindConflicts`) tuleb koos `Enumerate`-ga.
-- Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal).
+- Mudeli struktuuri kontrollib `CheckModel` (`src/fms_glb.js`) laadimisel; rajavõrgu ja andmete kontroll on `Enumerate`-s (osa 2.2).
+- Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal, osa 2.1).
 
 ---
 
@@ -300,8 +335,8 @@ Invariandid, mida kontrollitakse igal sekundil:
 
 ## 10. Varem lahtised küsimused (ettepanekud kinnitatud)
 
-1. **Avatud konveier** (mitte silmus): mis juhtub detailiga, mis jõuab raja lõppu? Ettepanek: konveier seiskub, kuni see maha laaditakse; Planner ei saada detaili teele, kui sihtkoht pole raja suunas eespool.
-2. **Konnektor** (radade ühendus): kas see on lihtsalt kahe raja jaam, kus detail tõstetakse ühelt rajalt teisele (puhver mahutavusega 0, `Load` + `Load`)? Ettepanek: jah.
+1. **Avatud konveier** (mitte silmus): mis juhtub detailiga, mis jõuab raja lõppu? Ettepanek: konveier seiskub, kuni see maha laaditakse; Planner ei saada detaili teele, kui sihtkoht pole raja suunas eespool. *Teostus ja valideerimine: etapp 7.*
+2. **Konnektor** (radade ühendus): kas see on lihtsalt kahe raja jaam, kus detail tõstetakse ühelt rajalt teisele (puhver mahutavusega 0, `Load` + `Load`)? Ettepanek: jah. *Teostus ja valideerimine koos mitme rajaga: etapp 7.*
 3. **`AccessTime`** (keskmine pöördusaeg): tähendus on ebaselge. Ettepanek: lisaviivitus enne esimest laadimist, kui konveier oli seisnud – või jätta kasutamata.
 4. **Mitu detaili alusel** (`placesPerCart > 1`) ja **mitu detaili pingis**: esimeses järgus 1, hiljem laiendada.
 
@@ -456,6 +491,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `CheckInvariants` | kontrollib invariante (testides) | [U] |
 | `DEADLOCK` | lipp: lahendamatu ummik, simulatsioon peatati | [U] |
 | `SimRun`, `SimReport`, `SimState` | käivitab lõpuni; aruanne; olek lugemiseks (testid, animaator) | [U] |
+| `Model`, `Options` | simulatsiooni võrk (`Enumerate` tulemus, `SimInit`-i koopia); käivitamise seaded (`fms_sim.js`) | [U] |
+| `PARKING_RESERVE`, `SAMPLE_INTERVAL` | kesklao ummikuvaru (2 kohta); aegrea samm vaikimisi (60 s) | [U] |
 
 **Sündmuste nimekiri**
 
@@ -484,14 +521,21 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ZoneArray` | liiklustsoonid diskreetsetel radadel | [U] |
 | `PalletArray` | kärud / alused | [T] |
 | `TransportRequests` | ootel transpordisoovid | [U] |
-| `Stats` | kogutud statistika | [T] |
+| `Stats` | kogutud statistika (`Stats.Timeline` – aegrida) | [T] |
 
 **Protseduurid**
 
 | Nimi | Roll | |
 |---|---|---|
-| `Enumerate` | ruudustikust rajavõrk, jaamad, seosed | [O nimi, U sisu] |
-| `DetectOpenCons`, `FindConflicts` | andmekontroll | [O] |
+| `Enumerate` | ruudustikust simulatsiooni võrk ja andmekontroll (osa 2.1–2.2) | [O nimi, U sisu] |
+| `DetectOpenCons`, `FindConflicts` | andmekontroll: vabad otsad; andmete kooskõla (osa 2.2) | [O] |
+| `TraceLoop`, `FindStations`, `FollowDotLink` | silmus suunanoole järgi; jaamad hargnemistel; punktiirühenduse järgimine | [U] / [U] / [T] |
+| `CheckObjects`, `LinkMachines` | puhvrite, lao ja väljundi ühendused; pingi ja puhvri seos | [U] / [T] |
+| `MeasureTrack`, `BuildNetwork` | lõigud, pikkused, asukohad; võrgu koostamine | [U] |
+| `EnumError`, `EnumWarning`, `Neighbor`, `OtherPort`, `ObjectName`, `CellKey`, `CellPath`, `RoundPosition` | `Enumerate` abiprotseduurid | [U] |
+| `MACHINE_BUFFER_SIDES`, `IN_BUFFER_KINDS`, `OUT_BUFFER_KINDS` | pingi ikoon → puhvrite asukoht; sobivad puhvri liigid | [T] |
+| `ARC_LENGTH`, `POSITION_DECIMALS` | kaare pikkus (π/4 ikooni); asukohtade ümardus | [T] / [U] |
+| `TimelinePoint`, `CompareScores` | aegrea punkt; kriteeriumide võrdlus | [U] |
 | `MinuteMan` | liigutab konveiereid ja kärusid ühe sekundi võrra | [O] |
 | `Planner` | otsused: sissetoomine, marsruut, sihtkoht, pingi laadimine, konfliktid | [O] |
 | `FindMach`, `FindBuf`, `FindSysPos`, `FindPal` | sobivaima pingi / puhvri / väljundi / käru otsing | [O] |
@@ -510,14 +554,15 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ProcAllEvents` | sisetsükkel: kõik käesoleva hetke sündmused | [U] |
 | `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, viited) | [U] |
 | `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
-| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationDistance`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `proto/fms_sim.js`-is | [T]/[U] |
+| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationDistance`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
 | `Animator`, `SimStatus`, `Transport` | kuvamine | [O] |
 
 **Mudeli konstandid** (`src/fms_glb.js`)
 
 | Nimi | Roll | |
 |---|---|---|
-| `IconTypes` | ikooni tüüp → objekti liik ja massiiv, millele `N` viitab (joon. 5.4) | [O] |
+| `IconTypes` | ikooni tüüp → objekti liik, massiiv, millele `N` viitab (joon. 5.4); raja küljed `Ports`, haru `Branch`, kaar `Arc` | [O] / [T] |
+| `DIRECTIONS`, `DirectionPorts` | suunad N/E/S/W (samm, vastaskülg); küljed, kuhu suunanool võib näidata | [T] / [O/T] |
 | `MODEL_VERSION` | mudelifaili vormingu versioon (`Meta.Version`) | [U] |
 | `MAX_WORKPIECE_TYPES` | detailitüüpe kõige rohkem (16) | [O] |
 | `TRACK_MODES`, `BUFFER_DISCIPLINES` | lubatud raja liigid ja puhvri distsipliinid | [O] |
@@ -547,6 +592,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `SPLASH_ACTIVE`, `SplashStart`, `SplashTimer`, `ShowSplash` | avaekraan | [U] |
 | `EgaTheme`, `CurrentTheme`, `ChangeTheme`, `ChangeColorScheme` | välimuse valik (F2, Options) | [U] |
 | `BuildMainMenu`, `NotYet`, `DrawDesktop`, `AcceptLoadedModel`, `Main` | peamenüü; „tuleb etapis N“ punkt; töölaud; laaditud mudeli vastuvõtt; peaprogramm | [O] / [U] |
+| `MenuSimulate`, `SimSummaryLines` | Simulate: kontroll, simulatsioon lõpuni, kokkuvõte dialoogis (etapp 4) | [O] / [U] |
+| `SIM_SHOWN_ERRORS`, `SIM_SHOWN_OBJECTS`, `ClockText`, `CheckLine`, `Percent`, `Decimal` | kokkuvõtte piirid ja vormindus (h:mm:ss, %, koma) | [U] |
 | abiprotseduurid | `MenuItems`, `SelectedItem`, `DropdownItems`, `DrawMenuBar`, `DrawDropdown`, `DrawStatusLine`, `MoveInDropdown`, `HandleMenuKey`, `OpenDialog`, `CloseDialog`, `DrawDialog`, `HandleDialogKey`, `HandleDialogPointer`, `MenuLoad`, `MenuPick`, `MenuNew`, `MenuSave`, `MenuWriteAs`, `AskQuit`, `ShowHelp` – vt kommentaarid `src/windows.js`-is ja `src/fms.js`-is | [U] |
 
 ---

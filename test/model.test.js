@@ -113,3 +113,19 @@ test('kõik koodis kasutatud tekstid on fms_lng.js-is olemas', () => {
   const missing = [...used].filter((key) => !(key in Texts));
   assert.deepEqual(missing, []);
 });
+
+test('suunanool (Dir): ainult raja sirgel või kaarel ja ikooni külgede suunas', () => {
+  const model = demo();
+  const cell = (x, y) => model.Layout.Cells.find((item) => item.X === x && item.Y === y);
+  const index = (x, y) => model.Layout.Cells.indexOf(cell(x, y)) + 1;
+  cell(1, 3).Dir = 'S';                 // ArcSE: lubatud S või E
+  cell(3, 3).Dir = 'E';                 // TeeN: hargnemisel noolt ei ole
+  cell(3, 2).Dir = 'N';                 // punktiirühendusel noolt ei ole
+  cell(4, 3).Dir = 'N';                 // HorTr: ainult W või E
+  const errors = CheckModel(model);
+  const paths = errors.map((error) => error.Path);
+  assert.ok(!paths.includes(`Layout.Cells[${index(1, 3)}].Dir`));
+  for (const [x, y] of [[3, 3], [3, 2], [4, 3]]) {
+    assert.ok(paths.includes(`Layout.Cells[${index(x, y)}].Dir`), `(${x}, ${y})`);
+  }
+});

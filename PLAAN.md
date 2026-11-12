@@ -31,10 +31,18 @@ Iga etapp on eraldi vestlus ja eraldi commit. README „Seis“ uueneb etapi lõ
 
    Kui loogika ei pea, parandame disaini ja alles siis läheme edasi.
 3. **Karkass** – `index.html`, teemade süsteem (EGA / kaasaegne, F2), peamenüü (File Edit Advise Simulate Report Options Quit), DOS-stiilis avaekraan („TTÜ 1993 … valmis 2026“), andmemudel, näidismudel JSON-ina.
-4. **Täissimulaator** – prototüübist tootekood: kõik EventHandlerid, Planner, statistika kogumine.
-5. **Animaator** – ikoonid, kärud radadel, tööpinkide ja puhvrite olekud, `SimStatus`, start/paus/kiirus.
+4. **Täissimulaator** – prototüübist tootekood: kõik EventHandlerid, Planner, statistika kogumine; `Enumerate` (ruudustikust simulatsiooni võrk) ja andmekontroll. Ulatus: üks suletud pidev konveier.
+5. **Animaator** – ikoonid, kärud radadel, tööpinkide ja puhvrite olekud, `SimStatus`, start/paus/kiirus, sammurežiim („järgmine sündmus“). Ainult kaasaegses välimuses (EGA jääb originaalilähedaseks):
+   - **Event List ekraanil** – riba all, ajatelg alates `SYSTEM_TIME`-st: sündmused kaartidena (tüübi värv, nt `Load WP12`), sama aja sündmused virnas FIFO järjekorras; lisandunud sündmus libiseb kohale, töödeldu kaob. Kaardile osutades tõstetakse esile seotud pink / alus / detail. Lisavaatena ahelloend (kastid ja `Next`-nooled nagu diplomitöös). Suurel kiirusel ainult sündmuste arv. Animaator loeb `FirstAtMoment`-i ja võrdleb eelmise kaadriga – simulaatorit ei muudeta.
+   - **Tööpingi pilt muutub olekuga** – laadimine, häälestus, töötlemine (liikuv pilt, nt pöörlev spindel), mahalaadimine, jõude; hiljem rike (etapp 8).
+   - **Kõigi objektide seis on näha**:
+     - **puhver**: kohad eraldi lahtritena – detail sees (tüübi värv, sissetulev / väljaminev), broneeritud (kontuur), vaba;
+     - **alus / käru**: tühi, detailiga või broneeritud; laadimise ajal liigub detail jaama ja aluse vahel;
+     - **konveier**: liigub või seisab (ja miks: mitu laadimist käib);
+     - **FromCS**: ootavate detailide järjekord; **ToCS**: täituvus (valmis + pargitud + varu); **SysOut**: lahkunute arv;
+     - ummikus olevad detailid ja pargitud detailid on esile tõstetud.
 6. **Redaktor** – Layout (lohistamisega rajad, automaatne ikoonivalik), View, Config, Transport, Workpiece data, Storage data, andmekontrollid ja hoiatused.
-7. **Diskreetsed rajad** – AGV-d ja robotid, `ProgTM`, `Collision`, konfliktide lahendamine.
+7. **Diskreetsed rajad** – AGV-d ja robotid, `ProgTM`, `Collision`, konfliktide lahendamine; rajavõrgu graaf, mis toob ka mitu rada, konnektorid ja avatud konveieri.
 8. **Rikked ja juhuslikkus** – `Crash`, remondiaeg, praak, kestuste kõrvalekalded.
 9. **Aruanded** – Static, Dynamic, tsükliaeg ja osakaalud, ekraanile või faili.
 10. **Avaldamine** – GitHub Pages, demomudel ja lühijuhend juhendajale näitamiseks.

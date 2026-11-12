@@ -19,7 +19,7 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
 - [x] 1. Simulatsiooniloogika disain ([DISAIN.md](DISAIN.md))
 - [x] 2. Prototüüp ja valideerimine ([VALIDEERIMINE.md](VALIDEERIMINE.md), `npm test`)
 - [x] 3. Karkass (teemad EGA / kaasaegne, menüü, avaekraan, andmemudel – [DISAIN.md](DISAIN.md) osa 13)
-- [ ] 4. Täissimulaator
+- [x] 4. Täissimulaator (`src/fms_sim.js`: `Enumerate` ruudustikust, andmekontroll, statistika; *Simulate* jookseb lõpuni ja näitab kokkuvõtet – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 4)
 - [ ] 5. Animaator
 - [ ] 6. Redaktor
 - [ ] 7. Diskreetsed rajad

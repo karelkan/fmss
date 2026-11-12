@@ -59,3 +59,25 @@ Läbilaskevõime kasvab puhvri mahuga nagu peab – simulaator käitub mõistlik
 ## Järeldus
 
 Disaini osad 1–7 on pidevate konveierite jaoks **valideeritud**: loogika on analüütiliselt õige, stressi all stabiilne ja korratav. Parandused on viidud DISAIN.md-sse. Prototüübi koodi saab etapis 4 kasutada täissimulaatori alusena.
+
+---
+
+# Etapp 4: tootekood ja `Enumerate`
+
+Prototüübi loogika viidi muutmata kujul faili [src/fms_sim.js](src/fms_sim.js). Uus osa on `Enumerate`, mis teeb mudelifaili ruudustikust simulatsiooni võrgu (DISAIN.md 2.1), ja andmekontroll (2.2). Testid: [test/sim.test.js](test/sim.test.js).
+
+| Test | Tulemus |
+|---|---|
+| **Näidismudel** (`models/demo.fms.json`) läbi `Enumerate` | silmus 18 sirget + 4 kaart = **2114,159 cm**; jaamad FromCS 0, ToCS 700, SysOut 800, BUF2 1357,08, BUF1 1757,08 – täpselt käsitsi arvutatud ✔ |
+| **A** joonisena (metrokaardi pikkustega 500 + 500 + 1000 cm) | võrk = prototüübi stsenaarium A; tsükliaeg **440 s** ja kõik valmis detailid identsed prototüübiga ✔ |
+| **C** joonisena | valmis detailid ja parkimised identsed prototüübiga; **C0** (ilma kesklaota) – ummik tuvastatakse ✔ |
+| Näidismudel 8 h | ilma ummikuta, **10,5 tk/h**, MT2 99 % (pudelikael), MT1 63 %, konveier liigub 76 % ajast; ~50 ms koos invariantidega ✔ |
+| Suunanool | vastassuunaline nool pöörab jaamade järjekorra ümber; mitu kooskõlas noolt on lubatud, vastuolulised annavad vea ✔ |
+| `EdgeLengths` | lõigu pikkuse muutmine nihutab järgmisi jaamu täpselt nii palju ✔ |
+| Andmekontroll | originaali vead 1–8 ja lisakontrollid annavad vea või hoiatuse (14 negatiivset testi) ✔ |
+| Statistika | pinkide olekute osakaalud ja konveieri liikumine/seis summeeruvad 1-ks; tüüpide kaupa valmis = kokku valmis; aegrida 481 punkti (0 … 28 800 s, iga 60 s) ✔ |
+| Korratavus | sama seeme → identne aruanne ✔ |
+
+**Leid.** Kui pideva raja haru on tehtud päris rajaikooniga, tuli esialgu hulk kaasvigu (kõik punktiirühendused „ühendamata“), aga mitte põhiviga. Parandus: katkise silmuse korral teisi kontrolle ei tehta ja haru lahter ei saa teadet „pole ühendatud“. Nüüd on teade lühike ja täpne: „pideval rajal … on haru“.
+
+**Mida see EI kontrolli** (etapp 7): mitu rada, konnektorid, avatud konveier, diskreetsed rajad, `PlacesPerCart > 1`. Need annavad praegu selge vea „… pole veel toetatud (tuleb etapis 7)“.

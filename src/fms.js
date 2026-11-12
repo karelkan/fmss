@@ -3,6 +3,7 @@
 
 import { Texts, FormatText } from './fms_lng.js';
 import { EmptyModel, ModelSummary } from './fms_glb.js';
+import { Enumerate, SimRun } from './fms_sim.js';
 import { EnvironmentOptions, LoadOptions, SaveOptions } from './fms_opt.js';
 import {
   DemoModels, LoadDemoModel, ChooseLocalFile, SaveModel, RecentModels, RememberModel,
@@ -260,6 +261,76 @@ function MenuWriteAs() {
 }
 
 // =====================================================================
+// Simulatsioon
+// =====================================================================
+
+const SIM_SHOWN_ERRORS = 8;    // [U] mitu viga dialoogis näidatakse
+const SIM_SHOWN_OBJECTS = 6;   // [U] mitu pinki / puhvrit kokkuvõttes näidatakse
+
+// [U] Percent, Decimal – protsent ja kümnendmurd (komaga) kokkuvõttes.
+const Percent = (value) => `${Math.round(value * 100)} %`;
+const Decimal = (value, digits = 1) => value.toFixed(digits).replace('.', ',');
+
+// [U] ClockText – sekundid kujul h:mm:ss.
+function ClockText(seconds) {
+  const two = (value) => String(value).padStart(2, '0');
+  return `${Math.floor(seconds / 3600)}:${two(Math.floor(seconds / 60) % 60)}:${two(seconds % 60)}`;
+}
+
+// [U] CheckLine – kontrolli tulemus dialoogi reaks (lahtri asukoht on juba teates).
+function CheckLine(problem) {
+  return problem.Path.startsWith('Layout') ? `  ${problem.Message}` : `  ${problem.Path}: ${problem.Message}`;
+}
+
+// [O] MenuSimulate – Simulate: kontroll (Enumerate), simulatsioon lõpuni ilma animatsioonita
+//     ja lühikokkuvõte. Animatsioon tuleb etapis 5, aruanded etapis 9.
+function MenuSimulate() {
+  if (!CurrentModel) { MessageBox(Texts.SimTitle, [Texts.SimNoModel]); return; }
+  const result = Enumerate(CurrentModel);
+  if (result.Errors.length > 0) {
+    const lines = [{ Text: Texts.SimCannot, Role: 'Error' }, ...result.Errors.slice(0, SIM_SHOWN_ERRORS).map(CheckLine)];
+    if (result.Errors.length > SIM_SHOWN_ERRORS) {
+      lines.push(FormatText(Texts.LoadErrorMore, { Count: result.Errors.length - SIM_SHOWN_ERRORS }));
+    }
+    MessageBox(Texts.SimTitle, lines);
+    return;
+  }
+  MessageBox(Texts.SimTitle, SimSummaryLines(SimRun(result.Network), result.Warnings));
+}
+
+// [U] SimSummaryLines – simulatsiooni kokkuvõte dialoogi ridadeks.
+function SimSummaryLines(report, warnings) {
+  const limited = (items, format) => {
+    const lines = items.slice(0, SIM_SHOWN_OBJECTS).map(format);
+    if (items.length > SIM_SHOWN_OBJECTS) lines.push(FormatText(Texts.SimMore, { Count: items.length - SIM_SHOWN_OBJECTS }));
+    return lines;
+  };
+  const lines = [
+    FormatText(Texts.SimHeader, { Name: report.Model || Texts.DesktopUntitled, Time: ClockText(report.Time), Seed: report.Seed }),
+  ];
+  if (report.Deadlock) {
+    lines.push({ Text: FormatText(Texts.SimDeadlock, { Time: ClockText(report.Time), Reason: report.DeadlockReason }), Role: 'Error' });
+  }
+  lines.push(
+    FormatText(Texts.SimCounts, report),
+    FormatText(Texts.SimThroughput, { Throughput: Decimal(report.ThroughputPerHour), Cycle: ClockText(Math.round(report.AvgCycleTime)) }),
+    FormatText(Texts.SimShares1, { Process: Percent(report.Shares.Process), Setup: Percent(report.Shares.Setup), Load: Percent(report.Shares.Load) }),
+    FormatText(Texts.SimShares2, { Transport: Percent(report.Shares.Transport), Wait: Percent(report.Shares.Wait) }),
+    ...limited(report.Machines, (machine) => FormatText(Texts.SimMachine, {
+      Name: machine.Name, Utilization: Percent(machine.Utilization), Processing: Percent(machine.ProcessingShare), Ops: machine.OpsDone,
+    })),
+    ...limited(report.Buffers, (buffer) => FormatText(Texts.SimBuffer, {
+      Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,
+    })),
+    ...report.Tracks.map((track) => FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops })),
+  );
+  if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
+  for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });
+  lines.push('', Texts.SimLater);
+  return lines;
+}
+
+// =====================================================================
 // Menüü
 // =====================================================================
 
@@ -330,7 +401,7 @@ function BuildMainMenu() {
         NotYet(Texts.MenuLayoutFinder, 11),
       ],
     },
-    NotYet(Texts.MenuSimulate, '4–5', { Hint: Texts.HintSimulate, Dim: false }),
+    { Label: Texts.MenuSimulate, Hint: Texts.HintSimulate, Action: MenuSimulate },
     {
       Label: Texts.MenuReport, Hint: Texts.HintReport, Items: [
         NotYet(Texts.MenuStatic, 9),
