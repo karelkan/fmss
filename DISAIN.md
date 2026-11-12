@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Osa 11 (AGV-d) on veel valideerimata.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Osa 11 (AGV-d) on veel valideerimata.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -555,7 +555,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, viited) | [U] |
 | `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
 | abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationDistance`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
-| `Animator`, `SimStatus`, `Transport` | kuvamine | [O] |
+| `Animator`, `SimStatus`, `Transport` | kuvamine: pinkide, puhvrite ja ladude seis; üldseis ühe reana; alused ja detailid (`anima.js`, osa 14) | [O] |
 
 **Mudeli konstandid** (`src/fms_glb.js`)
 
@@ -592,9 +592,27 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `SPLASH_ACTIVE`, `SplashStart`, `SplashTimer`, `ShowSplash` | avaekraan | [U] |
 | `EgaTheme`, `CurrentTheme`, `ChangeTheme`, `ChangeColorScheme` | välimuse valik (F2, Options) | [U] |
 | `BuildMainMenu`, `NotYet`, `DrawDesktop`, `AcceptLoadedModel`, `Main` | peamenüü; „tuleb etapis N“ punkt; töölaud; laaditud mudeli vastuvõtt; peaprogramm | [O] / [U] |
-| `MenuSimulate`, `SimSummaryLines` | Simulate: kontroll, simulatsioon lõpuni, kokkuvõte dialoogis (etapp 4) | [O] / [U] |
-| `SIM_SHOWN_ERRORS`, `SIM_SHOWN_OBJECTS`, `ClockText`, `CheckLine`, `Percent`, `Decimal` | kokkuvõtte piirid ja vormindus (h:mm:ss, %, koma) | [U] |
+| `MenuSimulate`, `SimSummaryLines` | Simulate: kontroll, animaator (osa 14), lõpus kokkuvõte dialoogis | [O] / [U] |
+| `SIM_SHOWN_ERRORS`, `SIM_SHOWN_OBJECTS`, `CheckLine`, `Percent`, `Decimal` | kokkuvõtte piirid ja vormindus (%, koma); `ClockText` (h:mm:ss) on `anima.js`-is | [U] |
+| `DesktopView`, `SetDesktopView`, `POINTER_CAPTURED`, `HandleWheel`, `InsideDesktop` | töölaua vaade (animaator): joonistaja, klahvid, hiir; lohistamine; hiire ratas | [U] |
 | abiprotseduurid | `MenuItems`, `SelectedItem`, `DropdownItems`, `DrawMenuBar`, `DrawDropdown`, `DrawStatusLine`, `MoveInDropdown`, `HandleMenuKey`, `OpenDialog`, `CloseDialog`, `DrawDialog`, `HandleDialogKey`, `HandleDialogPointer`, `MenuLoad`, `MenuPick`, `MenuNew`, `MenuSave`, `MenuWriteAs`, `AskQuit`, `ShowHelp` – vt kommentaarid `src/windows.js`-is ja `src/fms.js`-is | [U] |
+
+**Animaator** (`src/anima.js`, etapp 5, osa 14)
+
+| Nimi | Roll | |
+|---|---|---|
+| `AnimState` | animaatori olek (jooksev, kiirus, eelmine nihe, kaardid, hiir); `null` – suletud | [U] |
+| `StartAnimator`, `StopAnimator`, `AnimatorActive` | avamine (SimInit, pausil), sulgemine, kas avatud | [U] |
+| `TrackGeometry`, `TrackPoint`, `CellPathPoint`, `ArcCorner` | raja ikoonid asukohtadega; asukoht rajal → punkt ruudustikus; punkt ikooni sees; kaare keskpunkt | [U] |
+| `PalletPosition`, `InterpolateOffset` | aluse asukoht (sama valem mis `MinuteMan`-is); nihe kahe sekundi vahel | [T] / [U] |
+| `WorkpiecePlaces`, `PlacePoint`, `BuildScene` | kus iga detail joonistatakse (ka laadimisel liikumas); koha punkt; kaadri andmed | [U] |
+| `EventListArray`, `DiffEventList`, `EventAxisX`, `EventCardLayout`, `RelatedObjects` | Event List massiivina; lisandunud ja töödeldud kirjed; ajatelg; kaartide veerud; kaardiga seotud objektid | [U] |
+| `SPEED_STEPS`, `MAX_SPEED`, `SpeedFromSlider`, `SliderFromSpeed`, `NextSpeed`, `SpeedText`, `ClockText` | kiiruse skaala (×1 … ×1000) ja vormindus; aeg h:mm:ss | [U] |
+| `LayoutView`, `DrawLayout`, `DrawIcon`, `ObjectLabel` | ruudustiku vaade ekraanil; ikoonid (kasutab ka redaktor) | [U] |
+| `AnimatorPainter`, `DrawControlBar`, `ControlLayout`, `DrawEventStrip`, `DrawLinkedList` | töölaua joonistaja; juhtriba; Event List riba ja ahelloend | [U] |
+| `AnimatorFrame`, `AdvanceSimulation`, `AnimatorInput`, `AnimatorKey`, `AnimatorHint` | kaader; simulatsioon edasi (time mapping); hiir ja klahvid; olekurea vihje | [U] |
+| abiprotseduurid ja konstandid | `StepSimulation`, `CheckFinished`, `ScheduleFrame`, `WakeAnimator`, `ToggleRun`, `StepOnce`, `NextEvent`, `SetSpeed`, `ToggleMax`, `StopRun`, `ExitAnimator`, `SlotPoint`, `QueuePoint`, `DrawWorkpiece`, `DrawBufferSlots`, `DrawStorages`, `DrawSpindle`, `DrawMachineLetters`, `DrawTrackIcon`, `DrawDirectionArrow`, `MACHINE_ROLES`, `MACHINE_LINK_SIDES` jt – vt päisekommentaarid | [U] |
+| teema primitiivid | `Line`, `Ellipse`, `Polygon`, `StrokeRect`, `RoundRect`, `Clip`, `Alpha`, `Slider` (teema meetodid); EGA-s `EgaLine`, `EgaArc`, `EgaFillEllipse`, `EgaFillPolygon` | [U] |
 
 ---
 
@@ -607,3 +625,35 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 - **Klahvid**: F10 menüü, Alt + täht, nooled, Enter, Esc, F1 abi, F2 välimus, Alt-X lõpetamine. Olekureal on klahvid või valitud menüüpunkti vihje; klahvid on ka hiirega klõpsatavad.
 - **Failid**: Load (näidismudel serverist või fail arvutist), Save / Write as (allalaadimine), Pick (10 viimast brauseri mälus). Laadimisel kontrollib `CheckModel` faili ja näitab vead eesti keeles.
 - **Avaekraan**: DOS-i käsurida `C:\FMSS>FMS`, siis pealkiri ja read ükshaaval; esimene klahv lõpetab animatsiooni, teine viib töölauale. Quit viib tagasi avaekraanile.
+
+---
+
+## 14. Animaator (etapp 5) **[O + U]**
+
+Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinkide ja puhvrite olekud, `SimStatus` üldised suurused; side on ühepoolne. **[O]** Teostus: `src/anima.js`.
+
+- **Ühepoolne side** **[O]**: animaator kutsub `SimInit` / `SimStep` ja loeb `SimState()`-i, aga simulaatori andmeid ei muuda. Test: samm-sammult koos olekut lugedes on aruanne sama mis `SimRun`-iga.
+- **Avamine**: *Simulate* kontrollib mudelit (`Enumerate`) ja avab animaatori **pausil** töölaual (`SetDesktopView`). Menüü jääb kasutatavaks. Lõpus (aeg täis või ummik) animaator peatub ja näitab kokkuvõtet, pilt jääb ekraanile. Esc / ⏹ näitab kokkuvõtet ja viib töölauale tagasi. **[U]**
+- **Aeg** **[O + U]**: kell liigub täissekundite kaupa (time mapping). Kiirus on ×1 … ×1000 simulatsiooni sekundit reaalses sekundis. Kaadris tehakse `kiirus × möödunud aeg` sammu (`AdvanceSimulation`). Max: nii palju samme, kui kaadris 14 ms jooksul jõuab, ilma joonistamiseta – 8 h näidismudelit läbib alla sekundi.
+- **Sujuv liikumine** **[U]**: nähtav aeg on `SYSTEM_TIME − 1 + Fraction` (0 … 1): pilt jääb simulatsioonist ühe sekundi maha ja konveieri nihe interpoleeritakse eelmise ja praeguse sekundi vahel (`InterpolateOffset`). Nii ei hüppa alused ka ×1 juures ja peatuvad täpselt jaamas. Sammu (`.`, `N`) järel jõuab pilt 1/4 s jooksul järele.
+- **Laadimine** **[U]**: detail liigub lähtekohast sihtkohta (alus ↔ jaam, puhver ↔ pink). Algus on detaili `StateSince`, lõpp tema `Load`-sündmuse aeg Event Listis (`WorkpiecePlaces`).
+- **Rada ekraanil** **[U]**: asukoht rajal → ikoon (`Start`, `Length` `Enumerate`-st) → punkt ikooni sees (sirgel lõik, kaarel veerandring). Hargnemisikooni pooled võivad olla eri pikkusega (metrokaart), seepärast on keskkoht jaama asukoht (`TrackGeometry.Middle`).
+- **Juhtimine**: Space start/paus, `+` / `−` kiirus (1, 2, 5, 10 … 1000), `.` üks sekund, `N` järgmise sündmuseni (sammud, kuni sündmuste arv kasvab), `M` max, `L` ahelloend, Esc lõpp. Kaasaegses välimuses on juhtriba: nupud ▶/⏸, +1 s, ⏭, ⏹, kiiruse liugur (logaritmiline; lohistamine, klõps, hiire ratas) ja max; hiire all oleva nupu vihje on olekureal. EGA-s on klahvid ja olekurea klõpsatavad klahvid. **[U]**
+
+**Mõlemas välimuses** **[O]**:
+
+| Objekt | Näitab |
+|---|---|
+| konveier | rada; seisab → teine värv, olekureal „seisab (n)“ = käivaid laadimisi |
+| alus | ruut raja peal; broneeritud (detail tuleb peale) – teine raam |
+| detail | ring tüübi värviga (16 tüüpi); ummiku tõttu kesklattu saadetav – punane ring |
+| tööpink | keha värv olekust; täht: L laadimine, H häälestus, T töötlemine, M mahalaadimine (R rike – etapp 8) |
+| puhver | kohad lahtritena: detail (nool pingi poole – sissetulev, raja poole – väljaminev), broneeritud (kontuur), vaba |
+| FromCS / ToCS / SysOut | ootavad detailid (4 + arv); täituvus valmis + pargitud + broneeritud / mahutavus; lahkunute arv |
+| SimStatus | aeg / kestus, kiirus, olek, detailid süsteemis ja valmis, tk/h, konveier |
+
+EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 värviga (Bresenham, ilma silumiseta).
+
+**Ainult kaasaegses välimuses** **[U]**:
+- **Event List riba**: ajatelg (logaritmiline, nüüd … 1 h) alates nähtavast ajast; sündmused kaartidena (värv tüübi järgi, nt `Load WP12`), sama aja sündmused ühes veerus FIFO järjekorras (3 rida, ülejäänu „+n“). Lisandunud kaart libiseb kohale, töödeldud kaob vasakule (`DiffEventList` – kirjeid võrreldakse viite järgi). Kaardile osutades tõstetakse esile seotud pink / puhver / jaam / alus / detail ja olekureale tuleb sündmuse aeg. `L` – ahelloendi vaade (kastid `Event`, `WP`, `Time` ja `Next`-nooled, `FirstAtMoment` … `nil`). Kiirusel üle ×50 ja max-režiimis ainult arvud.
+- Pingi spindel pöörleb töötlemisel, häälestusel pöörleb aeglaselt hammasratas.

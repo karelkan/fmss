@@ -64,6 +64,46 @@ const EgaRoles = {
   SplashSubtitle: EGA.LightCyan,
   SplashAccent: EGA.White,
   SplashDim: EGA.DarkGray,
+
+  // Animaator (anima.js) [U]
+  SimStatusBar: EGA.Cyan,
+  SimStatusText: EGA.Black,
+  LayoutBack: EGA.Black,
+  LayoutGrid: EGA.DarkGray,
+  LayoutLabel: EGA.LightGray,
+  LayoutValue: EGA.White,
+  Track: EGA.LightGray,
+  TrackStopped: EGA.Brown,
+  DotLink: EGA.DarkGray,
+  Arrow: EGA.Yellow,
+  MachineFrame: EGA.LightGray,
+  MachineLabel: EGA.White,
+  MachineLetter: EGA.White,
+  MachIdle: EGA.Black,
+  MachLoading: EGA.Cyan,
+  MachSetup: EGA.Brown,
+  MachProcessing: EGA.Green,
+  MachDown: EGA.Red,
+  Spindle: EGA.White,
+  BufferBody: EGA.Black,
+  BufferFrame: EGA.LightGray,
+  SlotFree: EGA.DarkGray,
+  SlotReserved: EGA.Yellow,
+  SlotArrow: EGA.LightGray,
+  StorageBody: EGA.Black,
+  StorageFrame: EGA.LightGray,
+  StorageEmpty: EGA.Black,
+  StorageFill: EGA.Blue,
+  Pallet: EGA.DarkGray,
+  PalletFrame: EGA.LightGray,
+  PalletReserved: EGA.Yellow,
+  Highlight: EGA.Yellow,
+  Deadlock: EGA.LightRed,
+  WpFrame: EGA.Black,
+  Wp0: EGA.LightRed, Wp1: EGA.LightCyan, Wp2: EGA.Yellow, Wp3: EGA.LightGreen,
+  Wp4: EGA.LightMagenta, Wp5: EGA.White, Wp6: EGA.LightBlue, Wp7: EGA.Brown,
+  Wp8: EGA.Red, Wp9: EGA.Cyan, Wp10: EGA.Green, Wp11: EGA.Magenta,
+  Wp12: EGA.Blue, Wp13: EGA.LightGray, Wp14: EGA.DarkGray, Wp15: EGA.LightRed,
 };
 
 // Rollide värvid kaasaegses välimuses
@@ -103,6 +143,58 @@ const ModernLight = {
   SplashSubtitle: '#93c5fd',
   SplashAccent: '#f8fafc',
   SplashDim: '#64748b',
+
+  // Animaator (anima.js) [U]
+  LayoutBack: '#fafbfc',
+  LayoutGrid: '#cbd2dc',
+  LayoutLabel: '#475569',
+  LayoutValue: '#1e293b',
+  Track: '#64748b',
+  TrackStopped: '#f59e0b',
+  DotLink: '#9aa5b4',
+  Arrow: '#2563eb',
+  MachineFrame: '#64748b',
+  MachineLabel: '#1e293b',
+  MachineLetter: '#334155',
+  MachIdle: '#eef1f5',
+  MachLoading: '#bae6fd',
+  MachSetup: '#fde68a',
+  MachProcessing: '#bbf7d0',
+  MachDown: '#fecaca',
+  Spindle: '#334155',
+  BufferBody: '#ffffff',
+  BufferFrame: '#94a3b8',
+  SlotFree: '#cbd5e1',
+  SlotReserved: '#2563eb',
+  SlotArrow: '#64748b',
+  StorageBody: '#ffffff',
+  StorageFrame: '#94a3b8',
+  StorageEmpty: '#f1f5f9',
+  StorageFill: '#93c5fd',
+  Pallet: '#e2e8f0',
+  PalletFrame: '#64748b',
+  PalletReserved: '#2563eb',
+  Highlight: '#f59e0b',
+  Deadlock: '#dc2626',
+  WpFrame: 'rgba(15, 23, 42, 0.45)',
+  Wp0: '#ef4444', Wp1: '#3b82f6', Wp2: '#eab308', Wp3: '#22c55e',
+  Wp4: '#a855f7', Wp5: '#06b6d4', Wp6: '#ec4899', Wp7: '#84cc16',
+  Wp8: '#f97316', Wp9: '#6366f1', Wp10: '#14b8a6', Wp11: '#d946ef',
+  Wp12: '#0ea5e9', Wp13: '#78716c', Wp14: '#facc15', Wp15: '#be123c',
+  EventInSys: '#16a34a',
+  EventLoad: '#2563eb',
+  EventTurn: '#d97706',
+  EventProcess: '#059669',
+  EventMoveZ: '#64748b',
+  EventStopMov: '#dc2626',
+  EventOutSys: '#9333ea',
+  EventOther: '#71717a',
+  CardText: '#ffffff',
+  StripTick: '#d4d7de',
+  StripArrow: '#64748b',
+  SliderTrack: '#d4d7de',
+  SliderFill: '#2563eb',
+  SliderKnob: '#ffffff',
 };
 const ModernDark = {
   ...ModernLight,
@@ -132,6 +224,41 @@ const ModernDark = {
   StatusBar: '#232326',
   StatusText: '#a1a1aa',
   StatusKey: '#f4f4f5',
+
+  LayoutBack: '#1c1c20',
+  LayoutGrid: '#3a3a42',
+  LayoutLabel: '#a1a1aa',
+  LayoutValue: '#f4f4f5',
+  Track: '#8b93a1',
+  DotLink: '#5b6270',
+  Arrow: '#60a5fa',
+  MachineFrame: '#8b93a1',
+  MachineLabel: '#f4f4f5',
+  MachineLetter: '#e4e4e7',
+  MachIdle: '#2a2a30',
+  MachLoading: '#0c4a6e',
+  MachSetup: '#713f12',
+  MachProcessing: '#14532d',
+  MachDown: '#7f1d1d',
+  Spindle: '#e4e4e7',
+  BufferBody: '#232328',
+  BufferFrame: '#6b7280',
+  SlotFree: '#4b5060',
+  SlotReserved: '#60a5fa',
+  SlotArrow: '#a1a1aa',
+  StorageBody: '#232328',
+  StorageFrame: '#6b7280',
+  StorageEmpty: '#2a2a30',
+  StorageFill: '#1d4ed8',
+  Pallet: '#3f3f46',
+  PalletFrame: '#a1a1aa',
+  PalletReserved: '#60a5fa',
+  WpFrame: 'rgba(0, 0, 0, 0.6)',
+  StripTick: '#34343a',
+  StripArrow: '#a1a1aa',
+  SliderTrack: '#3a3a40',
+  SliderFill: '#3b82f6',
+  SliderKnob: '#f4f4f5',
 };
 
 const MODERN_FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
@@ -282,7 +409,127 @@ export function CreateEgaTheme() {
     Caret(x, y) {
       this.FillRect(x, y + ROW_HEIGHT - 3, EGA_CHAR_WIDTH, 2, 'InputText');
     },
+
+    // --- Joonistamise primitiivid (animaator, redaktor) [U] ---
+    // EGA-s ilma silumiseta: iga punkt on terve piksel ühes 16 värvist (nagu BGI graafikas).
+    // Dash = [joon, vahe] pikslites.
+    Line(x1, y1, x2, y2, role, { Width = 1, Dash = null } = {}) {
+      frameContext.fillStyle = color(role);
+      EgaLine(frameContext, x1, y1, x2, y2, Math.max(1, Math.round(Width)), Dash);
+    },
+    // Ellips või ellipsi kaar (Start … End radiaanides); Fill – täidetud.
+    Ellipse(cx, cy, rx, ry, role, { Fill = true, Width = 1, Start = 0, End = 2 * Math.PI, Dash = null } = {}) {
+      frameContext.fillStyle = color(role);
+      if (Fill) EgaFillEllipse(frameContext, cx, cy, rx, ry);
+      else EgaArc(frameContext, cx, cy, rx, ry, Start, End, Math.max(1, Math.round(Width)), Dash);
+    },
+    Polygon(points, role) {
+      frameContext.fillStyle = color(role);
+      EgaFillPolygon(frameContext, points);
+    },
+    StrokeRect(x, y, width, height, role, { Width = 1, Dash = null } = {}) {
+      x = Math.round(x); y = Math.round(y); width = Math.round(width); height = Math.round(height);
+      const w = Math.max(1, Math.round(Width));
+      if (Dash) {
+        this.Line(x, y, x + width - 1, y, role, { Dash });
+        this.Line(x + width - 1, y, x + width - 1, y + height - 1, role, { Dash });
+        this.Line(x + width - 1, y + height - 1, x, y + height - 1, role, { Dash });
+        this.Line(x, y + height - 1, x, y, role, { Dash });
+        return;
+      }
+      this.FillRect(x, y, width, w, role);
+      this.FillRect(x, y + height - w, width, w, role);
+      this.FillRect(x, y, w, height, role);
+      this.FillRect(x + width - w, y, w, height, role);
+    },
+    RoundRect(x, y, width, height, radius, role) {
+      this.FillRect(x, y, width, height, role);
+    },
+    Clip(x, y, width, height, draw) {
+      frameContext.save();
+      frameContext.beginPath();
+      frameContext.rect(Math.round(x), Math.round(y), Math.round(width), Math.round(height));
+      frameContext.clip();
+      draw();
+      frameContext.restore();
+    },
+    // Läbipaistvust EGA-s pole: pool või rohkem nähtav → joonistatakse.
+    Alpha(alpha, draw) {
+      if (alpha >= 0.5) draw();
+    },
   };
+}
+
+// [U] EgaLine – Bresenhami joon EGA kaadrisse (värv on juba seatud).
+function EgaLine(context, x1, y1, x2, y2, width, dash) {
+  let x = Math.round(x1);
+  let y = Math.round(y1);
+  const endX = Math.round(x2);
+  const endY = Math.round(y2);
+  const dx = Math.abs(endX - x);
+  const dy = -Math.abs(endY - y);
+  const stepX = x < endX ? 1 : -1;
+  const stepY = y < endY ? 1 : -1;
+  const half = Math.floor((width - 1) / 2);
+  let error = dx + dy;
+  for (let step = 0; ; step++) {
+    if (!dash || step % (dash[0] + dash[1]) < dash[0]) context.fillRect(x - half, y - half, width, width);
+    if (x === endX && y === endY) break;
+    const double = 2 * error;
+    if (double >= dy) { error += dy; x += stepX; }
+    if (double <= dx) { error += dx; y += stepY; }
+  }
+}
+
+// [U] EgaArc – ellipsi kaar punktide kaupa.
+function EgaArc(context, cx, cy, rx, ry, start, end, width, dash) {
+  const count = Math.max(8, Math.ceil(Math.max(rx, ry) * Math.abs(end - start) * 1.5));
+  const half = Math.floor((width - 1) / 2);
+  let last = '';
+  let step = 0;
+  for (let i = 0; i <= count; i++) {
+    const angle = start + (end - start) * i / count;
+    const x = Math.round(cx + rx * Math.cos(angle));
+    const y = Math.round(cy + ry * Math.sin(angle));
+    const key = `${x},${y}`;
+    if (key === last) continue;
+    last = key;
+    if (!dash || step % (dash[0] + dash[1]) < dash[0]) context.fillRect(x - half, y - half, width, width);
+    step++;
+  }
+}
+
+// [U] EgaFillEllipse – täidetud ellips ridade kaupa.
+function EgaFillEllipse(context, cx, cy, rx, ry) {
+  for (let y = Math.floor(cy - ry); y < Math.ceil(cy + ry); y++) {
+    const relative = (y + 0.5 - cy) / ry;
+    if (Math.abs(relative) > 1) continue;
+    const half = rx * Math.sqrt(1 - relative * relative);
+    const left = Math.round(cx - half);
+    const right = Math.round(cx + half);
+    context.fillRect(left, y, Math.max(1, right - left), 1);
+  }
+}
+
+// [U] EgaFillPolygon – täidetud hulknurk ridade kaupa (paaris-paaritu reegel).
+function EgaFillPolygon(context, points) {
+  const top = Math.floor(Math.min(...points.map(point => point.Y)));
+  const bottom = Math.ceil(Math.max(...points.map(point => point.Y)));
+  for (let y = top; y < bottom; y++) {
+    const scan = y + 0.5;
+    const crossings = [];
+    points.forEach((a, i) => {
+      const b = points[(i + 1) % points.length];
+      if ((a.Y <= scan && b.Y > scan) || (b.Y <= scan && a.Y > scan)) {
+        crossings.push(a.X + (scan - a.Y) * (b.X - a.X) / (b.Y - a.Y));
+      }
+    });
+    crossings.sort((first, second) => first - second);
+    for (let i = 0; i + 1 < crossings.length; i += 2) {
+      const left = Math.round(crossings[i]);
+      context.fillRect(left, y, Math.max(1, Math.round(crossings[i + 1]) - left), 1);
+    }
+  }
 }
 
 // [U] LoadEgaFont – laadib EGA pikslifondi (PxPlus IBM EGA 8x14, VileR, CC BY-SA 4.0).
@@ -410,7 +657,71 @@ export function CreateModernTheme(colorScheme) {
     MenuBarLine(y, width) {
       this.FillRect(0, y, width, 0.5, 'MenuBarLine');
     },
+
+    // --- Joonistamise primitiivid (animaator, redaktor) [U] ---
+    Line(x1, y1, x2, y2, role, { Width = 1, Dash = null } = {}) {
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      strokePath(role, Width, Dash);
+    },
+    Ellipse(cx, cy, rx, ry, role, { Fill = true, Width = 1, Start = 0, End = 2 * Math.PI, Dash = null } = {}) {
+      context.beginPath();
+      context.ellipse(cx, cy, Math.max(0, rx), Math.max(0, ry), 0, Start, End);
+      if (Fill) { context.fillStyle = color(role); context.fill(); } else strokePath(role, Width, Dash);
+    },
+    Polygon(points, role) {
+      context.beginPath();
+      points.forEach((point, i) => (i === 0 ? context.moveTo(point.X, point.Y) : context.lineTo(point.X, point.Y)));
+      context.closePath();
+      context.fillStyle = color(role);
+      context.fill();
+    },
+    StrokeRect(x, y, width, height, role, { Width = 1, Dash = null, Radius = 0 } = {}) {
+      roundedRect(context, x + Width / 2, y + Width / 2, width - Width, height - Width, Radius);
+      strokePath(role, Width, Dash);
+    },
+    RoundRect(x, y, width, height, radius, role) {
+      roundedRect(context, x, y, width, height, radius);
+      context.fillStyle = color(role);
+      context.fill();
+    },
+    Clip(x, y, width, height, draw) {
+      context.save();
+      context.beginPath();
+      context.rect(x, y, width, height);
+      context.clip();
+      draw();
+      context.restore();
+    },
+    Alpha(alpha, draw) {
+      context.save();
+      context.globalAlpha *= alpha;
+      draw();
+      context.restore();
+    },
+    // Liugur: rada, täidetud osa kuni value (0 … 1) ja nupp; active – lohistamisel või hiire all.
+    Slider(x, y, width, value, active) {
+      const middle = y + (ROW_HEIGHT + 1) / 2;
+      const knobX = x + 5 + (width - 10) * Math.min(1, Math.max(0, value));
+      this.RoundRect(x + 5, middle - 1.5, width - 10, 3, 1.5, 'SliderTrack');
+      this.RoundRect(x + 5, middle - 1.5, knobX - x - 5, 3, 1.5, 'SliderFill');
+      context.save();
+      context.shadowColor = color('Shadow');
+      context.shadowBlur = 3 * scale;
+      this.Ellipse(knobX, middle, active ? 5.5 : 5, active ? 5.5 : 5, 'SliderKnob');
+      context.restore();
+      this.Ellipse(knobX, middle, active ? 5.5 : 5, active ? 5.5 : 5, active ? 'SliderFill' : 'WindowFrame', { Fill: false, Width: active ? 1.2 : 0.6 });
+    },
   };
+  function strokePath(role, width, dash) {
+    context.strokeStyle = color(role);
+    context.lineWidth = width;
+    context.lineCap = 'round';
+    context.setLineDash(dash || []);
+    context.stroke();
+    context.setLineDash([]);
+  }
   // TextWidth vajab konteksti juba enne esimest kaadrit (paigutuse arvutamiseks).
   context = document.createElement('canvas').getContext('2d');
   return theme;

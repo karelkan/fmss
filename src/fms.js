@@ -3,7 +3,8 @@
 
 import { Texts, FormatText } from './fms_lng.js';
 import { EmptyModel, ModelSummary } from './fms_glb.js';
-import { Enumerate, SimRun } from './fms_sim.js';
+import { Enumerate } from './fms_sim.js';
+import { StartAnimator, StopAnimator, ClockText } from './anima.js';
 import { EnvironmentOptions, LoadOptions, SaveOptions } from './fms_opt.js';
 import {
   DemoModels, LoadDemoModel, ChooseLocalFile, SaveModel, RecentModels, RememberModel,
@@ -207,6 +208,7 @@ function AcceptLoadedModel(result, text, fileName) {
     MessageBox(Texts.LoadErrorTitle, result.Errors.map((line, i) => ({ Text: line, Role: i === 0 ? 'Error' : 'WindowText' })));
     return;
   }
+  StopAnimator();
   CurrentModel = result.Model;
   CurrentFile = fileName;
   RememberModel(fileName, text);
@@ -237,6 +239,7 @@ function MenuPick() {
 }
 
 function MenuNew() {
+  StopAnimator();
   CurrentModel = EmptyModel('');
   CurrentFile = '';
   RequestRedraw();
@@ -271,19 +274,13 @@ const SIM_SHOWN_OBJECTS = 6;   // [U] mitu pinki / puhvrit kokkuvõttes näidata
 const Percent = (value) => `${Math.round(value * 100)} %`;
 const Decimal = (value, digits = 1) => value.toFixed(digits).replace('.', ',');
 
-// [U] ClockText – sekundid kujul h:mm:ss.
-function ClockText(seconds) {
-  const two = (value) => String(value).padStart(2, '0');
-  return `${Math.floor(seconds / 3600)}:${two(Math.floor(seconds / 60) % 60)}:${two(seconds % 60)}`;
-}
-
 // [U] CheckLine – kontrolli tulemus dialoogi reaks (lahtri asukoht on juba teates).
 function CheckLine(problem) {
   return problem.Path.startsWith('Layout') ? `  ${problem.Message}` : `  ${problem.Path}: ${problem.Message}`;
 }
 
-// [O] MenuSimulate – Simulate: kontroll (Enumerate), simulatsioon lõpuni ilma animatsioonita
-//     ja lühikokkuvõte. Animatsioon tuleb etapis 5, aruanded etapis 9.
+// [O] MenuSimulate – Simulate: kontroll (Enumerate), siis animaator (pausil, anima.js).
+//     Lõpus või Esc-iga lühikokkuvõte; täielikud aruanded tulevad etapis 9.
 function MenuSimulate() {
   if (!CurrentModel) { MessageBox(Texts.SimTitle, [Texts.SimNoModel]); return; }
   const result = Enumerate(CurrentModel);
@@ -295,7 +292,13 @@ function MenuSimulate() {
     MessageBox(Texts.SimTitle, lines);
     return;
   }
-  MessageBox(Texts.SimTitle, SimSummaryLines(SimRun(result.Network), result.Warnings));
+  const model = CurrentModel;
+  StartAnimator({
+    Model: structuredClone(model),
+    Network: result.Network,
+    OnSummary: (report, onClose) => MessageBox(Texts.SimTitle, SimSummaryLines(report, result.Warnings), [Texts.ButtonOk],
+      () => { if (onClose) onClose(); }),
+  });
 }
 
 // [U] SimSummaryLines – simulatsiooni kokkuvõte dialoogi ridadeks.

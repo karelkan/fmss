@@ -81,3 +81,25 @@ Prototüübi loogika viidi muutmata kujul faili [src/fms_sim.js](src/fms_sim.js)
 **Leid.** Kui pideva raja haru on tehtud päris rajaikooniga, tuli esialgu hulk kaasvigu (kõik punktiirühendused „ühendamata“), aga mitte põhiviga. Parandus: katkise silmuse korral teisi kontrolle ei tehta ja haru lahter ei saa teadet „pole ühendatud“. Nüüd on teade lühike ja täpne: „pideval rajal … on haru“.
 
 **Mida see EI kontrolli** (etapp 7): mitu rada, konnektorid, avatud konveier, diskreetsed rajad, `PlacesPerCart > 1`. Need annavad praegu selge vea „… pole veel toetatud (tuleb etapis 7)“.
+
+---
+
+# Etapp 5: animaator
+
+Animaator ([src/anima.js](src/anima.js), DISAIN.md osa 14) ainult loeb simulaatori olekut. Arvutusosa on brauserist sõltumatu ja seda testitakse Node'iga: [test/anima.test.js](test/anima.test.js).
+
+| Test | Tulemus |
+|---|---|
+| **Jaam ekraanil** – iga jaama asukoht rajal → hargnemisikooni keskpunkt (näidismudel ja metrokaardi lõiguga mudel) | täpsusega 0,001 ikooni ✔ |
+| **Pidevus** – 20 000 punkti ümber silmuse: naaberpunktide vahe < 0,01 ikooni, ring sulgub; metrokaardi lõigul (eri pikkusega hargnemise pooled) samuti | ✔ |
+| **Raja joon** – kaare punktid on nurgast kaugusel 1/2, ikooni algus ja lõpp on sisenemis- ja väljumiskülje keskel | ✔ |
+| **Animaator ei mõjuta simulatsiooni** – 4 h näidismudelit sammhaaval, igal sekundil olekut lugedes | aruanne identne `SimRun`-iga ✔ |
+| **Detailide kohad** – igal sekundil on iga süsteemis olev detail täpselt ühes kohas; laadimisel olev detail leiab oma `Load`-sündmuse (üle 1000 laadimise) | ✔ |
+| **Event List** – võrdlus eelmise seisuga (lisandunud − kadunud = muutus), aja järjekord; kaardid: sama aeg ühes veerus FIFO, veerud ei kattu, kõik on näidatud või kokku loetud | ✔ |
+| **Kiirus** – liugur ↔ kiirus, `+` / `−` sammud, ×1 ja ×1000 piirid | ✔ |
+| **Brauseris** (käsitsi): EGA ja kaasaegne (hele, tume), start / paus, ×10 … ×272 liuguriga, max (8 h alla sekundi, kokkuvõte sama mis etapis 4: 10,5 tk/h), samm, järgmine sündmus, ahelloend, kaardi esiletõstmine, ⏹ → kokkuvõte → töölaud; konsoolis vigu pole | ✔ |
+
+**Leid.** Alguses tundus, et detailid jõuavad puhvrisse aeglaselt (3 min pärast polnud ükski kohal). Kontroll Node'iga näitas, et see on mudeli käitumine: konveier seisab iga FromCS-i laadimise ajal 15 s, nii et esimene alus jõuab BUF1-ni alles ~3,5 min pärast. Animaator näitas seda õigesti (puhvri kohad broneeritud, konveier „seisab (1)“).
+
+**Mida see EI kontrolli:** pilti ennast automaatselt (joonistamist kontrolliti silmaga), puutetundlikku ekraani, mitut rada ja diskreetseid radu (etapp 7).
+

@@ -28,6 +28,8 @@ let FullScreenInput = null;    // [U] täisekraani klahvi/klõpsu käsitleja
 let DesktopPainter = null;     // [U] töölaua sisu joonistaja
 let Hotkeys = {};              // [U] kiirklahvid: 'F1', 'F2', 'Alt-X' … → protseduur
 let RedrawPending = false;     // [U] joonistamine on järjekorras
+let DesktopView = null;        // [U] töölaua vaade (animaator): { Painter, Input, StatusKeys, StatusHint }
+let POINTER_CAPTURED = false;  // [U] lohistamine käib: hiir läheb töölaua vaatele ka väljaspool seda
 
 const MENU_PAD_X = 8;          // menüüriba punkti vahe teksti ümber
 const DROPDOWN_PAD_Y = 4;      // alammenüü raami ja esimese rea vahe
@@ -52,6 +54,9 @@ export function InitScreen(canvas, theme) {
   window.addEventListener('keydown', HandleKeyDown);
   canvas.addEventListener('pointerdown', (event) => HandlePointer(event, 'down'));
   canvas.addEventListener('pointermove', (event) => HandlePointer(event, 'move'));
+  canvas.addEventListener('pointerup', (event) => HandlePointer(event, 'up'));
+  canvas.addEventListener('pointercancel', (event) => HandlePointer(event, 'up'));
+  canvas.addEventListener('wheel', HandleWheel, { passive: false });
   canvas.focus();
 }
 
@@ -86,6 +91,16 @@ export function SetDesktop(painter, menu) {
   RequestRedraw();
 }
 
+// [U] SetDesktopView – töölaua vaade, mis asendab töölaua joonistaja (animaator); null = tagasi.
+//     view: Painter(theme, desktop); Input({ Kind: 'key' | 'down' | 'move' | 'up' | 'wheel', Name, Point,
+//     Delta }) → true / 'capture' / false; StatusKeys(theme) – olekurea klahvid; StatusHint() – vihje.
+//     Kutsub: anima.js.
+export function SetDesktopView(view) {
+  DesktopView = view;
+  POINTER_CAPTURED = false;
+  RequestRedraw();
+}
+
 // [U] SetHotkeys – kiirklahvid, mis töötavad alati (ka avaekraanil ja dialoogis).
 export function SetHotkeys(map) {
   Hotkeys = map;
@@ -107,7 +122,8 @@ function Redraw() {
   } else {
     const desktop = DesktopRect();
     theme.DesktopBackground(desktop.X, desktop.Y, desktop.Width, desktop.Height);
-    if (DesktopPainter) DesktopPainter(theme, desktop);
+    const painter = DesktopView ? DesktopView.Painter : DesktopPainter;
+    if (painter) painter(theme, desktop);
     DrawMenuBar(theme);
     DrawStatusLine(theme);
     if (MENU_ACTIVE) {
@@ -232,7 +248,7 @@ function DrawStatusLine(theme) {
   const y = theme.Height - ROW_HEIGHT;
   theme.FillRect(0, y, theme.Width, ROW_HEIGHT, 'StatusBar');
   if (theme.MenuBarLine) theme.MenuBarLine(y, theme.Width);
-  const hint = MENU_ACTIVE ? SelectedItem(MenuPath.length - 1)?.Hint : '';
+  const hint = MENU_ACTIVE ? SelectedItem(MenuPath.length - 1)?.Hint : (DesktopView?.StatusHint?.() ?? '');
   if (hint) {
     theme.Text(8, y, hint, 'StatusText');
     return;
@@ -245,7 +261,9 @@ function DrawStatusLine(theme) {
 
 // [U] StatusLayout – olekurea klahvide asukohad (ka hiireklõpsu jaoks).
 function StatusLayout() {
-  const keys = MENU_ACTIVE ? Texts.StatusMenuKeys : Texts.StatusKeys;
+  let keys = Texts.StatusKeys;
+  if (MENU_ACTIVE) keys = Texts.StatusMenuKeys;
+  else if (DesktopView?.StatusKeys) keys = DesktopView.StatusKeys(ActiveTheme);
   let x = 8;
   return keys.map((entry) => {
     const width = ActiveTheme.TextWidth(entry.Key, { Bold: true }) + 6 + ActiveTheme.TextWidth(entry.Label);
@@ -548,6 +566,8 @@ function HandleKeyDown(event) {
       if (!MenuItems(MainMenu[index])) ChooseMenuItem(0);
       handled = true;
     }
+  } else if (DesktopView?.Input && !event.ctrlKey && !event.metaKey) {
+    handled = Boolean(DesktopView.Input({ Kind: 'key', Name: name }));
   }
   if (handled || DialogStack.length || MENU_ACTIVE) event.preventDefault();
 }
@@ -557,7 +577,18 @@ function HandlePointer(event, kind) {
   const ratio = window.devicePixelRatio || 1;
   const bounds = ScreenCanvas.getBoundingClientRect();
   const point = ActiveTheme.DeviceToLogical((event.clientX - bounds.left) * ratio, (event.clientY - bounds.top) * ratio);
-  ScreenCanvas.focus();
+  if (kind === 'down') ScreenCanvas.focus();
+
+  // Lohistamine (nt liugur): kõik hiire liigutused lähevad töölaua vaatele, kuni nupp lahti lastakse
+  if (POINTER_CAPTURED) {
+    if (DesktopView?.Input) DesktopView.Input({ Kind: kind, Point: point });
+    if (kind === 'up') {
+      POINTER_CAPTURED = false;
+      if (ScreenCanvas.hasPointerCapture(event.pointerId)) ScreenCanvas.releasePointerCapture(event.pointerId);
+    }
+    return;
+  }
+  if (kind === 'up') return;
 
   if (DialogStack.length) {
     if (kind === 'down') HandleDialogPointer(DialogStack[DialogStack.length - 1], point);
@@ -605,6 +636,16 @@ function HandlePointer(event, kind) {
     return;
   }
 
+  // Töölaua vaade (animaator): nupud, liugur, hiire all olev objekt
+  if (DesktopView?.Input && !MENU_ACTIVE && InsideDesktop(point)) {
+    const result = DesktopView.Input({ Kind: kind, Point: point });
+    if (kind === 'down' && result === 'capture') {
+      POINTER_CAPTURED = true;
+      ScreenCanvas.setPointerCapture(event.pointerId);
+    }
+    if (result) return;
+  }
+
   if (kind !== 'down') return;
   if (MENU_ACTIVE) { CloseMenu(); return; }
 
@@ -614,5 +655,21 @@ function HandlePointer(event, kind) {
     if (!place) return;
     if (place.Key === 'F10') OpenMenu(0, true);
     else if (Hotkeys[place.Key]) Hotkeys[place.Key]();
+    else if (DesktopView?.Input) DesktopView.Input({ Kind: 'key', Name: place.Name ?? place.Key });
   }
+}
+
+function InsideDesktop(point) {
+  const desktop = DesktopRect();
+  return point.X >= desktop.X && point.X < desktop.X + desktop.Width && point.Y >= desktop.Y && point.Y < desktop.Y + desktop.Height;
+}
+
+// [U] HandleWheel – hiire ratas töölaua vaatel (nt kiiruse liugur).
+function HandleWheel(event) {
+  if (!DesktopView?.Input || DialogStack.length || FullScreenPainter || MENU_ACTIVE) return;
+  const ratio = window.devicePixelRatio || 1;
+  const bounds = ScreenCanvas.getBoundingClientRect();
+  const point = ActiveTheme.DeviceToLogical((event.clientX - bounds.left) * ratio, (event.clientY - bounds.top) * ratio);
+  if (!InsideDesktop(point)) return;
+  if (DesktopView.Input({ Kind: 'wheel', Point: point, Delta: event.deltaY })) event.preventDefault();
 }
