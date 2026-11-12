@@ -1,0 +1,10 @@
+{
+  "name": "fmss",
+  "version": "0.1.0",
+  "description": "FMSS – paindtootmissüsteemide simulaator (diplomitöö 1993, uus versioon)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --test proto/test/"
+  }
+}

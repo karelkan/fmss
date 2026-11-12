@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). **Mustand** – etapis 2 valideeritakse prototüübiga ja parandatakse.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Osa 11 (AGV-d) on veel valideerimata.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -21,17 +21,20 @@ Ulatus: esimeses järgus ainult **pidevad konveierid** (suletud silmus). Diskree
 - **Peatsükli järjekord on muudetud**: `MinuteMan` töötab enne sündmuste töötlemist. Originaalis (joon. 5.3) oli `ProcEvent` enne `MinuteMan`-i, mistõttu `MinuteMan`-i tekitatud `StopMov` oleks töödeldud alles järgmisel sekundil. **[U]**
 
 ```
-SimInit
-repeat
+SimInit                        { algväärtused; Planner; hetke 0 sündmused }
+repeat                         { SimStep }
+  Inc(SYSTEM_TIME)
   MinuteMan                    { liigutab konveiereid ajavahemikus [t-1, t]; võib lisada StopMov }
   repeat
     ProcEvent                  { võtab esimese sündmuse Time <= t, kutsub EventHandleri }
   until NO_EVENTS
+  DetectDeadlock               { ummiku tuvastus ja lahendus (5.3) }
   CheckInvariants              { ainult testides }
   Animator; SimStat            { ainult brauseris }
-  Inc(SYSTEM_TIME)
 until SIMULATION_DONE
 ```
+
+Valideeritud: ühe detaili tsükliaeg klapib käsitsi arvutusega sekundi täpsusega (VALIDEERIMINE.md, test A1).
 
 - Sama aja sündmused töödeldakse lisamise järjekorras (FIFO). **[O]**
 - Handler võib lisada sündmuse ka käesolevale hetkele – see töödeldakse samas sisetsüklis. **[T]**
@@ -108,6 +111,9 @@ IDLE ───────────────► LOADING ──► SETUP �
 
 - `SETUP` kestus: `SetupTime`, kui operatsioon erineb pingi eelmisest operatsioonist, muidu 0. **[T]**
 - Pink võtab detaili puhvrist **ainult siis, kui selle detaili jaoks on puhvris väljumise koht broneeritud**. Nii ei jää pink kunagi töödeldud detailiga kinni. **[U]**
+- **Ummiku vältimine** (`ReserveNextBeforeStart`, vaikimisi sees): pink alustab detailiga alles siis, kui detaili **järgmise pingi** sissetulev koht on broneeritud (kui järgmine operatsioon on mujal). Valideerimine näitas, et ilma selleta tekivad ristmarsruutidel ummikud igasuguse puhvri suuruse juures. **[U]**
+- Pink käib ootavad detailid läbi distsipliini järjekorras ja võtab **esimese, millega saab alustada** (mitte ainult esimese). **[T]**
+- Laadimise alguses viiakse detail puhvrist kohe pingi juurde (`Location` = pink); nii vabaneb koht väljamineva broneeringu jaoks ka ühise mahutavusega puhvris. **[T]**
 
 ### 3.4 Keskladu ja süsteemi väljund **[T]**
 
@@ -115,6 +121,7 @@ IDLE ───────────────► LOADING ──► SETUP �
 - `ToCS` – valmis detailide ladu (mahutavus `Capacity`).
 - `SysOut` – süsteemist väljumine, piiramatu.
 - Valmis detail läheb `ToCS`-i, kui see on olemas ja seal on ruumi, muidu `SysOut`-i. Praak läheb alati `SysOut`-i.
+- Kesklaos jääb `ParkingReserve` kohta (vaikimisi 2) vabaks ummiku lahendamiseks (5.3): valmis detailid neid ei täida. **[U]**
 
 ### 3.5 Detail (`SysWP`) **[O + T]**
 
@@ -146,7 +153,7 @@ Originaali väljad `Event`, `WP`, `ObjType`, `ObjCode`, `Track`, `Time`, `Next` 
 | `InSys` | Planner | Loob detaili `FromCS`-i jaama, valib marsruudi, kutsub Plannerit sihtkoha valimiseks. |
 | `MoveZ` | `LoadProc` | `StopCount--`; kui 0, konveier liigub edasi. |
 | `StopMov` | `MinuteMan` | Alus seisab jaamas. Määrab, kas maha- või pealelaadimine, ja lisab `Load` ajaks `t + loadTime`. |
-| `Load` | `StopMovProc`, Planner, `ProcessProc` | Viib detaili lähtekohast sihtkohta, vabastab broneeringu. Edasi oleneb sihtkohast (vt 4.3). |
+| `Load` | `StopMovProc`, Planner, `ProcessProc` | Viib detaili lähtekohast sihtkohta, vabastab broneeringu. Edasi oleneb sihtkohast (vt 4.3). Kui detailil on juba broneeritud järgmine sihtkoht (3.3), saab ta selle kohe. |
 | `Turn` | `LoadProc`, `ProcessProc` | Ümberhäälestus läbi → `Process` ajaks `t + kestus`. |
 | `Process` | `TurnProc` | Operatsioon läbi, `opIndex++` → järgmine operatsioon samas pingis (`Turn`) või mahalaadimine puhvrisse (`Load`). Kutsub Plannerit. |
 | `OutSys` | Planner | Kõik operatsioonid tehtud: määrab sihtkohaks `ToCS` / `SysOut`. |
@@ -182,14 +189,16 @@ Planner → Load (puhver → pink) → Turn → Process ─┬→ Turn
 
 ### 5.1 Millal kutsutakse **[T]**
 
-`Planner(põhjus, objekt)` kutsutakse:
+`Planner(põhjus)` kutsutakse:
 - simulatsiooni alguses;
 - kui detail jõudis puhvri sissetulevale kohale;
 - kui pink vabanes;
 - kui detail jõudis puhvri väljaminevale kohale;
 - kui detail lahkus süsteemist.
 
-Planner ise **ei muuda olekuid**, vaid otsustab ja lisab sündmusi (`InSys`, `Load`, `OutSys`). Olekuid muudavad ainult EventHandlerid. **[O]** (lk 51)
+Igal kutsel teeb Planner **täieliku ülevaatuse** samas järjekorras: (1) laadib vabad pingid (`LoadMachines`), (2) leiab ootavatele detailidele sihtkoha (`AssignDestinations`), (3) toob uusi detaile (`AdmitWorkpieces`). See on lihtsam ja töökindlam kui põhjusepõhine loogika ning prototüübis piisavalt kiire. **[T]**
+
+Planner otsustab ja lisab sündmusi (`InSys`, `Load`, `OutSys`). **[O]** (lk 51) Täpsustus: broneeringud ja pingi laadimise alguse olek (`LOADING`) seab Planner ise, sest need peavad kehtima kohe, mitte alles sündmuse ajal. **[T]**
 
 ### 5.2 Mida otsustab
 
@@ -208,11 +217,10 @@ Planner ise **ei muuda olekuid**, vaid otsustab ja lisab sündmusi (`InSys`, `Lo
 
 Ka broneerimisega võib tekkida ringootamine: pingi A väljaminev detail ootab kohta pingi B puhvris ja vastupidi, ning kõik puhvrid on täis.
 
-- **Vältimine**: sissetoomise piir `Kl`, broneerimine ning reegel, et pink ei alusta ilma väljaminevat kohta broneerimata.
-- **Avastamine**: kui süsteemis on detaile, aga `StallTime` sekundit (vaikimisi 600) pole ükski detail liikunud ega töödeldud → ummik.
-- **Lahendus**: kauem oodanud väljaminev detail saadetakse ajutiselt kesklattu (`ToCS`) ja Planner toob selle hiljem tagasi. Kui keskladu puudub või on täis, simulatsioon peatub ja teatab ummikust (see on ka kasulik tulemus: struktuur ei sobi antud koormusele).
-
-Etapi 2 stressitest peab näitama, kas see piisab.
+- **Vältimine**: sissetoomise piir `Kl`, broneerimine, reegel „pink ei alusta ilma väljaminevat kohta broneerimata“ ja **järgmise pingi koha broneerimine enne töötlemist** (3.3). Valideerimine: vältimisega ei tekkinud stressitestis ühtegi lahendamatut ummikut ja parkimisi oli 1–3; ilma selleta ummistus süsteem igasuguse puhvri suuruse juures.
+- **Avastamine** (`FindDeadlockedWorkpieces`): igal sekundil arvutatakse püsipunktini, millised puhvrid **saavad edasi liikuda** – neis on vaba koht või broneering, nende pink töötab, sissetuleva detaili saab pink võtta (sh järgmise koha broneering) või väljaminev detail saab sihtkoha mõnes vabas / edasi liikuvas puhvris. Täis puhvrid, mis edasi liikuda ei saa, on ummikus. Esimene versioon (ummik = `StallTime` sekundit ootamist) andis koormuse all **valehäireid** (stsenaariumis B pargiti 19 detaili ilma tegeliku ummikuta) ja asendati.
+- **Lahendus**: ummikus puhvri kauem oodanud detail (väljaminev või sissetulev) saadetakse ajutiselt kesklattu (`ToCS`, pargitakse) ja Planner toob selle hiljem `FromCS` kaudu tagasi. Kui keskladu puudub või on täis, simulatsioon peatub ja teatab ummikust – see on ka kasulik tulemus: struktuur ei sobi antud koormusele.
+- **Varukontroll**: kui midagi ei toimu `StallTime` sekundit (vaikimisi 600) ja süsteemis on detaile → peatub ja teatab.
 
 ---
 
@@ -442,6 +450,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `SimInit` | algväärtused, mälu, kärude algasendid | [O] |
 | `SimStep` | üks peatsükli samm (üks sekund) | [U] |
 | `CheckInvariants` | kontrollib invariante (testides) | [U] |
+| `DEADLOCK` | lipp: lahendamatu ummik, simulatsioon peatati | [U] |
+| `SimRun`, `SimReport`, `SimState` | käivitab lõpuni; aruanne; olek lugemiseks (testid, animaator) | [U] |
 
 **Sündmuste nimekiri**
 
@@ -485,5 +495,14 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ShortestPath` | lühim tee rajavõrgus (Dijkstra) | [U] |
 | `ReserveSlot`, `ReleaseSlot` | koha broneerimine ja vabastamine | [U] |
 | `ReserveZone`, `ReleaseZone` | tsooni broneerimine ja vabastamine | [U] |
-| `DetectDeadlock` | ummiku avastamine (ootegraaf, `StallTime`) | [U] |
+| `DetectDeadlock` | ummiku lahendamine (parkimine) ja varukontroll | [U] |
+| `FindDeadlockedWorkpieces` | ummikus olevad detailid (püsipunkt üle puhvrite) | [U] |
+| `LoadMachines`, `AssignDestinations`, `AdmitWorkpieces` | Planneri kolm sammu | [T] |
+| `ChooseRoute` | marsruudi valik sisenemisel | [O nimi, T sisu] |
+| `NextOpElsewhere` | järgmine operatsioon, mis tehakse teises pingis | [U] |
+| `OrderByDiscipline` | puhvri detailide järjekord (FIFO / FILO / RANDOM) | [O] |
+| `PickupCandidate` | jaamas alust ootav detail | [U] |
+| `FromCSQueue` | FromCS jaamas ootavad detailid | [T] |
+| `ProcAllEvents` | sisetsükkel: kõik käesoleva hetke sündmused | [U] |
+| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationDistance`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `proto/fms_sim.js`-is | [T]/[U] |
 | `Animator`, `SimStatus`, `Transport` | kuvamine | [O] |
