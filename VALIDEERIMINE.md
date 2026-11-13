@@ -364,3 +364,74 @@ Hõivatud kärule anti soov (`CartInsertion`) sageli **teises jaamas** kui tema 
 | **EGA olekurida** (7b ootel töö 4): kui radade tekst kõige pikemal kujul ei mahu, on rajad teisel real (rida ei hüppa), vajadusel lühendatud | ✔ |
 
 **Mida see EI kontrolli:** mitme sammu planeerimist (kahesuunaline ring 3+ käruga – 7b leid 6), parkimiskohti, `ZoneLength`, `Dispatch`-valikut, konnektori broneerimist alles lähenedes (7a leid 2), mitut detaili pingis, kärul olevate detailide tähtaegu (lisamise piir on ainult sõiduaja kasv), rikkeid (8).
+
+---
+
+# Etapp 8: rikked ja juhuslikkus
+
+Uus loogika: [DISAIN.md](DISAIN.md) osa 17. Tööpingi rike (`Crash`) töötlemise ajal, remont (`Repair`), praak läheb `SysOut`-i ja kestuse jaotused (`Sim.Distribution`). Testid on [test/crash.test.js](test/crash.test.js) (R0–R9), animaatori test [test/anima.test.js](test/anima.test.js) („8: rikked“).
+
+Enne animaatorit ja redaktorit kontrolliti simulaatorit. Invariante kontrolliti igal sekundil; uued on detailide arv koos praagiga, pingi olek ↔ täpselt üks sündmus, rikkes pingis remonti ootav praak ja et praak ei lähe kesklattu.
+
+## Ilma riketeta – midagi ei muutunud
+
+Kui `CrashMean` = 0 või väli puudub, ei võeta rikete juhuarvu ja põhijada (`Random`) ei muutu. Näidis-PTS ilma riketeta ja `CrashMean: 0` (remondi väljad täidetud, `Distribution: 'Uniform'`) annavad identse aruande (R0). Kõik varasemad testid jäid roheliseks. Ainus muutus tuli leiust 1.
+
+## Käsitsi arvutatud ajad
+
+Avatud konveier H (nagu H1: 900 cm, 20 cm/s, üks alus, laadimine 10 s). Rikkeaeg on testis ette antud (`Options.CrashAfter`). Arvutus on testi kommentaaris.
+
+| Test | Tulemus |
+|---|---|
+| **R1** MT1 läheb rikki pärast 100 s töötlemist, remont 120 s | Rike t=148, remont läbi t=268, praak puhvris t=278. Alus jõuab BUF1-sse t=308 (iga 45 s järel), on SysOut-is t=338 ja maha laaditakse t=348. t=347 on praak veel rajal, t=348 `Scrapped` = 1, valmis 0. MT1: `DOWN` 120 s, `PROCESSING` 100 s, operatsioone 0. MT2 praaki ei saanud (BUF2 broneering vabanes rikke ajal) ✔ |
+| **R2** jätk: pink töötab pärast remonti | Järgmine detail WP1 tuli t=348 ja oli valmis t=**1038** (tsükliaeg 690 s, töötlemine 500 s), täpselt käsitsi arvutatud ✔ |
+| **R3** rike teises pingis (MT2 pärast 50 s, remont 60 s) | Rike t=488, remont läbi t=548, alus BUF2-s t=563, praak lahkus t=**593** (t=592 veel mitte). MT1 operatsioone 1 (tehtud töö läks praagiga kaotsi), MT2 `DOWN` 60 s, `PROCESSING` 50 s ✔ |
+
+## Statistiline kontroll
+
+| Test | Tulemus |
+|---|---|
+| **R4** H, 3 alust, 200 h, MT1 `CrashMean` 1500 / remont 200, MT2 1000 / 100 | Rike on Poissoni protsess töötlemisajas, seega oodatud rikete arv = töötlemisaeg / `CrashMean`. MT1: töötlemist 590 981 s, oodatud 394, tegelikult **411** (σ ≈ 20). MT2: oodatud 320, tegelikult **328**. `DOWN` = rikked × remont täpselt (82 200 s ja 32 800 s). Sisse 2196 = valmis 1449 + praak 739 + süsteemis 8 ✔ |
+| **R5** korratavus riketega (remont ± 100, operatsioonid ± 50) | Sama seeme annab sama tulemuse, teine seeme erineva ✔ |
+| **R7** jaotused: H, 150 h, operatsioon 300 ± 90 s, ~1690 valimit | **Uniform**: keskmine 299,1, dispersioon 2673 (teooria Dev²/3 = 2700), vahemik 210…390. **Triangular**: 299,3, dispersioon 1335 (Dev²/6 = 1350), 214…384. **Normal**: 301,7, dispersioon 7740 (0,9733·Dev² = 7884), 36…548 (± 3σ) ✔ |
+
+## Koormusega stsenaariumid (8 h, invariandid igal sekundil, 5 seemet)
+
+Igal pingil `CrashMean` 3600 s või 1200 s, remont 600 ± 200 s. Keskmine 5 seemne peale:
+
+| Stsenaarium | Rikkeid | Valmis | Praak | Tsükliaeg | Rikkes | Ummikuid |
+|---|---|---|---|---|---|---|
+| Näidis-PTS ilma riketeta | 0 | 85,0 | 0 | 3620 s | 0 % | 0 |
+| Näidis-PTS, 3600 s | 8,0 | 71,0 | 7,8 | 3919 s | 8,5 % | 0 |
+| Näidis-PTS, 1200 s | 19,4 | 55,0 | 19,2 | 4081 s | 20,2 % | 0 |
+| Näidis-AGV ilma riketeta | 0 | 138,8 | 0 | 2508 s | 0 % | 0 |
+| Näidis-AGV, 3600 s | 8,0 | 120,4 | 7,8 | 2663 s | 5,5 % | 0 |
+| Näidis-AGV, 1200 s | 19,0 | 98,0 | 18,8 | 2936 s | 13,1 % | 0 |
+
+**C (ristmarsruudid, 1-kohalised puhvrid, prototüübi stsenaarium)**, 20 seemet: ilma riketeta 0 ummikut, keskmiselt 3 parkimist, valmis 48,3. Riketega (`CrashMean` 1800, remont 300 ± 100) tuli 1 ummik (seeme 5, t=21570), keskmiselt 2,35 parkimist ja valmis 36,6. Seemne 5 ummik on tõeline, mitte valehäire: mõlemad pingid on vabad, kummaski puhvris on sissetulev detail, mis ootab teise pingi kohta, ja keskladu on täis (18 valmis + 2 pargitud = 20). Parkida pole kuhugi. See on sama olukord nagu C0: struktuur ei sobi koormusele. Rikkes pingi puhvrit ei loetud ummikuks üheski jooksus.
+
+Jaotus näidis-PTS-is (ilma riketeta, seeme 1): Uniform 84 valmis / 3663 s, Triangular 84 / 3682 s, Normal 85 / 3645 s.
+
+## Leiud
+
+1. **Alus sõitis jaamast mööda** (7a/7c viga, prototüübis sama) **[U]**. Kui konveier peatus ühe aluse pärast ja teine alus jõudis samal hetkel täpselt jaama (nihe 0), siis `MinuteMan` seda ei vaadanud: nihe 0 jäeti vahele, et alus ei peatuks uuesti jaamas, kus ta just oli. Avatud konveieril sõitis koormaga alus seetõttu lõpust üle – rikete testis (H, 3 alust, kõrvalekalle ± 50) murdis see invariandi, aga ka **ilma riketeta**. Suletud ringil tegi alus lisaringi. Parandus: `MarkArrivals` paneb sellistele alustele märke `ArrivedAt`, ja kui konveier uuesti liigub, peatub alus selles jaamas ka nihkega 0. Mõju:
+   - käsitsi arvutatud ajad (A 440 s, G1, H1, K1 jt) ja C jäid samaks;
+   - **A** (8 h, alused ja jaamad 500 cm vahedega, seega juhtub sageli): valmis 89 = 89, tsükliaeg 1882,7 → **1876,4 s**;
+   - **B** (prototüübi stsenaarium, testis seda prototüübiga ei võrrelda): valmis 85 = 85, tsükliaeg 3641,8 → 3639,5 s.
+
+   **Otsus (kasutaja):** parandus jääb. Test „A = prototüüp“ kontrollib nüüd valmis detailide arvu ja seda, et tsükliaeg on prototüübi omast kuni 1 % lühem. `proto/` jääb muutmata.
+2. **Detailide arv süsteemis** (`CountWorkpiecesInSystem`) oli `Created − Completed`, seega oleks praak jäänud süsteemi ja `Kl` oleks sissetoomise peatanud. Nüüd on see `Created − Completed − Scrapped`. Sama muudeti animaatori olekureal ja SysOut-i arvus (ka praak).
+3. **Rikete arv ja läbilaskevõime**: kuna rikke kell käib ainult töötlemise ajal, on rikkeid töötlemisaja kohta, mitte kalendriaja kohta. Vähem koormatud pink läheb harvemini rikki (Näidis-AGV: rikkes 5,5 % vs näidis-PTS 8,5 % sama `CrashMean`-iga).
+
+## Animaator ja redaktor
+
+| Test | Tulemus |
+|---|---|
+| **Näidis-PTS riketega** 4 h sammhaaval: rikkes pingis on igal sekundil tema praak (`WorkpiecePlaces` – koht `Machine`); aruanne on sama mis `SimRun`-iga | ✔ |
+| **R9** redaktor: pingi vormi rikke väljad (`RepairDev` > `RepairMean` → viga välja juures, mudel ei muutu) ja jaotuse valik lähevad läbi `SubmitModelForm` + `CheckModel` | ✔ |
+| **R8** `CheckModel`: `CrashMean` < 0, `RepairDev` > `RepairMean`, tundmatu `Distribution` → vead | ✔ |
+| **Brauseris** (käsitsi, näidis-PTS: rikete vahe 600 s, remont 300 ± 60 s, kolmnurkne jaotus): EGA – MT1 punane, R-täht, praak pingis ja alusel ristiga; olekureal „rikkes 1 praak 36“ teisel real ilma hüppamata; kokkuvõttes „Rikkeid 38, praak 36 (SysOut-i)“ ja pingi real „rikkes 14 %“; pingi vorm (rikete vahe, remont ±, selgitus) ja Model data (kõrvalekalle: kolmnurkne) mahuvad. Kaasaegne – rikkes pingis spindlit pole, praak ristiga on näha, `Repair` punane kaart Event Listis, pingi vorm korras | ✔ |
+
+**Leiud** (brauseris): pingi kokkuvõtte rida „(14×)“ ja Model data abirida ei mahtunud EGA-sse – mõlemat lühendati (rikete arv on kokkuvõtte real „Rikkeid n“). Kaasaegses välimuses kattis spindel praagi – rikkes pingis spindlit ei joonistata.
+
+**Mida see EI kontrolli:** transpordi, puhvri ja konnektori rikkeid (originaali tabel 4.5), kvaliteedipraaki (tõenäosus operatsiooni kohta), rikkeid jõudeolekus, laadimis- ja häälestusaegade kõrvalekaldeid. 7b–7c ootel tööd jäävad: mitme sammu planeerimine, `Parking`, `ZoneLength`, `Dispatch`, konnektori broneerimine kogu tee ajaks, kaasaegse juhtriba lühendamine (nüüd ka „rikkes … praak …“).

@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -9,7 +9,7 @@ Iga otsuse juures on märge:
 - **[T]** – originaali täpsustus (dokumendis puudu või ebaselge, lahendus on originaali vaimus);
 - **[U]** – uus lahendus (originaalist erinev või lisatud).
 
-Ulatus: esimeses järgus ainult **pidevad konveierid** (suletud silmus). Diskreetsed rajad (transpordirobotid, AGV-d – osa 11), kokkupõrked ja rikked tulevad hiljem (etapid 7–8), aga andmemudel arvestab nendega.
+Ulatus: esimeses järgus ainult **pidevad konveierid** (suletud silmus). Diskreetsed rajad (transpordirobotid, AGV-d – osa 11), kokkupõrked ja rikked tulid hiljem (etapid 7–8, osad 11, 16, 17).
 
 ---
 
@@ -153,7 +153,7 @@ Originaalis: „Rajad on seotud konnektorite, tööpinkide või puhvrite kaudu�
 IDLE ───────────────► LOADING ──► SETUP ──► PROCESSING ──┬─► SETUP (järgmine op samas pingis)
   ▲                                                       └─► UNLOADING ──► IDLE
   └──────────────────────────────────────────── Load (puhvrisse) ┘
-                       DOWN – rike (etapp 8)
+   PROCESSING ──Crash──► DOWN ──Repair──► UNLOADING (praak) – rike (etapp 8, osa 17)
 ```
 
 - `SETUP` kestus: `SetupTime`, kui operatsioon erineb pingi eelmisest operatsioonist, muidu 0. **[T]**
@@ -200,13 +200,15 @@ Originaali väljad `Event`, `WP`, `ObjType`, `ObjCode`, `Track`, `Time`, `Next` 
 | `InSys` | Planner | Loob detaili `FromCS`-i jaama, valib marsruudi, kutsub Plannerit sihtkoha valimiseks. |
 | `MoveZ` | `LoadProc` | `StopCount--`; kui 0, konveier liigub edasi. |
 | `StopMov` | `MinuteMan` | Alus seisab jaamas. Määrab, kas maha- või pealelaadimine, ja lisab `Load` ajaks `t + loadTime`. |
-| `Load` | `StopMovProc`, Planner, `ProcessProc` | Viib detaili lähtekohast sihtkohta, vabastab broneeringu. Edasi oleneb sihtkohast (vt 4.3). Kui detailil on juba broneeritud järgmine sihtkoht (3.3), saab ta selle kohe. |
+| `Load` | `StopMovProc`, Planner, `ProcessProc`, `RepairProc` | Viib detaili lähtekohast sihtkohta, vabastab broneeringu. Edasi oleneb sihtkohast (vt 4.3). Kui detailil on juba broneeritud järgmine sihtkoht (3.3), saab ta selle kohe. |
 | `Turn` | `LoadProc`, `ProcessProc` | Ümberhäälestus läbi → `Process` ajaks `t + kestus`. |
 | `Process` | `TurnProc` | Operatsioon läbi, `opIndex++` → järgmine operatsioon samas pingis (`Turn`) või mahalaadimine puhvrisse (`Load`). Kutsub Plannerit. |
 | `OutSys` | Planner | Kõik operatsioonid tehtud: määrab sihtkohaks `ToCS` / `SysOut`. |
 | `DoNothing` | testid | Ei tee midagi. |
+| `Crash` | `TurnProc` (rikke kell) | Tööpingi rike töötlemise ajal: pink `DOWN`, detail praak, `Repair` (osa 17). |
+| `Repair` | `CrashProc` | Remont läbi: praak laaditakse puhvrisse (`Load`), edasi `OutSys` → `SysOut`. |
 
-Operatsiooni kestus: ühtlane jaotus vahemikus `mean ± dev`, ümardatud täissekunditeks, vähemalt 1 s. **[T]**
+Operatsiooni kestus: vaikimisi ühtlane jaotus vahemikus `mean ± dev`, ümardatud täissekunditeks, vähemalt 1 s. **[T]** Etapist 8 ka kolmnurkne või normaaljaotus (`Sim.Distribution`, osa 17). **[U]**
 
 ### 4.3 `Load` – kuhu edasi **[T]**
 
@@ -255,7 +257,7 @@ Planner otsustab ja lisab sündmusi (`InSys`, `Load`, `OutSys`). **[O]** (lk 51)
    - Mis tüüp: kõige vähem töödeldud tüüp (vaikimisi); valitavad ka „üks tüüp järjest“ ja „kõige rohkem vabu pinke marsruudis“.
 2. **Marsruudi valik** sisenemisel. **[O]** Kriteeriumid: enim hetkel vabade pinkide operatsioone → lähim esimese operatsiooni pink → enim operatsioone samas pingis. Viik → marsruudi prioriteet.
 3. **Sihtkoha valik ja broneerimine** (`FindMach`, `FindBuf`, `FindSysPos`). **[T + U]**
-   - Kui detailil on järgmine operatsioon: sobivad pingid on need, mis teevad seda operatsiooni, mille puhvris on vaba sissetulev koht ja kuhu viib rada (osa 2.3). Valik: vaba pink → lühim järjekord → lähim (tee pikkus).
+   - Kui detailil on järgmine operatsioon: sobivad pingid on need, mis teevad seda operatsiooni, mille puhvris on vaba sissetulev koht ja kuhu viib rada (osa 2.3). Valik: vaba pink → pink pole rikkes (etapp 8) → lühim järjekord → lähim (tee pikkus).
    - Kui operatsioone pole: `OutSys` → `ToCS` või `SysOut`.
    - **Detail läheb teele ainult siis, kui sihtkoht on broneeritud.** Seni ootab ta oma kohal. **[U]** See tagab, et alus ei jää kunagi detailiga tiirlema ja konveier ei ummistu.
 4. **Pingi laadimine puhvrist**: kui pink on `IDLE` ja puhvris ootab detail, valitakse see puhvri distsipliini järgi (FIFO / FILO / RANDOM) ja broneeritakse väljaminev koht. **[O + U]**
@@ -269,6 +271,7 @@ Ka broneerimisega võib tekkida ringootamine: pingi A väljaminev detail ootab k
 - **Avastamine** (`FindDeadlockedWorkpieces`): igal sekundil arvutatakse püsipunktini, millised puhvrid **saavad edasi liikuda** – neis on vaba koht või broneering, nende pink töötab, sissetuleva detaili saab pink võtta (sh järgmise koha broneering) või väljaminev detail saab sihtkoha mõnes vabas / edasi liikuvas puhvris. Täis puhvrid, mis edasi liikuda ei saa, on ummikus. Esimene versioon (ummik = `StallTime` sekundit ootamist) andis koormuse all **valehäireid** (stsenaariumis B pargiti 19 detaili ilma tegeliku ummikuta) ja asendati.
 - **Lahendus**: ummikus puhvri kauem oodanud detail (väljaminev või sissetulev) saadetakse ajutiselt kesklattu (`ToCS`, pargitakse) ja Planner toob selle hiljem `FromCS` kaudu tagasi. Ühesuunalisest puhvrist ei saa sissetulevat detaili tagasi rajale saata (invariant) – siis pargitakse ainult väljaminevaid või kahesuunaliste puhvrite detaile; kui selliseid pole, on ummik lahendamatu ja teade ütleb põhjuse. Kui keskladu puudub või on täis, simulatsioon peatub ja teatab ummikust – see on ka kasulik tulemus: struktuur ei sobi antud koormusele.
 - **Varukontroll**: kui midagi ei toimu `StallTime` sekundit (vaikimisi 600) ja süsteemis on detaile → peatub ja teatab.
+- **Rike** (etapp 8, osa 17): rikkes pink (`DOWN`) ei ole `IDLE`, seega loeb `FindDeadlockedWorkpieces` tema puhvri edasi liikuvaks – remont on ajaliselt piiratud. Rikked ei andnud valehäireid (VALIDEERIMINE.md etapp 8).
 
 ---
 
@@ -283,6 +286,8 @@ Iga konveieri kohta, kui `StopCount = 0`:
 
 Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad järgmistel sekunditel.
 
+Kui teine alus jõuab samal hetkel täpselt jaama (nihe 0), saab ta märke `ArrivedAt` (`MarkArrivals`) ja peatub seal, kui konveier uuesti liigub. **[U]** Varem sõitis ta mööda – avatud konveieril murdis see invariandi, suletud ringil tegi alus lisaringi (VALIDEERIMINE.md etapp 8, leid 1; prototüübis sama viga).
+
 ---
 
 ## 7. Statistika **[O + T]**
@@ -292,7 +297,8 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 - Puhvri kohta: keskmine ja maksimaalne täituvus.
 - Konveieri kohta: liikumise ja seismise osakaal, peatuste arv.
 - Raja kohta (7c): aluste / kärude keskmine ja suurim täituvus (`AvgLoad` – detaile aluse kohta, `MaxLoad`) ja kogumissõidud (`Pooled` – pealelaadimised, kui alusel oli juba detail). **[U]**
-- Detailitüübi kohta: sisse toodud, valmis, keskmine tsükliaeg.
+- Detailitüübi kohta: sisse toodud, valmis, praak (etapp 8), keskmine tsükliaeg.
+- Rikked (etapp 8) **[U]**: pingi kohta `DOWN` osakaal (`DownShare`) ja rikete arv (`Crashes`); rakendatus ei sisalda rikkeaega. Süsteemis `Crashes`, `Scrapped`; aegreas `DownMachines`, `Scrapped`. Praak ei lähe valmis detailide, läbilaskevõime ega tsükliaja hulka.
 - Süsteem: läbilaskevõime (detaili tunnis), keskmine ja suurim detailide arv süsteemis, kesklattu pargitud.
 - **Aegrida** (`Stats.Timeline`, Dynamic-aruande jaoks, etapp 9) **[U]**: iga `SampleInterval` sekundi järel (vaikimisi 60, ka algus ja lõpp) detailid süsteemis, valmis, hõivatud pingid, puhvrite täituvus.
 - Kõik tuleb `SimReport`-ist; menüü *Simulate* näitab sellest lühikokkuvõtet (etapp 4), täielikud aruanded tulevad etapis 9.
@@ -328,6 +334,7 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 - Punktiirühendus (loogiline ühendus, pikkus 0, lk 54) on rajaikoon väljaga `"Dot": true`; sellel pole `N`-i. Jaam tekib seal, kus punktiirühendus liitub rajaga (hargnemisikoon `Tee*`). **[T]**
 - Suunanool on raja sirge või kaare väli `"Dir"` (osa 2.1). **[O]**
 - `Storage: null` tähendab, et kesklattu pole (stsenaarium C0).
+- Rike (etapp 8, osa 17) **[U]**: pingil võivad olla `CrashMean` (keskmine töötlemisaeg rikete vahel, s; 0 või puudub = rikkeid pole), `RepairMean`, `RepairDev` (remondiaeg, s); `Sim.Distribution` – `Uniform` (vaikimisi, kui puudub), `Triangular` või `Normal`. Vanad mudelid jäävad kehtima.
 - Mudeli struktuuri kontrollib `CheckModel` (`src/fms_glb.js`) laadimisel; rajavõrgu ja andmete kontroll on `Enumerate`-s (osa 2.2).
 - Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal, osa 2.1).
 
@@ -350,7 +357,8 @@ Invariandid, mida kontrollitakse igal sekundil:
 - `SYSTEM_TIME` ei vähene, Event Listis pole sündmust `Time < SYSTEM_TIME` pärast sisetsüklit;
 - `StopCount ≥ 0` ja seisev konveier ainult siis, kui mõni laadimine käib;
 - (diskreetsed rajad) igas tsoonis on max 1 käru ja käru on ainult tsoonis, mille ta on broneerinud;
-- (7c) alusel on detaile + broneeringuid kokku kõige rohkem `PlacesPerCart`, iga detail viitab oma kohale; käru peatuste nimekirjas on igal tema detailil mahalaadimine sõidu lõppjaamas ja igal ootaval broneeringul enne seda pealelaadimine; käru sõidab nimekirja esimesse jaama.
+- (7c) alusel on detaile + broneeringuid kokku kõige rohkem `PlacesPerCart`, iga detail viitab oma kohale; käru peatuste nimekirjas on igal tema detailil mahalaadimine sõidu lõppjaamas ja igal ootaval broneeringul enne seda pealelaadimine; käru sõidab nimekirja esimesse jaama;
+- (8) sisse toodud = valmis + praak + süsteemis; rikkes pingis on remonti ootav praak (`WAIT_REPAIR`) ja pingi olekule vastab täpselt üks sündmus (`DOWN` – `Repair`, `PROCESSING` – `Process` või `Crash` jne); praaki ei töödelda ega viida kesklattu ning tal pole järgmise pingi broneeringut.
 
 ---
 
@@ -517,7 +525,10 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `TransportPaths` | lühimad teed jaamast jaama (`StationPaths` tulemus) | [U] |
 | `Tracks[i].Pallets` | konveieri alused / diskreetse raja kärud: kohad `Places` (detail või `null`), broneeritud `ReservedWPs` (7c); käru ka `Node`, `Edge`, `Dir`, `Distance`, `Route`, `Goal`, `Waiting`, `StopList` | [T] / [U] |
 | `Tracks[i].Nodes`, `Tracks[i].Edges`, `Tracks[i].Holder` | diskreetse raja sõlmed (`Junction` – hargnemine) ja lõigud (`OneWay`); tsoon → käru (osa 11) | [U] |
-| `Stats` | kogutud statistika (`Stats.Timeline` – aegrida) | [T] |
+| `Stats` | kogutud statistika (`Stats.Timeline` – aegrida; `Crashes`, `Scrapped` – etapp 8) | [T] |
+| `MachineArray[i]` rike | `CrashMean`, `RepairMean`, `RepairDev` (mudelist); `TimeToCrash` (töötlemisaega rikkeni), `CrashState` (pingi juhuarvujada), `Crashes` (osa 17) | [U] |
+| `SysWPArray[i].Scrap`, `WAIT_REPAIR` | detail on praak; olek – praak rikkes pingis ootab remonti (osa 17) | [U] |
+| `Tracks[i].Pallets[j].ArrivedAt` | alus jõudis jaama samal hetkel, kui konveier peatus teise aluse pärast (osa 6) | [U] |
 
 **Protseduurid**
 
@@ -550,6 +561,11 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `StopNode`, `RemoveCartStop`, `StopListTime`, `CartInsertion`, `CartInsertDrop`, `CanTakeMore`, `UpdateCartGoal` | käru peatuste nimekiri (osa 16): peatuse sõlm; peatuse kustutamine; sõiduaeg läbi peatuste; odavaim lisamine (soov hõivatud kärule); jaamas lisaks võetud detaili mahalaadimine; kas hõivatud käru võib soovi saada; sihtsõlm = esimene peatus | [U] |
 | `SendAside`, `NeededZones`, `Blockers`, `Stuck`, `IsWaiting`, `FindWaitCycle`, `FindCollision` | käru kõrvale; tsoonid, mida käru veel vajab; kelle taga käru ootab; kõrvale saamata vaba käru; ootab ootegraafis; ootegraafi ring; `Collision`-i ring (osa 11.6) | [U] |
 | `CollisionProc` | `Collision`: ümbersõit või kõrvalepõige, muidu ummik (osa 11.6) | [O nimi, U tähendus] |
+| `CrashProc`, `RepairProc` | `Crash`: pink `DOWN`, detail praak, remondi algus; `Repair`: praak pingist välja (osa 17) | [O] / [U] |
+| `BeginUnload` | detail pingist puhvri väljaminevale kohale (`ProcessProc`, `RepairProc`) | [T] |
+| `Random`, `CrashRandom`, `MixRandom` | seemnega juhuarv (põhijada); pingi rikete ja remondi jada; mulberry32 segamine | [U] |
+| `SampleDuration`, `SampleTimeToCrash` | kestus `Mean ± Dev` mudeli jaotusega; töötlemisaeg rikkeni (eksponentjaotus, testides `Options.CrashAfter`) | [T/U] / [U] |
+| `MarkArrivals` | alused, mis jõuavad jaama samal hetkel, kui konveier peatub (osa 6) | [U] |
 | `DETOUR_FACTOR`, `DETOUR_SLACK`, `REQUEST_PATIENCE`, `COLLISION_RETRIES` | ümbersõidu piir (1,5 × + 10 s); soovi ootamine vaba teega käru järele (30 s); sama ring järjest (10) | [U] |
 | `DriveCart` | testidele: käru sõidab sõlme (ilma laadimiseta) | [U] |
 | `DetectDeadlock` | ummiku lahendamine (parkimine) ja varukontroll | [U] |
@@ -563,7 +579,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ProcAllEvents` | sisetsükkel: kõik käesoleva hetke sündmused | [U] |
 | `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, piirid, viited); kasutavad ka redaktori vormid | [U] |
 | `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
-| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `PICKUP_SOURCE`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
+| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `PICKUP_SOURCE`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
 | `Animator`, `SimStatus`, `Transport` | kuvamine: pinkide, puhvrite ja ladude seis; üldseis (üldosa + rajad); alused ja nende kohad (`anima.js`, osa 14) | [O] |
 
 **Mudeli konstandid** (`src/fms_glb.js`)
@@ -576,6 +592,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `MODEL_VERSION` | mudelifaili vormingu versioon (`Meta.Version`) | [U] |
 | `MAX_WORKPIECE_TYPES` | detailitüüpe kõige rohkem (16) | [O] |
 | `TRACK_MODES`, `BUFFER_DISCIPLINES` | lubatud raja liigid ja puhvri distsipliinid | [O] |
+| `DISTRIBUTIONS` | kestuse kõrvalekalde jaotused: `Uniform`, `Triangular`, `Normal` (osa 17) | [U] |
 
 **Kasutajaliides** (etapp 3, osa 13)
 
@@ -697,8 +714,8 @@ Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinki
 | konnektor (7a) | kast raja vahel; detail sees; broneeritud (detail tuleb) – kontuur ümber kasti |
 | alus | ruut raja peal; broneeritud (detail tuleb peale) – teine raam. Mitme kohaga (7c): kohad lahtritena 1–3 reas või 2 × 2, detail oma kohas, vaba koht (`PalletPlace`), broneeritud koht kontuuriga; üle 4 koha – „detaile/kohti“ aluse kohal |
 | AGV käru (7b) | ruut raja graafis (`CartPoint`), liigub sujuvalt ka sõlme kaudu ja ümber pöörates (`InterpolateCart`); ootab tsooni – oranž / pruun raam; broneeritud plokk, kuhu käru pole veel jõudnud – lõik katkendjoonena, sõlm ringina (`DrawZones`); raja-haru on pidev joon, punktiirühendus punktiir |
-| detail | ring tüübi värviga (16 tüüpi); ummiku tõttu kesklattu saadetav – punane ring |
-| tööpink | keha värv olekust; täht: L laadimine, H häälestus, T töötlemine, M mahalaadimine (R rike – etapp 8) |
+| detail | ring tüübi värviga (16 tüüpi); ummiku tõttu kesklattu saadetav – punane ring; praak (8) – rist peal (roll `Scrap`) |
+| tööpink | keha värv olekust; täht: L laadimine, H häälestus, T töötlemine, M mahalaadimine, R rike (8: punane keha, praak pingis, kaasaegses spindlit pole) |
 | puhver | kohad lahtritena: detail (nool pingi poole – sissetulev, raja poole – väljaminev), broneeritud (kontuur), vaba |
 | FromCS / ToCS / SysOut | ootavad detailid (4 + arv); täituvus valmis + pargitud + broneeritud / mahutavus; lahkunute arv |
 | SimStatus | aeg / kestus, kiirus, olek, detailid süsteemis ja valmis, tk/h, konveier; diskreetsel rajal „AGV liigub 2/3“ või „AGV ootab 1/3“. EGA-s kahel real, kui radade tekst kõige pikemal kujul ei mahu (rida ei hüppa), teine rida vajadusel lühendatud „..“; kaasaegses juhtribal lühendatud (7c) |
@@ -708,7 +725,7 @@ EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 v�
 **Ainult kaasaegses välimuses** **[U]**:
 - **Event List riba**: ajatelg (logaritmiline, nüüd … +1 h) alates nähtavast ajast, märgid kellaajana h:mm:ss nagu üleval (nüüd, +10 s, +1 min, +10 min, +1 h; arvutus jääb sekundites); sündmused kaartidena (värv tüübi järgi, nt `Load WP12`), sama aja sündmused ühes veerus FIFO järjekorras (3 rida, ülejäänu „+n“). Lisandunud kaart libiseb kohale, töödeldud kaob vasakule (`DiffEventList` – kirjeid võrreldakse viite järgi). Kaardile osutades tõstetakse esile seotud pink / puhver / jaam / alus / detail ja olekureale tuleb sündmuse aeg. `L` – ahelloendi vaade (kastid `Event`, `WP`, `Time` (h:mm:ss) ja `Next`-nooled, `FirstAtMoment` … `nil`). Kiirusel üle ×50 ja max-režiimis ainult arvud.
 - Pingi spindel pöörleb töötlemisel, häälestusel pöörleb aeglaselt hammasratas.
-- `Collision` (7b) on Event Listis punase kaardina.
+- `Collision` (7b), `Crash` ja `Repair` (8) on Event Listis punase kaardina.
 
 ---
 
@@ -733,7 +750,7 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 
 **Andmed vormides** (`src/fms_ed_data.js`, etapp 6b) **[O + U]**
 - **Config** **[O]**: *All* – kõik objektid joonisel järjest (pingid, puhvrid, rada, keskladu; ülevalt alla), objekt on Layout-is esile tõstetud ja vorm avaneb ekraani all – või üleval, kui all kataks objekti (`FormBox` `Avoid`). OK → järgmine, Loobu / Esc lõpetab. *Choose* – Layout tööriistaga „vali“: klõps või Enter objektil avab selle vormi.
-- **Vormid**: tööpink (nimi, mudel, ajad, operatsioonid märkeruutudega + uus), puhver (kohad, pöördusmeetod, aeg), keskladu (kas on, kohad, aeg), rada (tabel 4.1; raja lahtrist avades ka **lõigu pikkus** – metrokaart, tühi = mõõtkavast), detail (nimi, prioriteet, partii) → **marsruudid** (nimekiri + uus) → marsruut (prioriteet ja operatsioonide tabel: operatsioon, keskmine, kõrvalekalle; + op / − op / Kustuta), **Model data** [U] (nimi, mõõtkava, seeme, kestus, Kl, seisu piir).
+- **Vormid**: tööpink (nimi, mudel, ajad, rikete vahe ja remont ± kõrvalekalle – etapp 8, operatsioonid märkeruutudega + uus), puhver (kohad, pöördusmeetod, aeg), keskladu (kas on, kohad, aeg), rada (tabel 4.1; raja lahtrist avades ka **lõigu pikkus** – metrokaart, tühi = mõõtkavast), detail (nimi, prioriteet, partii) → **marsruudid** (nimekiri + uus) → marsruut (prioriteet ja operatsioonide tabel: operatsioon, keskmine, kõrvalekalle; + op / − op / Kustuta), **Model data** [U] (nimi, mõõtkava, seeme, kestus, Kl, seisu piir, kõrvalekalde jaotus – etapp 8).
 - **Kontroll** [U]: vormi väärtused pannakse mudeli koopiasse ja kontrollitakse sama `CheckModel`-iga, mis faili laadimisel; vead on välja juures (silt punane, teade vormi all). Arvus sobib koma ja punkt.
 - **Menüüd**: Transport – rajad + *Uus rada*; vormis *Kustuta rada* (ikoonid ja andmed, järgmiste numbrid nihkuvad). Workpiece data – detailid → *Edit* / *Copy* / *Flush* + *Uus detail* (kuni 16). Storage data, Model data.
 - **Andmekontroll ja hoiatused** [U]: Layout-i infureal on vigade ja hoiatuste arv (`ModelProblems`: `CheckModel`, siis `Enumerate`; arvutatakse iga muudatuse järel). **K** või Edit → **Check** näitab nimekirja; Enter viib vea kohale joonisel (`ProblemCell`: lahter, pink, puhver või rada).
@@ -757,3 +774,27 @@ Originaalis on rajal „kohtade arv transpordivahendil – mitu detaili mahub ko
 - **`Kl`** **[U]**: `Ntm` = aluste / kärude arv (`Carts`), mitte kohtade arv (osa 5.2). Originaali järgi (`Carts × PlacesPerCart`) tõi Planner süsteemi rohkem detaile, mis ootasid FromCS-is – tsükliaeg kasvas (A: 1883 → 3907 s), läbilaskevõime mitte (VALIDEERIMINE.md 7c leid 1).
 - **Statistika**: raja `AvgLoad`, `MaxLoad`, `Pooled` (osa 7); kokkuvõttes rida „kohti N: keskmiselt …, kuni …, kogumissõite …“.
 - **Andmemudel**: uusi välju pole – `PlacesPerCart` oli olemas; redaktori hoiatus 6 (`Carts × PlacesPerCart > Σ Capacity`) arvestab kohti.
+
+---
+
+## 17. Rikked ja juhuslikkus (etapp 8) **[O + T + U]**
+
+Originaalis: `Crash` on sõltumatu sündmus, mille toimumine on antud **tõenäosusega ajaühikus**; seade seisab remondi ajal; **rike tööpingis → töödeldav detail on praak ja saadetakse välja** (originaal.md 5.1, 5.4 p 6). Parameetrid puudusid (originaal.md osa 10). **[O]** Teostus: `src/fms_sim.js`, testid `test/crash.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8.
+
+- **Ulatus**: ainult tööpingi rike. Transpordi, puhvri ja konnektori rike (originaali tabel 4.5) ja kvaliteedipraak (tõenäosus operatsiooni kohta) jäid tegemata – ideed 2.0 jaoks. **[U]**
+- **Rikke kell** **[T]**: käib ainult töötlemise ajal (`PROCESSING`). Töötlemisaeg rikkeni (`TimeToCrash`) on eksponentjaotusega keskmisega `CrashMean` (püsiv tõenäosus ajaühikus), täissekundites, vähemalt 1. Nii juhtub rike alati detaili töötlemise ajal ja detail on alati praak, nagu originaalis. Uus aeg loetakse remondi lõpust.
+- **Sündmuste ahel** **[T]**: `TurnProc` võtab operatsiooni kestuse; kui `TimeToCrash ≤ kestus`, tuleb `Process`-i asemel `Crash` ajal `t + TimeToCrash`. Event Listist ei pea midagi eemaldama.
+
+```
+Turn → Process                     (tavaline)
+Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → … → SysOut
+```
+
+- **`CrashProc`** **[O]**: pink `DOWN`, detail `Scrap` ja olekusse `WAIT_REPAIR` (jääb remondi ajaks pinki); järgmise pingi broneeritud koht (`PlannedDestination`, osa 3.3) vabaneb kohe; remondiaeg `RepairMean ± RepairDev` (mudeli jaotusega); Planner.
+- **`RepairProc`** **[U]**: praak laaditakse välja nagu valmis detail (`BeginUnload`) – väljaminev koht broneeriti pingi laadimisel, seega on see olemas. Praagil operatsioone pole (`CurrentOp` = null), seega `OutSys` → alati `SysOut` (osa 3.4). Lahkumisel läheb praak arvesse `Scrapped`, mitte `Completed`.
+- **Planner** **[U]**: `FindMach` eelistab pinki, mis pole rikkes (osa 5.2); rikkes pingi puhvrisse võib siiski detaile saata. `ChooseRoute` loeb ainult vabu (`IDLE`) pinke.
+- **Ummik** **[T]**: `DOWN` ei ole `IDLE` – puhver loetakse edasi liikuvaks ja seisukontroll ei käivitu (Event Listis on `Repair`).
+- **Juhuarvud** **[U]**: igal pingil on oma jada (`CrashRandom`, seeme `Seed` ja pingi number). Rikete sisselülitamine ei muuda põhijada (`Random`) – kui rikkeid pole (`CrashMean` = 0 või puudub), on tulemused samad mis enne.
+- **Kestuse jaotus** (`Sim.Distribution`, `SampleDuration`) **[U]**: `Uniform` – ühtlane `Mean ± Dev` (vaikimisi, nagu enne); `Triangular` – kahe ühtlase juhuarvu summa (tipp `Mean` juures, otsad `Mean ± Dev`, σ² = Dev²/6); `Normal` – σ = `Dev`, väljaspool `Mean ± 3σ` võetakse uus (Box–Muller). Kehtib operatsioonidele ja remondile; laadimis- ja häälestusajad on kindlad (originaalis on kõrvalekalle ainult operatsioonil).
+- **Animaator**: rikkes pink punane, täht R, praak pingis ristiga; olekureal „rikkes n praak m“ (kui mudelis on rikkeid – alati, et EGA rida ei hüppaks); Event Listis `Crash` / `Repair` punased. **Kokkuvõte**: rida „Rikkeid n, praak m“ ja pingi real „rikkes x %“.
+- **Redaktor**: pingi vormis rikete vahe ja remont ± kõrvalekalle (+ selgitus), Model data vormis kõrvalekalde jaotus.

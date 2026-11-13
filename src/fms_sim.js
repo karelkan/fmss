@@ -64,6 +64,7 @@ const WP_STATE_CATEGORY = {
   ON_PALLET: 'Transport',
   SETUP: 'Setup',
   PROCESSING: 'Process',
+  WAIT_REPAIR: 'Wait',   // praak rikkes pingis, ootab remondi lõppu (etapp 8)
   GONE: 'Wait',
 };
 
@@ -1188,17 +1189,56 @@ function NodeDistances(track) {
 //     Kutsub: SampleDuration, OrderByDiscipline. Sündmusi ei lisa.
 function Random() {
   RandomState = (RandomState + 0x6D2B79F5) | 0;
-  let mixed = RandomState;
-  mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
+  return MixRandom(RandomState);
+}
+
+// [U] CrashRandom – pingi oma juhuarvujada rikete ja remondi jaoks (etapp 8). Eraldi jada
+//     tõttu ei muuda rikete sisselülitamine Random()-i jada (common random numbers).
+//     Kutsub: SampleTimeToCrash, CrashProc. Sündmusi ei lisa.
+function CrashRandom(machine) {
+  machine.CrashState = (machine.CrashState + 0x6D2B79F5) | 0;
+  return MixRandom(machine.CrashState);
+}
+
+// [U] MixRandom – mulberry32 segamine: olek -> juhuarv [0, 1).
+function MixRandom(state) {
+  let mixed = Math.imul(state ^ (state >>> 15), state | 1);
   mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
   return ((mixed ^ (mixed >>> 14)) >>> 0) / 4294967296;
 }
 
-// [T] SampleDuration – operatsiooni kestus: ühtlane jaotus Mean ± Dev, täissekundid, vähemalt 1.
-//     Kutsub: TurnProc. Sündmusi ei lisa.
-function SampleDuration(operation) {
-  const duration = operation.Mean - operation.Dev + Random() * 2 * operation.Dev;
+// [T/U] SampleDuration – kestus Mean ± Dev mudeli jaotusega (Sim.Distribution, etapp 8):
+//     Uniform – ühtlane (vaikimisi); Triangular – kahe ühtlase summa (tipp Mean juures);
+//     Normal – σ = Dev, väljaspool Mean ± 3σ võetakse uus (Box–Muller). Täissekundid, vähemalt 1.
+//     Kutsuvad: TurnProc (operatsioon), CrashProc (remont – random = pingi CrashRandom).
+function SampleDuration(operation, random = Random) {
+  let duration;
+  switch (Model.Sim.Distribution) {
+    case 'Triangular':
+      duration = operation.Mean + operation.Dev * (random() + random() - 1);
+      break;
+    case 'Normal': {
+      let deviate;
+      do {
+        deviate = Math.sqrt(-2 * Math.log(1 - random())) * Math.cos(2 * Math.PI * random());
+      } while (Math.abs(deviate) > 3);
+      duration = operation.Mean + operation.Dev * deviate;
+      break;
+    }
+    default:
+      duration = operation.Mean - operation.Dev + random() * 2 * operation.Dev;
+  }
   return Math.max(1, Math.round(duration));
+}
+
+// [U] SampleTimeToCrash – töötlemisaeg järgmise rikkeni: eksponentjaotus keskmisega CrashMean
+//     (originaal: rike on „tõenäosusega ajaühikus“), täissekundid, vähemalt 1. Testid saavad
+//     anda ajad ette (Options.CrashAfter[pink] – järjekord). Kutsuvad: SimInit, CrashProc.
+function SampleTimeToCrash(machine) {
+  const given = Options.CrashAfter?.[machine.Index];
+  if (given && given.length > 0) return given.shift();
+  if (!(machine.CrashMean > 0)) return Infinity;
+  return Math.max(1, Math.round(-machine.CrashMean * Math.log(1 - CrashRandom(machine))));
 }
 
 // =====================================================================
@@ -1284,7 +1324,9 @@ function SetMachState(machine, newState) {
 }
 
 // [T] CurrentOp – detaili järgmine (tegemata) operatsioon või null, kui kõik on tehtud.
+//     Praagil (etapp 8) operatsioone pole – ta saadetakse välja (OutSys -> SysOut).
 function CurrentOp(workpiece) {
+  if (workpiece.Scrap) return null;
   const route = Workpieces[workpiece.Type].Routes[workpiece.Route];
   return workpiece.OpIndex < route.Ops.length ? route.Ops[workpiece.OpIndex] : null;
 }
@@ -1313,7 +1355,7 @@ function StorageFree(keepFree = 0) {
 
 // [U] CountWorkpiecesInSystem – Ndet: süsteemis olevad detailid (ka sisenevad ja pargitud).
 function CountWorkpiecesInSystem() {
-  return Stats.Created - Stats.Completed;
+  return Stats.Created - Stats.Completed - Stats.Scrapped;
 }
 
 // [U] CurrentStationOf – jaam, kus detail parasjagu on (transpordi lähtekoht), või -1.
@@ -1478,20 +1520,43 @@ function MinuteMan() {
       for (const stationIndex of track.Stations) {
         let delta = ((StationArray[stationIndex].Position - position) % track.Length + track.Length) % track.Length;
         if (delta < EPSILON || track.Length - delta < EPSILON) delta = 0;
-        if (delta <= 0 || delta > stepLength + EPSILON) continue;
+        if (delta > stepLength + EPSILON) continue;
+        // delta 0: alus jõudis jaama samal hetkel, kui konveier peatus teise aluse pärast
+        // (ArrivedAt) – peatub nüüd siin (etapp 8, leid 1: koormaga alus sõitis jaamast mööda)
+        if (delta === 0 && track.Pallets[palletIndex].ArrivedAt !== stationIndex) continue;
         if (!NeedsStop(track, palletIndex, stationIndex)) continue;
         if (bestStop === null || delta < bestStop.delta) bestStop = { palletIndex, stationIndex, delta };
       }
     }
     if (bestStop === null) {
+      for (const pallet of track.Pallets) pallet.ArrivedAt = null;
       track.Offset = (track.Offset + stepLength) % track.Length;
       return;
     }
+    if (bestStop.delta > 0) MarkArrivals(track, bestStop, spacing);
+    track.Pallets[bestStop.palletIndex].ArrivedAt = null;
     track.Offset = (track.Offset + bestStop.delta) % track.Length;
     track.StopCount++;
     track.Stops++;
     PutEvent({ Event: 'StopMov', Track: trackIndex, Pal: bestStop.palletIndex,
                ObjType: 'Station', ObjCode: bestStop.stationIndex });
+  });
+}
+
+// [U] MarkArrivals – konveier peatub aluse bestStop pärast; teised alused, mis jõuavad samal
+//     hetkel täpselt jaama, saavad märke ArrivedAt (MinuteMan vaatab neid järgmisel liikumisel
+//     ka nihkega 0). Muul liikumisel märge kaob. Kutsub: MinuteMan.
+function MarkArrivals(track, bestStop, spacing) {
+  const EPSILON = 1e-6;
+  const offset = (track.Offset + bestStop.delta) % track.Length;
+  track.Pallets.forEach((pallet, palletIndex) => {
+    pallet.ArrivedAt = null;
+    if (palletIndex === bestStop.palletIndex) return;
+    const position = (offset + palletIndex * spacing) % track.Length;
+    for (const stationIndex of track.Stations) {
+      const gap = Math.abs(StationArray[stationIndex].Position - position);
+      if (gap < EPSILON || track.Length - gap < EPSILON) pallet.ArrivedAt = stationIndex;
+    }
   });
 }
 
@@ -2298,8 +2363,9 @@ function BeginSetup(machine, workpiece) {
              Time: SYSTEM_TIME + setupTime });
 }
 
-// [O] TurnProc – häälestus on läbi, algab töötlemine.
-//     Lisab: Process.
+// [O] TurnProc – häälestus on läbi, algab töötlemine. Rikke kell (etapp 8) käib ainult
+//     töötlemise ajal: kui pingi järelejäänud aeg rikkeni (TimeToCrash) saab otsa enne
+//     operatsiooni lõppu, tuleb Process-i asemel Crash. Lisab: Process või Crash.
 function TurnProc(currentEvent) {
   const machine = MachineArray[currentEvent.ObjCode];
   const workpiece = SysWPArray[currentEvent.WP];
@@ -2307,8 +2373,15 @@ function TurnProc(currentEvent) {
   machine.LastOp = operation.Op;
   SetMachState(machine, 'PROCESSING');
   SetWPState(workpiece, 'PROCESSING');
+  const duration = SampleDuration(operation);
+  if (machine.TimeToCrash <= duration) {
+    PutEvent({ Event: 'Crash', WP: workpiece.Id, ObjType: 'Machine', ObjCode: machine.Index,
+               Time: SYSTEM_TIME + machine.TimeToCrash });
+    return;
+  }
+  machine.TimeToCrash -= duration;
   PutEvent({ Event: 'Process', WP: workpiece.Id, ObjType: 'Machine', ObjCode: machine.Index,
-             Time: SYSTEM_TIME + SampleDuration(operation) });
+             Time: SYSTEM_TIME + duration });
 }
 
 // [O] ProcessProc – operatsioon on tehtud. Kui järgmist saab teha samas pingis, häälestub
@@ -2325,16 +2398,55 @@ function ProcessProc(currentEvent) {
     BeginSetup(machine, workpiece);
     return;
   }
+  BeginUnload(machine, workpiece);
+}
+
+// [T] BeginUnload – detail laaditakse pingist puhvri väljaminevale kohale (koht broneeriti
+//     pingi laadimise alguses). Kutsuvad: ProcessProc, RepairProc. Lisab: Load.
+function BeginUnload(machine, workpiece) {
   SetMachState(machine, 'UNLOADING');
   SetWPState(workpiece, 'LOADING');
   PutEvent({ Event: 'Load', WP: workpiece.Id, SrcType: 'Machine', SrcCode: machine.Index,
              ObjType: 'Buffer', ObjCode: machine.OutBuffer, Time: SYSTEM_TIME + machine.LoadTime });
 }
 
+// [O] CrashProc – tööpingi rike töötlemise ajal (etapp 8): pink läheb olekusse DOWN, töödeldav
+//     detail on praak (originaal lk 47) ja jääb remondi ajaks pinki. Järgmise pingi broneeritud
+//     koht (PlannedDestination) vabaneb kohe. Uus aeg rikkeni loetakse remondi lõpust.
+//     Lisab: Repair. Kutsub Plannerit (vabanenud koht).
+function CrashProc(currentEvent) {
+  const machine = MachineArray[currentEvent.ObjCode];
+  const workpiece = SysWPArray[currentEvent.WP];
+  SetMachState(machine, 'DOWN');
+  SetWPState(workpiece, 'WAIT_REPAIR');
+  workpiece.Scrap = true;
+  machine.Crashes++;
+  Stats.Crashes++;
+  Stats.LastProgressTime = SYSTEM_TIME;
+  if (workpiece.PlannedDestination) {
+    ReleaseSlot(BufferArray[workpiece.PlannedDestination.Index]);
+    workpiece.PlannedDestination = null;
+  }
+  machine.TimeToCrash = SampleTimeToCrash(machine);
+  const repair = { Mean: machine.RepairMean ?? 0, Dev: machine.RepairDev ?? 0 };
+  PutEvent({ Event: 'Repair', WP: workpiece.Id, ObjType: 'Machine', ObjCode: machine.Index,
+             Time: SYSTEM_TIME + SampleDuration(repair, () => CrashRandom(machine)) });
+  Planner('MachineDown');
+}
+
+// [U] RepairProc – remont on läbi: praak laaditakse pingist välja nagu valmis detail
+//     (BeginUnload), edasi OutSys -> SysOut. Lisab: Load.
+function RepairProc(currentEvent) {
+  const machine = MachineArray[currentEvent.ObjCode];
+  const workpiece = SysWPArray[currentEvent.WP];
+  Stats.LastProgressTime = SYSTEM_TIME;
+  BeginUnload(machine, workpiece);
+}
+
 // [O] OutSysProc – detaili kõik operatsioonid on tehtud: sihtkohaks ToCS (kui ruumi) või SysOut.
 function OutSysProc(currentEvent) {
   const workpiece = SysWPArray[currentEvent.WP];
-  if (StorageFree(Storage !== null ? Storage.ParkingReserve : 0)) {  // varu jääb parkimiseks
+  if (!workpiece.Scrap && StorageFree(Storage !== null ? Storage.ParkingReserve : 0)) {  // varu jääb parkimiseks; praak alati SysOut-i
     Storage.Reserved++;
     workpiece.Destination = { Kind: 'ToCS', Station: Storage.Station, Park: false };
   } else {
@@ -2344,11 +2456,17 @@ function OutSysProc(currentEvent) {
   Depart(workpiece);
 }
 
-// [T] WorkpieceLeaves – detail lahkub süsteemist: aeg ja statistika.
+// [T] WorkpieceLeaves – detail lahkub süsteemist: aeg ja statistika. Praak (etapp 8) läheb
+//     eraldi arvesse (Scrapped), mitte valmis detailide ega tsükliaja hulka.
 function WorkpieceLeaves(workpiece) {
   workpiece.Location = { Kind: 'Gone' };
   workpiece.TimeOut = SYSTEM_TIME;
   SetWPState(workpiece, 'GONE');
+  if (workpiece.Scrap) {
+    Stats.Scrapped++;
+    Workpieces[workpiece.Type].Scrapped++;
+    return;
+  }
   Stats.Completed++;
   Workpieces[workpiece.Type].Completed++;
   Stats.Finished.push({
@@ -2368,6 +2486,8 @@ const EventHandlers = {
   Turn: TurnProc,
   Process: ProcessProc,
   Collision: CollisionProc,
+  Crash: CrashProc,
+  Repair: RepairProc,
 };
 
 // =====================================================================
@@ -2486,8 +2606,8 @@ function AssignDestinations() {
 }
 
 // [O nimi, T sisu] FindMach – sobivaim tööpink operatsioonile, mille puhvris on vaba koht ja
-//     kuhu rada mööda saab (StationPaths). Eelistus: vaba ja tühja järjekorraga pink -> lühim
-//     järjekord -> lähim (tee pikkus). Tagastab pingi indeksi või -1.
+//     kuhu rada mööda saab (StationPaths). Eelistus: vaba ja tühja järjekorraga pink -> pink pole
+//     rikkes -> lühim järjekord -> lähim (tee pikkus). Tagastab pingi indeksi või -1.
 function FindMach(workpiece, operation, excludeMachine = -1) {
   const fromStation = excludeMachine >= 0
     ? BufferArray[MachineArray[excludeMachine].OutBuffer].Station
@@ -2504,6 +2624,7 @@ function FindMach(workpiece, operation, excludeMachine = -1) {
     const busy = machine.State === 'IDLE' ? 0 : 1;
     const score = [
       busy === 0 && queueLength === 0 ? 0 : 1,
+      machine.State === 'DOWN' ? 1 : 0,          // rikkes pink viimasena (etapp 8)
       queueLength + busy,
       path !== null ? path.Time : 0,
     ];
@@ -2660,7 +2781,7 @@ function CheckInvariants() {
 
   // detailid ei teki ega kao
   const alive = SysWPArray.filter(workpiece => workpiece.Location.Kind !== 'Gone');
-  if (alive.length !== Stats.Created - Stats.Completed) fail('detailide arv ei klapi');
+  if (alive.length !== Stats.Created - Stats.Completed - Stats.Scrapped) fail('detailide arv ei klapi');
 
   // iga detaili asukoht on kooskõlas struktuuridega
   for (const workpiece of alive) {
@@ -2719,6 +2840,33 @@ function CheckInvariants() {
       if (location.Kind !== 'Machine' || location.Index !== machine.Index) fail(`pingi ${machine.Name} detail vale asukohaga`);
     }
     if ((machine.State === 'IDLE') !== (machine.WP === null)) fail(`pingi ${machine.Name} olek ${machine.State} ei klapi detailiga`);
+    // rike (etapp 8): rikkes pingis on praak, mis ootab remonti; töötlemine käib ainult heal detailil
+    if (machine.State === 'DOWN' && (SysWPArray[machine.WP].State !== 'WAIT_REPAIR' || !SysWPArray[machine.WP].Scrap)) {
+      fail(`rikkes pingis ${machine.Name} pole remonti ootavat praaki`);
+    }
+    if ((machine.State === 'SETUP' || machine.State === 'PROCESSING') && SysWPArray[machine.WP].Scrap) {
+      fail(`pink ${machine.Name} töötleb praaki`);
+    }
+  }
+  // iga pingi kohta täpselt üks järgmine sündmus vastavalt olekule (rikkes – Repair)
+  const machineEvents = MachineArray.map(() => []);
+  for (let item = FirstAtMoment; item !== null; item = item.Next) {
+    if (item.ObjType === 'Machine' && item.Event !== 'Load') machineEvents[item.ObjCode].push(item.Event);
+    if (item.Event === 'Load' && (item.ObjType === 'Machine' || item.SrcType === 'Machine')) {
+      machineEvents[item.ObjType === 'Machine' ? item.ObjCode : item.SrcCode].push('Load');
+    }
+  }
+  const EXPECTED_EVENT = { LOADING: 'Load', SETUP: 'Turn', PROCESSING: ['Process', 'Crash'], UNLOADING: 'Load', DOWN: 'Repair' };
+  for (const machine of MachineArray) {
+    const events = machineEvents[machine.Index];
+    if (machine.State === 'IDLE') { if (events.length > 0) fail(`vabal pingil ${machine.Name} on sündmus ${events[0]}`); continue; }
+    const expected = [EXPECTED_EVENT[machine.State]].flat();
+    if (events.length !== 1 || !expected.includes(events[0])) fail(`pingi ${machine.Name} olekus ${machine.State} sündmused ${events.join(', ') || 'puuduvad'}`);
+  }
+  // praak ei lähe kesklattu
+  for (const workpiece of alive) {
+    if (workpiece.Scrap && (workpiece.Destination?.Kind === 'ToCS' || workpiece.Location.Kind === 'Storage')) fail(`praak WP${workpiece.Id} kesklattu`);
+    if (workpiece.Scrap && workpiece.PlannedDestination) fail(`praagil WP${workpiece.Id} on järgmise pingi broneering`);
   }
   Tracks.forEach((track, trackIndex) => {
     track.Pallets.forEach(pallet => CheckPallet(track, pallet, fail));
@@ -2874,7 +3022,9 @@ function TimelinePoint() {
     Time: SYSTEM_TIME,
     InSystem: CountWorkpiecesInSystem(),
     Completed: Stats.Completed,
-    BusyMachines: MachineArray.filter(machine => machine.State !== 'IDLE').length,
+    BusyMachines: MachineArray.filter(machine => machine.State !== 'IDLE' && machine.State !== 'DOWN').length,
+    DownMachines: MachineArray.filter(machine => machine.State === 'DOWN').length,
+    Scrapped: Stats.Scrapped,
     BufferFill: BufferArray.map(buffer => buffer.Entries.length),
   });
 }
@@ -2902,6 +3052,8 @@ export function SimReport() {
     DeadlockReason: Stats.DeadlockReason || null,
     Created: Stats.Created,
     Completed: Stats.Completed,
+    Scrapped: Stats.Scrapped,
+    Crashes: Stats.Crashes,
     InSystem: CountWorkpiecesInSystem(),
     Parked: Stats.Parked,
     Unparked: Stats.Unparked,
@@ -2913,7 +3065,7 @@ export function SimReport() {
     Types: Workpieces.map((type, typeIndex) => {
       const own = finished.filter(item => item.Type === typeIndex);
       const ownCycle = own.reduce((total, item) => total + item.TimeOut - item.TimeIn, 0);
-      return { Name: type.Name, Started: type.Started, Completed: type.Completed,
+      return { Name: type.Name, Started: type.Started, Completed: type.Completed, Scrapped: type.Scrapped,
                AvgCycleTime: own.length > 0 ? ownCycle / own.length : 0 };
     }),
     Machines: MachineArray.map(machine => {
@@ -2925,6 +3077,7 @@ export function SimReport() {
         Utilization: part('LOADING') + part('SETUP') + part('PROCESSING') + part('UNLOADING'),
         ProcessingShare: part('PROCESSING'), SetupShare: part('SETUP'),
         LoadShare: part('LOADING') + part('UNLOADING'), IdleShare: part('IDLE'),
+        DownShare: part('DOWN'), Crashes: machine.Crashes,
         OpsDone: machine.OpsDone, StateTime: stateTime,
       };
     }),
@@ -2995,6 +3148,7 @@ export function SimInit(network, inputOptions = {}) {
   Model = structuredClone(network);
   Model.Sim = { ReserveNextBeforeStart: true, SampleInterval: SAMPLE_INTERVAL, ...Model.Sim };
   Options = { CheckInvariants: false, ...inputOptions };
+  if (Options.CrashAfter) Options.CrashAfter = Options.CrashAfter.map(list => [...(list || [])]);
   SYSTEM_TIME = 0;
   NO_EVENTS = true;
   SIMULATION_DONE = false;
@@ -3004,7 +3158,7 @@ export function SimInit(network, inputOptions = {}) {
   LastEventTime = 0;
   FromCSQueue = [];
   SysWPArray = [];
-  Stats = { Created: 0, Completed: 0, Parked: 0, Unparked: 0, EventCount: 0, EventCountByType: {},
+  Stats = { Created: 0, Completed: 0, Scrapped: 0, Crashes: 0, Parked: 0, Unparked: 0, EventCount: 0, EventCountByType: {},
             PlannerCalls: 0, LastProgressTime: 0, WipIntegral: 0, MaxWip: 0, Timeline: [], Finished: [] };
 
   Tracks = Model.Tracks.map((track, trackIndex) => {
@@ -3032,8 +3186,10 @@ export function SimInit(network, inputOptions = {}) {
   }));
   MachineArray = Model.Machines.map((machine, machineIndex) => ({
     ...machine, Index: machineIndex, State: 'IDLE', StateSince: 0, StateTime: {}, WP: null, LastOp: null, OpsDone: 0,
+    Crashes: 0, CrashState: (Model.Sim.Seed ^ Math.imul(machineIndex + 1, 0x9E3779B9)) | 0, TimeToCrash: Infinity,
   }));
-  Workpieces = Model.Workpieces.map(type => ({ ...type, Started: 0, Completed: 0 }));
+  for (const machine of MachineArray) machine.TimeToCrash = SampleTimeToCrash(machine);
+  Workpieces = Model.Workpieces.map(type => ({ ...type, Started: 0, Completed: 0, Scrapped: 0 }));
 
   Model.FromCSStation = StationArray.findIndex(station => station.Kind === 'FromCS');
   Model.SysOutStation = StationArray.findIndex(station => station.Kind === 'SysOut');

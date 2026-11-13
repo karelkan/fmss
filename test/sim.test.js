@@ -285,7 +285,14 @@ test('A: mudelifailist ehitatud võrk annab prototüübiga sama tulemuse (tsükl
   const short = { ...network, Sim: { ...network.Sim, Kl: 0.1, Duration: 1000 } };
   const report = SimRun(short, CHECKED);
   assert.equal(report.Finished[0].TimeOut, 440);
-  assert.deepEqual(SimRun(network, CHECKED).Finished, ProtoSimRun(ScenarioA(), CHECKED).Finished);
+  // Etapp 8, leid 1: alus, mis jõuab jaama samal hetkel, kui konveier peatub teise aluse pärast,
+  // peatub nüüd seal (prototüübis sõitis ta mööda ja tegi lisaringi). A-s on alused ja jaamad
+  // 500 cm vahedega, nii et see juhtub sageli: valmis sama palju, tsükliaeg veidi lühem.
+  const full = SimRun(network, CHECKED);
+  const proto = ProtoSimRun(ScenarioA(), CHECKED);
+  assert.equal(full.Completed, proto.Completed);
+  assert.ok(full.AvgCycleTime <= proto.AvgCycleTime && full.AvgCycleTime > 0.99 * proto.AvgCycleTime,
+    `tsükliaeg ${full.AvgCycleTime} vs prototüüp ${proto.AvgCycleTime}`);
 });
 
 test('C: ristmarsruudid mudelifailist – sama tulemus mis prototüübil', () => {

@@ -77,6 +77,10 @@ export const MODEL_VERSION = 1;              // [U] mudelifaili vorming (Meta.Ve
 export const MAX_WORKPIECE_TYPES = 16;       // [O] detailitüüpe kõige rohkem (lk 33)
 export const TRACK_MODES = ['Continuous', 'Discrete'];       // [O] pidev / diskreetne rada
 export const BUFFER_DISCIPLINES = ['FIFO', 'FILO', 'RANDOM']; // [O] puhvri distsipliin
+// [U] DISTRIBUTIONS – kestuse kõrvalekalde jaotus (Sim.Distribution, etapp 8): Uniform – ühtlane
+//     Mean ± Dev (vaikimisi); Triangular – kolmnurkne, tipp Mean juures, otsad Mean ± Dev;
+//     Normal – normaaljaotus σ = Dev, lõigatud vahemikku Mean ± 3·Dev.
+export const DISTRIBUTIONS = ['Uniform', 'Triangular', 'Normal'];
 // [O] OPERATIONS – tööpinkide operatsioonid (tabel 4.2, originaal.md 2.2). Simulatsioonile on
 //     oluline ainult see, et need on erinevad; redaktor pakub neid valikuks (uus pink saab esimese).
 export const OPERATIONS = ['treimine', 'puurimine', 'sisetreimine', 'freesimine', 'lihvimine',
@@ -200,6 +204,11 @@ export function CheckModel(model) {
     if (machine.Model !== undefined) checkString(machine.Model, `${path}.Model`, { allowEmpty: true });
     checkNumber(machine.LoadTime, `${path}.LoadTime`, { min: 0 });
     checkNumber(machine.SetupTime, `${path}.SetupTime`, { min: 0 });
+    // [U] rike ja remont (etapp 8): väljad võivad puududa (= rikkeid pole)
+    if (machine.CrashMean !== undefined) checkNumber(machine.CrashMean, `${path}.CrashMean`, { min: 0 });
+    const repairOk = machine.RepairMean === undefined || checkNumber(machine.RepairMean, `${path}.RepairMean`, { min: 0 });
+    if (machine.RepairDev !== undefined && checkNumber(machine.RepairDev, `${path}.RepairDev`, { min: 0 })
+        && repairOk && machine.RepairDev > (machine.RepairMean ?? 0)) fail(`${path}.RepairDev`, Texts.CheckDevTooLarge);
     if (checkArray(machine.Ops, `${path}.Ops`)) {
       if (machine.Ops.length === 0) fail(`${path}.Ops`, Texts.CheckEmptyString);
       machine.Ops.forEach((op, j) => {
@@ -319,6 +328,7 @@ export function CheckModel(model) {
     checkNumber(model.Sim.Duration, 'Sim.Duration', { integer: true, min: 1 });
     checkNumber(model.Sim.Kl, 'Sim.Kl', { above: 0, max: 1 });
     checkNumber(model.Sim.StallTime, 'Sim.StallTime', { integer: true, min: 1 });
+    if (model.Sim.Distribution !== undefined) checkOneOf(model.Sim.Distribution, 'Sim.Distribution', DISTRIBUTIONS);
   }
 
   return errors;
