@@ -337,11 +337,13 @@ function SimSummaryLines(report, warnings) {
   }
   lines.push(
     FormatText(Texts.SimCounts, report),
+    ...(report.Crashes > 0 ? [FormatText(Texts.SimCrashes, report)] : []),
     FormatText(Texts.SimThroughput, { Throughput: Decimal(report.ThroughputPerHour), Cycle: ClockText(Math.round(report.AvgCycleTime)) }),
     FormatText(Texts.SimShares1, { Process: Percent(report.Shares.Process), Setup: Percent(report.Shares.Setup), Load: Percent(report.Shares.Load) }),
     FormatText(Texts.SimShares2, { Transport: Percent(report.Shares.Transport), Wait: Percent(report.Shares.Wait) }),
-    ...limited(report.Machines, (machine) => FormatText(Texts.SimMachine, {
+    ...limited(report.Machines, (machine) => FormatText(machine.Crashes > 0 ? Texts.SimMachineDown : Texts.SimMachine, {
       Name: machine.Name, Utilization: Percent(machine.Utilization), Processing: Percent(machine.ProcessingShare), Ops: machine.OpsDone,
+      Down: Percent(machine.DownShare), Crashes: machine.Crashes,
     })),
     ...limited(report.Buffers, (buffer) => FormatText(Texts.SimBuffer, {
       Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,

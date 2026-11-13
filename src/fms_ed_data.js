@@ -11,7 +11,7 @@
 //   Avoid – valitud objekti ala ekraanil: vorm avaneb all või üleval nii, et seda ei kata;
 //   Then(saved) – vorm suleti (Config → All läheb järgmise objekti juurde, kui saved).
 
-import { IconTypes, OPERATIONS, TRACK_MODES, BUFFER_DISCIPLINES, MAX_WORKPIECE_TYPES, CheckModel } from './fms_glb.js';
+import { IconTypes, OPERATIONS, TRACK_MODES, BUFFER_DISCIPLINES, DISTRIBUTIONS, MAX_WORKPIECE_TYPES, CheckModel } from './fms_glb.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { FormBox, ListBox, MessageBox } from './windows.js';
 import { SegmentCells, EdgeLengthOf, SetEdgeLength, DeleteTrack, UniqueName, ModelProblems, ProblemCell } from './fms_ed.js';
@@ -108,8 +108,8 @@ function ModelForm(model, title, fields, apply, paths, ctx, options = {}) {
 // Objektid: tööpink, puhver, keskladu, rada (EditConfig)
 // =====================================================================
 
-// [O] EditMachTool – tööpingi andmed: nimi, mudel, laadimis- ja häälestusaeg, operatsioonid
-//     (märkeruudud + uus operatsioon). Kutsub: EditConfig, testid (vormi väljad).
+// [O] EditMachTool – tööpingi andmed: nimi, mudel, laadimis- ja häälestusaeg, rike ja remont
+//     (etapp 8), operatsioonid (märkeruudud + uus operatsioon). Kutsub: EditConfig, testid.
 export function EditMachTool(model, number, ctx = {}) {
   const machine = model.Machines[number - 1];
   const path = `Machines[${number}]`;
@@ -120,9 +120,12 @@ export function EditMachTool(model, number, ctx = {}) {
     { Key: 'Model', Label: Texts.FormMachineModel, Kind: 'Text', Text: machine.Model ?? '', Row: 0, X: 32, Width: 14, Path: `${path}.Model` },
     { Key: 'LoadTime', Label: Texts.FormLoadTime, Kind: 'Number', Text: NumberText(machine.LoadTime), Row: 1, Path: `${path}.LoadTime` },
     { Key: 'SetupTime', Label: Texts.FormSetupTime, Kind: 'Number', Text: NumberText(machine.SetupTime), Row: 1, X: 32, Path: `${path}.SetupTime` },
-    { Key: 'OpsLabel', Label: Texts.FormOps, Kind: 'Label', Row: 2 },
-    ...ops.map((op, i) => ({ Key: `Op${i}`, Label: op, Kind: 'Check', Value: machine.Ops.includes(op), Row: 3 + Math.floor(i / 3), X: (i % 3) * 22 })),
-    { Key: 'NewOp', Label: Texts.FormNewOp, Kind: 'Text', Text: '', Row: 3 + opRows, Width: 18, Path: `${path}.Ops`, ErrorLabel: Texts.FormOps },
+    { Key: 'CrashMean', Label: Texts.FormCrashMean, Kind: 'Number', Text: NumberText(machine.CrashMean ?? 0), Row: 2, Path: `${path}.CrashMean` },
+    { Key: 'RepairMean', Label: Texts.FormRepairMean, Kind: 'Number', Text: NumberText(machine.RepairMean ?? 0), Row: 3, Path: `${path}.RepairMean` },
+    { Key: 'RepairDev', Label: Texts.FormRepairDev, Kind: 'Number', Text: NumberText(machine.RepairDev ?? 0), Row: 3, X: 32, Path: `${path}.RepairDev` },
+    { Key: 'OpsLabel', Label: Texts.FormOps, Kind: 'Label', Row: 4 },
+    ...ops.map((op, i) => ({ Key: `Op${i}`, Label: op, Kind: 'Check', Value: machine.Ops.includes(op), Row: 5 + Math.floor(i / 3), X: (i % 3) * 22 })),
+    { Key: 'NewOp', Label: Texts.FormNewOp, Kind: 'Text', Text: '', Row: 5 + opRows, Width: 18, Path: `${path}.Ops`, ErrorLabel: Texts.FormOps },
   ];
   const apply = (target, values) => {
     const record = target.Machines[number - 1];
@@ -130,10 +133,14 @@ export function EditMachTool(model, number, ctx = {}) {
     record.Model = values.Model;
     record.LoadTime = values.LoadTime;
     record.SetupTime = values.SetupTime;
+    record.CrashMean = values.CrashMean;
+    record.RepairMean = values.RepairMean;
+    record.RepairDev = values.RepairDev;
     record.Ops = ops.filter((op, i) => values[`Op${i}`]);
     if (values.NewOp && !record.Ops.includes(values.NewOp)) record.Ops.push(values.NewOp);
   };
-  ModelForm(model, FormatText(Texts.FormMachineTitle, { N: number, Name: machine.Name }), fields, apply, [path], ctx);
+  ModelForm(model, FormatText(Texts.FormMachineTitle, { N: number, Name: machine.Name }), fields, apply, [path], ctx,
+    { Lines: Texts.FormMachineHint });
 }
 
 // [O] EditBuffer – puhvri andmed: maht, pöördusmeetod (FIFO / FILO / RANDOM), laadimisaeg.
@@ -388,7 +395,8 @@ function EditRoute(model, number, routeNumber, ctx) {
 // Mudel: Model data [U]
 // =====================================================================
 
-// [U] EditModelData – mudeli üldandmed: nimi, mõõtkava, simulatsiooni seeme, kestus, Kl, StallTime.
+// [U] EditModelData – mudeli üldandmed: nimi, mõõtkava, simulatsiooni seeme, kestus, Kl, StallTime,
+//     kestuse kõrvalekalde jaotus (Distribution, etapp 8).
 export function EditModelData(model, ctx = {}) {
   const fields = [
     { Key: 'Name', Label: Texts.FormModelName, Kind: 'Text', Text: model.Meta.Name, Row: 0, Width: 24, Path: 'Meta.Name' },
@@ -397,11 +405,13 @@ export function EditModelData(model, ctx = {}) {
     { Key: 'Duration', Label: Texts.FormDuration, Kind: 'Number', Text: NumberText(model.Sim.Duration), Row: 3, Path: 'Sim.Duration' },
     { Key: 'Kl', Label: Texts.FormKl, Kind: 'Number', Text: NumberText(model.Sim.Kl), Row: 4, Path: 'Sim.Kl' },
     { Key: 'StallTime', Label: Texts.FormStallTime, Kind: 'Number', Text: NumberText(model.Sim.StallTime), Row: 5, Path: 'Sim.StallTime' },
+    { Key: 'Distribution', Label: Texts.FormDistribution, Kind: 'Choice', Choices: DISTRIBUTIONS.map(name => Texts.FormDistributions[name]),
+      Values: DISTRIBUTIONS, Value: Math.max(0, DISTRIBUTIONS.indexOf(model.Sim.Distribution ?? 'Uniform')), Row: 6, Path: 'Sim.Distribution' },
   ];
   const apply = (target, values) => {
     target.Meta.Name = values.Name;
     target.Scale = values.Scale;
-    for (const key of ['Seed', 'Duration', 'Kl', 'StallTime']) target.Sim[key] = values[key];
+    for (const key of ['Seed', 'Duration', 'Kl', 'StallTime', 'Distribution']) target.Sim[key] = values[key];
   };
   ModelForm(model, Texts.FormModelTitle, fields, apply, ['Meta', 'Scale', 'Sim'], ctx, { Lines: Texts.FormModelHint });
 }

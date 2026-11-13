@@ -604,6 +604,12 @@ function DrawWorkpiece(theme, view, point, workpiece, ring = null) {
   const ry = rx * view.CH / view.CW;
   theme.Ellipse(screen.X, screen.Y, rx, ry, `Wp${workpiece.Type % WORKPIECE_ROLES}`);
   if (!view.Ega) theme.Ellipse(screen.X, screen.Y, rx, ry, 'WpFrame', { Fill: false, Width: 0.6 });
+  if (workpiece.Scrap) {   // praak (etapp 8): rist detaili peal
+    const dx = rx * 0.75;
+    const dy = ry * 0.75;
+    theme.Line(screen.X - dx, screen.Y - dy, screen.X + dx, screen.Y + dy, 'Scrap', { Width: view.Ega ? 1 : 1.4 });
+    theme.Line(screen.X - dx, screen.Y + dy, screen.X + dx, screen.Y - dy, 'Scrap', { Width: view.Ega ? 1 : 1.4 });
+  }
   if (ring) theme.Ellipse(screen.X, screen.Y, rx + 2.5, ry + 2.5 * view.CH / view.CW, ring, { Fill: false, Width: view.Ega ? 1 : 1.5 });
 }
 
@@ -768,7 +774,7 @@ function DrawStorages(theme, view, anim, state) {
   }
   const outCell = anim.StationCells.SysOut;
   if (outCell) {
-    const left = state.Stats.Completed - (state.Storage ? state.Storage.Count : 0);
+    const left = state.Stats.Completed + state.Stats.Scrapped - (state.Storage ? state.Storage.Count : 0);   // ka praak
     const point = ToScreen(view, { X: outCell.X + 0.5, Y: outCell.Y + 0.62 });
     CenterText(theme, view, point.X, point.Y, `${left}`, 'LayoutValue', { Size: size * 1.3, Bold: true });
   }
@@ -790,7 +796,7 @@ function DrawSpindle(theme, view, cell, machineState, time) {
   }
 }
 
-// Pingi oleku täht nurgas: L laadimine, H häälestus, T töötlemine, M mahalaadimine.
+// Pingi oleku täht nurgas: L laadimine, H häälestus, T töötlemine, M mahalaadimine, R rike (etapp 8).
 function DrawMachineLetters(theme, view, anim, state) {
   anim.Network.Machines.forEach((machine, machineIndex) => {
     const letter = Texts.AnimMachineLetters[state.MachineArray[machineIndex].State] ?? '';
@@ -898,7 +904,8 @@ function Animator(theme, view, anim, state, scene) {
   if (!view.Ega) {
     anim.Network.Machines.forEach((machine, machineIndex) => {
       const machineState = state.MachineArray[machineIndex].State;
-      if (machineState !== 'IDLE') DrawSpindle(theme, view, machine.Cell, machineState, scene.Time);
+      // rikkes pingis spindlit pole – praak on näha (etapp 8)
+      if (machineState !== 'IDLE' && machineState !== 'DOWN') DrawSpindle(theme, view, machine.Cell, machineState, scene.Time);
     });
   }
   DrawMachineLetters(theme, view, anim, state);
@@ -944,9 +951,11 @@ function SimStatus(anim, state) {
   const general = FormatText(Texts.AnimStatus, {
     Time: ClockText(state.SYSTEM_TIME), Duration: ClockText(anim.Network.Sim.Duration),
     Speed: anim.Max ? Texts.AnimModeMax : SpeedText(anim.Speed), Mode: mode,
-    InSystem: state.Stats.Created - state.Stats.Completed, Completed: state.Stats.Completed,
+    InSystem: state.Stats.Created - state.Stats.Completed - state.Stats.Scrapped, Completed: state.Stats.Completed,
     Throughput: (state.Stats.Completed / (time / 3600)).toFixed(1).replace('.', ','),
-  });
+  }) + (state.MachineArray.some(machine => machine.CrashMean > 0)   // rikked (etapp 8): alati, et rida ei hüppaks
+    ? FormatText(Texts.AnimMachinesDown, { Count: state.MachineArray.filter(machine => machine.State === 'DOWN').length, Scrapped: state.Stats.Scrapped })
+    : '');
   return { General: general, Tracks: tracks.join(', '), Worst: worst.join(', '),
            Text: `${general}  ${tracks.join(', ')}` };
 }
@@ -1040,7 +1049,7 @@ function DrawControlBar(theme, desktop, anim, state) {
 // Sündmuse kaardi tekst: „Load WP12“.
 const CardLabel = event => (event.WP !== null ? `${event.Event} WP${event.WP}` : event.Event);
 const EventRole = event => {
-  if (event.Event === 'Collision') return 'Deadlock';   // kärud ootavad üksteist (7b)
+  if (['Collision', 'Crash', 'Repair'].includes(event.Event)) return 'Deadlock';   // kärud ootavad üksteist (7b), rike ja remont (8)
   return ['InSys', 'Load', 'Turn', 'Process', 'MoveZ', 'StopMov', 'OutSys'].includes(event.Event)
     ? `Event${event.Event}` : 'EventOther';
 };

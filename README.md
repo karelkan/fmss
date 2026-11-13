@@ -28,7 +28,7 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
   - [x] 7a. Rajavõrgu graaf (`src/fms_sim.js`: mitu pidevat rada, konnektorid, avatud konveier, tee üle konnektorite, sild (mitteühendatud ristumine) – [DISAIN.md](DISAIN.md) osa 2.3, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7a); animaator ja redaktor koos sellega
   - [x] 7b. Diskreetsed rajad (`src/fms_sim.js`: rada kui teedevõrk – raja-harud, ristmikud, ühesuunalised lõigud noolega; kärud, tsoonid ja plokid, `ProgTM`, `FindPal`, `Collision`, ümbersõit ja kõrvalepõige; paralleelsed konnektorid; teed aja järgi – [DISAIN.md](DISAIN.md) osa 11, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b); animaator ja redaktor koos sellega; näidismudel `models/agv.fms.json` (File → Load → Näidis-AGV)
   - [x] 7c. Mitu detaili alusel / kärul (`src/fms_sim.js`: kohad alusel, jaamas mitu peale- ja mahalaadimist, käru peatuste nimekiri ja kogumissõit odavaima lisamisega – [DISAIN.md](DISAIN.md) osa 16, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c); animaator (kohad alusel, EGA olekurida kahel real) ja kokkuvõte
-- [ ] 8. Rikked ja juhuslikkus
+- [x] 8. Rikked ja juhuslikkus (`src/fms_sim.js`: tööpingi rike töötlemise ajal – `Crash`, remont `Repair`, praak SysOut-i; rikete vahe eksponentjaotusega, pingi oma juhuarvujada; kestuse jaotus ühtlane / kolmnurkne / normaalne – [DISAIN.md](DISAIN.md) osa 17, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8); animaator (rikkes pink R, praak ristiga), kokkuvõte, redaktori vormid
 - [ ] 9. Aruanded
 - [ ] 10. Avaldamine (GitHub Pages) – versioon 1.0 valmis
 - [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)

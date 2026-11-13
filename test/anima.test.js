@@ -223,3 +223,32 @@ test('7c: kahe kohaga alusel – detail oma kohas, pealelaadimine vabasse kohta,
   assert.ok(shared > 0, 'alusel polnud kunagi kahte detaili');
   assert.deepEqual(SimReport(), expected);
 });
+
+test('8: rikked – praak on rikkes pingis remondi lõpuni, animaator ei mõjuta simulatsiooni', () => {
+  const model = demo();
+  model.Machines.forEach(machine => Object.assign(machine, { CrashMean: 1800, RepairMean: 400, RepairDev: 100 }));
+  const network = NetworkOf(model);
+  network.Sim.Duration = 4 * 3600;
+  const expected = SimRun(network);
+  assert.ok(expected.Crashes > 0, 'rikkeid polnud – test ei kontrolli midagi');
+
+  SimInit(network);
+  let downSeconds = 0;
+  while (!SimState().SIMULATION_DONE) {
+    SimStep();
+    const state = SimState();
+    const places = WorkpiecePlaces(state);
+    state.MachineArray.forEach((machine, machineIndex) => {
+      if (machine.State !== 'DOWN') return;
+      downSeconds++;
+      const place = places.find(item => item.WP.Id === machine.WP);
+      assert.ok(place && place.Kind === 'Machine' && place.Index === machineIndex && place.WP.Scrap,
+        `t=${state.SYSTEM_TIME}: ${machine.Name} rikkes, praak pole pingis`);
+    });
+    for (const place of places) {
+      if (place.WP.Scrap && place.Kind === 'Moving') assert.ok(['Machine', 'Buffer', 'Pallet', 'SysOutput'].includes(place.From.Kind));
+    }
+  }
+  assert.ok(downSeconds > 0);
+  assert.deepEqual(SimReport(), expected);
+});

@@ -274,6 +274,8 @@ export const Texts = {
   SimShares1: 'Tsükliajast: töötlemine {Process}, häälestus {Setup}, laadimine {Load},',
   SimShares2: '             transport {Transport}, ootamine {Wait}',
   SimMachine: '  {Name}: rakendatus {Utilization}, töötlemine {Processing}, operatsioone {Ops}',
+  SimMachineDown: '  {Name}: rakendatus {Utilization}, töötlemine {Processing}, operatsioone {Ops}, rikkes {Down}',
+  SimCrashes: 'Rikkeid {Crashes}, praak {Scrapped} (SysOut-i)',
   SimBuffer: '  {Name}: keskmiselt {Avg} / {Capacity}, max {Max}',
   SimTrack: '  {Name}: liigub {Moving} ajast, peatusi {Stops}',
   SimCarts: '  {Name}: {Count} käru, Collision {Collisions}',
@@ -349,6 +351,11 @@ export const Texts = {
   FormMachineModel: 'Mudel',
   FormLoadTime: 'Laadimisaeg, s',
   FormSetupTime: 'Häälestusaeg, s',
+  FormCrashMean: 'Rikete vahe, s',
+  FormRepairMean: 'Remont, s',
+  FormRepairDev: 'Remont ±, s',
+  FormMachineHint: ['Rikete vahe: keskmine töötlemisaeg rikete vahel (0 = rikkeid pole).',
+    'Rikke ajal töödeldud detail on praak ja läheb SysOut-i.'],
   FormOps: 'Operatsioonid',
   FormNewOp: 'Uus operatsioon',
   FormMachineTitle: 'Tööpink MT{N}: {Name}',
@@ -400,7 +407,10 @@ export const Texts = {
   FormDuration: 'Kestus, s',
   FormKl: 'Kl (koormuse piir)',
   FormStallTime: 'Seisu piir, s',
-  FormModelHint: ['Kestus 28800 s = 8 h.', 'Seisu piir: kui midagi ei toimu nii kaua, simulatsioon peatub.'],
+  FormDistribution: 'Kõrvalekalle',
+  FormDistributions: { Uniform: 'ühtlane', Triangular: 'kolmnurkne', Normal: 'normaalne' },
+  FormModelHint: ['Kestus 28800 s = 8 h.', 'Seisu piir: kui midagi ei toimu nii kaua, simulatsioon peatub.',
+    'Kõrvalekalle: ühtlane, kolmnurkne (keskm. ± kõrvalekalle) või normaalne.'],
   FormMaxWorkpieces: 'Detailitüüpe saab olla kõige rohkem {Max}.',
   FormFlushAsk: 'Kas kustutad detailitüübi „{Name}“?',
   CheckTitle: 'Check',
@@ -411,6 +421,7 @@ export const Texts = {
 
   // --- Animaator (anima.js) ---
   AnimStatus: '{Time}/{Duration} {Speed} {Mode}  süsteemis {InSystem} valmis {Completed} {Throughput} tk/h',
+  AnimMachinesDown: ' rikkes {Count} praak {Scrapped}',
   AnimModeRun: 'käib',
   AnimModePause: 'paus',
   AnimModeDone: 'läbi',
@@ -436,7 +447,7 @@ export const Texts = {
   AnimFirstAtMoment: 'FirstAtMoment',
   AnimNil: 'nil',
   AnimListMore: '… veel {Count}',
-  // Tööpingi olek: L laadimine, H häälestus, T töötlemine, M mahalaadimine, R rike (etapp 8)
+  // Tööpingi olek: L laadimine, H häälestus, T töötlemine, M mahalaadimine, R rike
   AnimMachineLetters: { IDLE: '', LOADING: 'L', SETUP: 'H', PROCESSING: 'T', UNLOADING: 'M', DOWN: 'R' },
   AnimStatusKeys: [
     { Key: 'Space', Name: ' ', Label: 'Start/Paus' },
