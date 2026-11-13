@@ -545,4 +545,16 @@ Päris repos tehakse see vahetult enne esimest pushi, autori käsul, varukoopiag
 2. **Vananenud tekstid**: Transport-vormis oli rida „Diskreetne rada tuleb etapis 7b, mitu kohta kärul etapis 7c“ (ammu tehtud); `EnumLater` ei olnud kasutusel; konnektori vihjetes „etapp 7“. Eemaldatud. Advise: „tuleb versioonis 2.0“.
 3. **Avalehe juhendis** oli algul `T` = „raja andmed“; tegelikult valib `T` joonistatava raja. Parandatud.
 
-**Mida see EI kontrolli:** päris GitHub Pages'i (töövoog, `/fmss/` tee, Pages'i vahemälu ~10 min) – see selgub esimesel avaldamisel. Ootel tööd etappidest 7b–9 jäävad samaks (PLAAN, VALIDEERIMINE).
+## Avaldatud (GitHub Pages)
+
+Repo `karelkan/fmss` (avalik), tag `v1.0`, Pages'i allikas GitHub Actions. Esimene töövoo käivitus kukkus avaldamisel (Pages polnud veel sisse lülitatud – kokkupanek õnnestus); pärast sisselülitamist õnnestus.
+
+| Kontroll | Tulemus |
+|---|---|
+| https://karelkan.github.io/fmss/ | avaleht EGA fondiga, link „Ava FMSS 1.0“ → `v1/` ✔ |
+| https://karelkan.github.io/fmss/v1/ | avaekraan → töölaud; File → Load – 3 näidist `index.json`-ist ✔ |
+| Näidis-PTS, Simulate → M, F2 | 8:00:00, valmis 84, 10,5 tk/h; kokkuvõte kaasaegses välimuses ✔ |
+| Võrk ja konsool | kõik päringud 200 (moodulid, font, `index.json`, mudel), konsoolis vigu pole ✔ |
+| Avalik repo | ühtegi faili `docs/skaneeringud/` ega `CLAUDE.md` pole ✔ |
+
+**Mida see EI kontrolli:** Pages'i vahemälu (~10 min) uuendamisel – `/v1/` kood on külmutatud, muutuvad ainult avaleht ja näidismudelid. Ootel tööd etappidest 7b–9 jäävad samaks (PLAAN, VALIDEERIMINE).
