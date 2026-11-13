@@ -347,6 +347,7 @@ function SimSummaryLines(report, warnings) {
       Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,
     })),
     ...report.Tracks.map((track) => FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops })),
+    ...report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector)),
   );
   if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
   for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });

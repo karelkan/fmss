@@ -1,0 +1,393 @@
+// FMSS – rajavõrgu testid (etapp 7a): mitu rada, konnektorid, avatud konveier.
+// Käivitamine: npm test. Simulatsioonid kontrollivad invariante igal sekundil.
+// Stsenaariumid G (konnektor), G2 (avatud konveier → konnektor → silmus), H (avatud konveier)
+// ja S (kaks silmust, ristmarsruudid) – VALIDEERIMINE.md etapp 7a.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { CheckModel } from '../src/fms_glb.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, StationPaths } from '../src/fms_sim.js';
+import { TrackGeometry, TrackPoint } from '../src/anima.js';
+
+const CHECKED = { CheckInvariants: true };
+const DOT = { Dot: true };
+const Cells = rows => rows.map(([X, Y, T, N, extra]) => ({ X, Y, T, ...(N !== undefined && N !== null ? { N } : {}), ...extra }));
+
+const Track = (name, extra = {}) => ({
+  Name: name, Mode: 'Continuous', Carts: 1, PlacesPerCart: 1, Speed: 20, LoadTime: 10, AccessTime: 0, ...extra,
+});
+const Machine = (name, ops, extra = {}) => ({ Name: name, Model: '', LoadTime: 10, SetupTime: 0, Ops: ops, ...extra });
+const Buffer = (capacity = 2) => ({ Capacity: capacity, Discipline: 'FIFO', LoadTime: 5 });
+const OneOp = (op, mean) => ({ Op: op, Mean: mean, Dev: 0 });
+
+// Enumerate peab õnnestuma; tagastab võrgu.
+function NetworkOf(model) {
+  assert.deepEqual(CheckModel(model), [], 'CheckModel');
+  const result = Enumerate(model);
+  assert.deepEqual(result.Errors, [], 'Enumerate');
+  return result.Network;
+}
+function assertEnumError(model, fragment) {
+  const result = Enumerate(model);
+  assert.equal(result.Network, null);
+  assert.ok(result.Errors.some(error => error.Message.includes(fragment)),
+    `oodatud viga „${fragment}“, saadi: ${JSON.stringify(result.Errors)}`);
+}
+const stationPositions = network => network.Stations.map(station => [station.Name, station.Track, station.Position]);
+
+// ---------------------------------------------------------------------
+// G – kaks silmust, konnektor vahel (HorCon (3, 4))
+//
+//   (1,1) SysOut                    (6,0) MT1, (6,1) BUF1
+//   rada 1 (vasakul, vastupäeva):   rada 2 (paremal, päripäeva):
+//     FromCS 0, CON1 300, SysOut 700,  CON1 0, BUF1 400, ring 1000 cm
+//     ring 1000 cm (metrokaart)
+//   (1,7) FromCS
+// ---------------------------------------------------------------------
+function LayoutG() {
+  return {
+    Meta: { Name: 'G – konnektor', Version: 1 },
+    Scale: 100,
+    Layout: {
+      Dim: { X: 8, Y: 8 },
+      Cells: Cells([
+        [6, 0, 'MachToolDown', 1], [6, 1, 'InOutBuf', 1], [6, 2, 'VertTr', null, DOT],
+        [1, 1, 'SysOut'], [1, 2, 'VertTr', null, DOT],
+        [0, 3, 'ArcSE', 1], [1, 3, 'TeeN', 1], [2, 3, 'ArcSW', 1],
+        [0, 4, 'VertTr', 1, { Dir: 'S' }], [2, 4, 'TeeE', 1],
+        [0, 5, 'ArcNE', 1], [1, 5, 'TeeS', 1], [2, 5, 'ArcNW', 1],
+        [1, 6, 'VertTr', null, DOT], [1, 7, 'FromCS'],
+        [3, 4, 'HorCon'], [4, 4, 'HorTr', null, DOT],
+        [5, 3, 'ArcSE', 2], [6, 3, 'TeeN', 2], [7, 3, 'ArcSW', 2],
+        [5, 4, 'TeeW', 2], [7, 4, 'VertTr', 2, { Dir: 'S' }],
+        [5, 5, 'ArcNE', 2], [6, 5, 'HorTr', 2], [7, 5, 'ArcNW', 2],
+      ]),
+    },
+    EdgeLengths: [
+      { Cells: [[2, 5]], Length: 300 },                              // FromCS -> CON1
+      { Cells: [[2, 3]], Length: 400 },                              // CON1 -> SysOut
+      { Cells: [[0, 3], [0, 4], [0, 5]], Length: 300 },              // SysOut -> FromCS
+      { Cells: [[5, 3]], Length: 400 },                              // CON1 -> BUF1
+      { Cells: [[7, 3], [7, 4], [7, 5], [6, 5], [5, 5]], Length: 600 },   // BUF1 -> CON1
+    ],
+    Tracks: [Track('Vasak'), Track('Parem')],
+    Machines: [Machine('MT1', ['treimine'])],
+    Buffers: [Buffer()],
+    Storage: null,
+    Workpieces: [{ Name: 'Võll', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [OneOp('treimine', 300)] }] }],
+    Sim: { Seed: 1, Duration: 28800, Kl: 0.85, StallTime: 600 },
+  };
+}
+
+test('G: Enumerate – kaks rada, konnektori jaam kummalgi, asukohad metrokaardist', () => {
+  const network = NetworkOf(LayoutG());
+  assert.deepEqual(network.Tracks.map(track => [track.Name, track.Closed, track.Length]),
+    [['Vasak', true, 1000], ['Parem', true, 1000]]);
+  assert.deepEqual(stationPositions(network),
+    [['FromCS', 0, 0], ['CON1', 0, 300], ['SysOut', 0, 700], ['CON1', 1, 0], ['BUF1', 1, 400]]);
+  assert.deepEqual(network.Connectors, [{ Name: 'CON1', Cell: { X: 3, Y: 4 }, Stations: [1, 3] }]);
+});
+
+test('G: StationPaths – tee üle konnektori, mõlemas suunas', () => {
+  const network = NetworkOf(LayoutG());
+  const paths = StationPaths(network);
+  assert.deepEqual(paths[0][4], { Length: 700, Legs: [{ Track: 0, From: 0, To: 1 }, { Track: 1, From: 3, To: 4 }] });
+  assert.deepEqual(paths[4][2], { Length: 1000, Legs: [{ Track: 1, From: 4, To: 3 }, { Track: 0, From: 1, To: 2 }] });
+  assert.deepEqual(paths[1][1], { Length: 0, Legs: [{ Track: 0, From: 1, To: 1 }] });   // silmus: ring ümber
+});
+
+// G1. Üks detail korraga (Kl 0,1), üks alus kummalgi rajal (20 cm/s, ring 50 s), laadimine 10 s.
+//   Alus 1 on alguses FromCS-is, alus 2 CON1-s; jaamas, kus alus juba seisab, ta ei peatu (ring ümber).
+//   t=0     WP0 FromCS-is; sihtkoht BUF1, tee FromCS -> CON1 -> BUF1, CON1 broneeritud
+//   t=50    alus 1 FromCS-is (ring), pealelaadimine 10 s; t=60 sõidab, 300 cm -> t=75 CON1, maha 10 s
+//   t=85    WP0 konnektoris. Alus 2 on CON1-s t=50, 100, …  -> t=100 peale, t=110 sõidab
+//   t=130   BUF1 (400 cm), maha -> t=140; pink laadib 10 s -> t=150, töötlemine 300 s -> t=450
+//   t=460   puhvri väljaminevas kohas; sihtkoht SysOut, tee BUF1 -> CON1 -> SysOut
+//   alus 2 on BUF1-s t = 140 + 50k -> t=490 peale, t=500 sõidab, 600 cm -> t=530 CON1, maha -> t=540
+//   alus 1 on CON1-s t = 85 + 50k; t=535 laaditakse detaili alles konnektorisse -> t=585 peale
+//   t=595   sõidab, 400 cm -> t=615 SysOut, maha 10 s -> t=625 lahkub.
+test('G1: ühe detaili tsükliaeg üle konnektori klapib käsitsi arvutusega (625 s)', () => {
+  const network = NetworkOf(LayoutG());
+  const report = SimRun({ ...network, Sim: { ...network.Sim, Kl: 0.1, Duration: 625 } }, CHECKED);
+  const first = report.Finished[0];
+  assert.equal(first.TimeIn, 0);
+  assert.equal(first.TimeOut, 625);
+  assert.equal(first.Times.Process, 300);
+  assert.equal(first.Times.Load, 100);   // 10 laadimist × 10 s
+  assert.deepEqual(report.Connectors, [{ Name: 'CON1', Transfers: 2 }]);
+});
+
+test('G: 8 h täiskoormusel ilma ummikuta, iga detail läbib konnektorit kaks korda', () => {
+  const model = LayoutG();
+  model.Tracks.forEach(track => { track.Carts = 3; });
+  const report = SimRun(NetworkOf(model), CHECKED);
+  assert.equal(report.Deadlock, false);
+  assert.equal(report.Time, 28800);
+  assert.ok(report.ThroughputPerHour > 9, `läbilaskevõime ${report.ThroughputPerHour}`);   // pink: 3600 / 320 = 11,25
+  const transfers = report.Connectors[0].Transfers;
+  assert.ok(transfers >= 2 * report.Completed && transfers <= 2 * report.Created, `ülekandeid ${transfers}`);
+});
+
+// ---------------------------------------------------------------------
+// H – avatud konveier (rida y = 3, x = 0 … 8, liigub paremale, 900 cm)
+//   FromCS 150, BUF1 (MT1) 350, BUF2 (MT2) 550, SysOut 750
+// ---------------------------------------------------------------------
+function LayoutH() {
+  return {
+    Meta: { Name: 'H – avatud konveier', Version: 1 },
+    Scale: 100,
+    Layout: {
+      Dim: { X: 9, Y: 6 },
+      Cells: Cells([
+        [3, 0, 'MachToolDown', 1], [5, 0, 'MachToolDown', 2],
+        [3, 1, 'InOutBuf', 1], [5, 1, 'InOutBuf', 2],
+        [3, 2, 'VertTr', null, DOT], [5, 2, 'VertTr', null, DOT],
+        [0, 3, 'HorTr', 1, { Dir: 'E' }], [1, 3, 'TeeS', 1], [2, 3, 'HorTr', 1], [3, 3, 'TeeN', 1],
+        [4, 3, 'HorTr', 1], [5, 3, 'TeeN', 1], [6, 3, 'HorTr', 1], [7, 3, 'TeeS', 1], [8, 3, 'HorTr', 1],
+        [1, 4, 'VertTr', null, DOT], [7, 4, 'VertTr', null, DOT],
+        [1, 5, 'FromCS'], [7, 5, 'SysOut'],
+      ]),
+    },
+    EdgeLengths: [],
+    Tracks: [Track('Liin')],
+    Machines: [Machine('MT1', ['treimine']), Machine('MT2', ['freesimine'])],
+    Buffers: [Buffer(), Buffer()],
+    Storage: null,
+    Workpieces: [{ Name: 'Võll', Priority: 1, Batch: 1,
+                   Routes: [{ Priority: 1, Ops: [OneOp('treimine', 300), OneOp('freesimine', 200)] }] }],
+    Sim: { Seed: 1, Duration: 28800, Kl: 0.85, StallTime: 600 },
+  };
+}
+
+test('H: Enumerate – avatud konveier, asukohad raja algusest', () => {
+  const network = NetworkOf(LayoutH());
+  assert.deepEqual(network.Tracks.map(track => [track.Closed, track.Length]), [[false, 900]]);
+  assert.deepEqual(stationPositions(network),
+    [['FromCS', 0, 150], ['BUF1', 0, 350], ['BUF2', 0, 550], ['SysOut', 0, 750]]);
+  const paths = StationPaths(network);
+  assert.equal(paths[2][1], null);           // BUF2 -> BUF1: vastuvoolu ei saa
+  assert.equal(paths[1][1], null);           // samasse jaama ei saa (ring puudub)
+  assert.equal(paths[1][2].Length, 200);
+});
+
+// H1. Üks detail, üks alus (900 cm, 20 cm/s: alus on igas jaamas iga 45 s järel), laadimine 10 s.
+//   t=8     alus (algus 0) jõuab FromCS-i (150 cm), peale -> t=18; t=28 BUF1, maha -> t=38
+//   t=48    pingis, töötlemine 300 s -> t=348, puhvrisse -> t=358 (BUF2 koht broneeriti t=38)
+//   alus on BUF1-s t = 38 + 45k -> t=398 peale, t=408 sõidab; t=418 BUF2, maha -> t=428
+//   t=438   pingis, töötlemine 200 s -> t=638, puhvrisse -> t=648; sihtkoht SysOut
+//   alus on BUF2-s t = 428 + 45k -> t=653 peale, t=663 sõidab; t=673 SysOut, maha -> t=683.
+test('H1: ühe detaili tsükliaeg avatud konveieril klapib käsitsi arvutusega (683 s)', () => {
+  const network = NetworkOf(LayoutH());
+  const report = SimRun({ ...network, Sim: { ...network.Sim, Kl: 0.1, Duration: 800 } }, CHECKED);
+  const first = report.Finished[0];
+  assert.equal(first.TimeOut, 683);
+  assert.equal(first.Times.Process, 500);
+  assert.equal(first.Times.Load, 100);   // 10 laadimist × 10 s
+});
+
+test('H: 8 h täiskoormusel ilma ummikuta; koormaga alus ei jõua kunagi raja lõppu', () => {
+  const model = LayoutH();
+  model.Tracks[0].Carts = 3;
+  // invariant „koormaga alus läbis avatud konveieri lõpu“ kontrollitakse igal sekundil
+  const report = SimRun(NetworkOf(model), CHECKED);
+  assert.equal(report.Deadlock, false);
+  assert.ok(report.ThroughputPerHour > 9, `läbilaskevõime ${report.ThroughputPerHour}`);   // MT1: 3600 / 320
+});
+
+test('H: invariant tabab koormaga aluse, mis läbib avatud konveieri lõpu', () => {
+  const network = NetworkOf(LayoutH());
+  SimInit({ ...network, Sim: { ...network.Sim, Kl: 0.1 } }, CHECKED);
+  while (SimState().SysWPArray[0].State !== 'ON_PALLET') SimStep();
+  // meelega viga: detaili sõidu lõpp viiakse jaama, mida ei ole -> alus sõidab mööda lõpust
+  SimState().SysWPArray[0].Path[0].To = 99;
+  assert.throws(() => { for (let i = 0; i < 100; i++) SimStep(); }, /avatud konveieri lõpu/);
+});
+
+// ---------------------------------------------------------------------
+// G2 – avatud konveier FromCS-ist konnektorini (raja otsas), sealt silmus pingi ja väljundiga
+// ---------------------------------------------------------------------
+function LayoutG2() {
+  return {
+    Meta: { Name: 'G2 – sisendkonveier', Version: 1 },
+    Scale: 100,
+    Layout: {
+      Dim: { X: 8, Y: 6 },
+      Cells: Cells([
+        [0, 1, 'HorTr', 1, { Dir: 'E' }], [1, 1, 'TeeS', 1], [2, 1, 'HorTr', 1], [3, 1, 'HorCon'],
+        [1, 2, 'VertTr', null, DOT], [1, 3, 'FromCS'],
+        [4, 0, 'ArcSE', 2], [5, 0, 'HorTr', 2], [6, 0, 'HorTr', 2], [7, 0, 'ArcSW', 2],
+        [4, 1, 'TeeW', 2], [7, 1, 'VertTr', 2, { Dir: 'S' }],
+        [4, 2, 'ArcNE', 2], [5, 2, 'TeeS', 2], [6, 2, 'TeeS', 2], [7, 2, 'ArcNW', 2],
+        [5, 3, 'VertTr', null, DOT], [5, 4, 'InOutBuf', 1], [5, 5, 'MachToolUp', 1],
+        [6, 3, 'VertTr', null, DOT], [6, 4, 'SysOut'],
+      ]),
+    },
+    EdgeLengths: [],
+    Tracks: [Track('Sisend', { Carts: 2 }), Track('Ring', { Carts: 2 })],
+    Machines: [Machine('MT1', ['treimine'])],
+    Buffers: [Buffer()],
+    Storage: null,
+    Workpieces: [{ Name: 'Võll', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: 'treimine', Mean: 240, Dev: 30 }] }] }],
+    Sim: { Seed: 1, Duration: 14400, Kl: 0.85, StallTime: 600 },
+  };
+}
+
+test('G2: konnektor avatud konveieri otsas – jaam otsaikooni keskel, detailid jõuavad silmusele', () => {
+  const network = NetworkOf(LayoutG2());
+  assert.deepEqual(network.Tracks.map(track => [track.Name, track.Closed, track.Length]),
+    [['Sisend', false, 300], ['Ring', true, Math.round((6 + Math.PI) * 100 * 1000) / 1000]]);
+  const connectorStation = network.Stations.find(station => station.Kind === 'Connector' && station.Track === 0);
+  assert.equal(connectorStation.Position, 250);   // (2, 1) keskel
+  assert.deepEqual(connectorStation.Junction, { X: 2, Y: 1 });
+  const report = SimRun(network, CHECKED);
+  assert.equal(report.Deadlock, false);
+  assert.ok(report.Completed > 30, `valmis ${report.Completed}`);
+  assert.ok(report.Connectors[0].Transfers >= report.Completed);
+});
+
+// ---------------------------------------------------------------------
+// S – kaks silmust ühe konnektoriga, ristmarsruudid, väikesed puhvrid, keskladu (stress)
+//   rada 1: FromCS, ToCS, SysOut, MT1;  rada 2: MT2, MT3
+//   A: a1 (MT1) -> a2 (MT2 / MT3);  B: b1 (MT2 / MT3) -> b2 (MT1)
+// ---------------------------------------------------------------------
+function LayoutS({ Seed = 1 } = {}) {
+  return {
+    Meta: { Name: 'S – kaks silmust', Version: 1 },
+    Scale: 100,
+    Layout: {
+      Dim: { X: 11, Y: 8 },
+      Cells: Cells([
+        [1, 0, 'MachToolDown', 1], [1, 1, 'InOutBuf', 1], [1, 2, 'VertTr', null, DOT],
+        [3, 1, 'SysOut'], [3, 2, 'VertTr', null, DOT],
+        [0, 3, 'ArcSE', 1], [1, 3, 'TeeN', 1], [2, 3, 'HorTr', 1], [3, 3, 'TeeN', 1], [4, 3, 'ArcSW', 1],
+        [0, 4, 'VertTr', 1, { Dir: 'S' }], [4, 4, 'TeeE', 1],
+        [0, 5, 'ArcNE', 1], [1, 5, 'TeeS', 1], [2, 5, 'HorTr', 1], [3, 5, 'TeeS', 1], [4, 5, 'ArcNW', 1],
+        [1, 6, 'VertTr', null, DOT], [1, 7, 'FromCS'], [3, 6, 'VertTr', null, DOT], [3, 7, 'ToCS'],
+        [5, 4, 'HorCon'],
+        [7, 0, 'MachToolDown', 2], [7, 1, 'InOutBuf', 2], [7, 2, 'VertTr', null, DOT],
+        [9, 0, 'MachToolDown', 3], [9, 1, 'InOutBuf', 3], [9, 2, 'VertTr', null, DOT],
+        [6, 3, 'ArcSE', 2], [7, 3, 'TeeN', 2], [8, 3, 'HorTr', 2], [9, 3, 'TeeN', 2], [10, 3, 'ArcSW', 2],
+        [6, 4, 'TeeW', 2], [10, 4, 'VertTr', 2, { Dir: 'S' }],
+        [6, 5, 'ArcNE', 2], [7, 5, 'HorTr', 2], [8, 5, 'HorTr', 2], [9, 5, 'HorTr', 2], [10, 5, 'ArcNW', 2],
+      ]),
+    },
+    EdgeLengths: [],
+    Tracks: [Track('Vasak', { Carts: 3 }), Track('Parem', { Carts: 3 })],
+    Machines: [
+      Machine('MT1', ['a1', 'b2'], { SetupTime: 30 }),
+      Machine('MT2', ['a2', 'b1'], { SetupTime: 30 }),
+      Machine('MT3', ['a2', 'b1'], { SetupTime: 30 }),
+    ],
+    Buffers: [Buffer(1), Buffer(1), Buffer(1)],
+    Storage: { Capacity: 20, LoadTime: 10 },
+    Workpieces: [
+      { Name: 'A', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: 'a1', Mean: 200, Dev: 50 }, { Op: 'a2', Mean: 300, Dev: 50 }] }] },
+      { Name: 'B', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: 'b1', Mean: 300, Dev: 50 }, { Op: 'b2', Mean: 200, Dev: 50 }] }] },
+    ],
+    Sim: { Seed, Duration: 28800, Kl: 0.95, StallTime: 600 },
+  };
+}
+
+test('S: kaks silmust ja ristmarsruudid – 8 h ilma lahendamatu ummikuta (5 seemet)', () => {
+  for (let seed = 1; seed <= 5; seed++) {
+    const report = SimRun(NetworkOf(LayoutS({ Seed: seed })), CHECKED);
+    assert.equal(report.Deadlock, false, `seeme ${seed}: ${report.DeadlockReason}`);
+    assert.equal(report.Time, 28800);
+    assert.ok(report.ThroughputPerHour > 4, `seeme ${seed}: ${report.ThroughputPerHour} tk/h`);
+  }
+});
+
+test('S: korratavus – sama seeme sama tulemus', () => {
+  const network = NetworkOf(LayoutS());
+  assert.deepEqual(SimRun(network), SimRun(network));
+});
+
+// ---------------------------------------------------------------------
+// Andmekontroll
+// ---------------------------------------------------------------------
+
+test('Konnektor: üks külg ühendamata', () => {
+  const model = LayoutH();
+  model.Layout.Dim.X = 10;
+  model.Layout.Cells.push({ X: 9, Y: 3, T: 'HorCon' });
+  assertEnumError(model, 'peab ühendama kaht rada');
+});
+
+test('Konnektor: ühendab raja iseendaga', () => {
+  const model = LayoutH();
+  model.Layout = {
+    Dim: { X: 3, Y: 2 },
+    Cells: Cells([
+      [0, 0, 'ArcSE', 1], [1, 0, 'HorCon'], [2, 0, 'ArcSW', 1],
+      [0, 1, 'ArcNE', 1], [1, 1, 'HorTr', 1, { Dir: 'W' }], [2, 1, 'ArcNW', 1],
+    ]),
+  };
+  assertEnumError(model, 'iseendaga');
+});
+
+test('Kaks rada puutuvad kokku ilma konnektorita', () => {
+  const model = LayoutH();
+  model.Layout.Dim.X = 10;
+  model.Tracks.push(Track('Teine'));
+  model.Layout.Cells.push({ X: 9, Y: 3, T: 'HorTr', N: 2, Dir: 'E' });
+  assertEnumError(model, 'ilma konnektorita');
+});
+
+test('Avatud konveier: järgmise operatsiooni pink on vastuvoolu', () => {
+  const model = LayoutH();
+  model.Workpieces[0].Routes[0].Ops.reverse();   // freesimine (MT2) -> treimine (MT1)
+  assertEnumError(model, '„treimine“ ühegi pingini ei vii rada BUF2 juurest');
+});
+
+test('Avatud konveier: SysOut on puhvrist vastuvoolu', () => {
+  const model = LayoutH();
+  // SysOut ja FromCS vahetavad kohad: SysOut (1, 5), FromCS (7, 5)
+  model.Layout.Cells.find(cell => cell.T === 'FromCS').T = 'Tmp';
+  model.Layout.Cells.find(cell => cell.T === 'SysOut').T = 'FromCS';
+  model.Layout.Cells.find(cell => cell.T === 'Tmp').T = 'SysOut';
+  assertEnumError(model, 'BUF1 juurest ei vii rada SysOut-i');
+});
+
+test('EdgeLengths: kirje, mille lahtrid pole ühelgi rajal', () => {
+  const model = LayoutG();
+  model.EdgeLengths.push({ Cells: [[3, 0]], Length: 100 });
+  assertEnumError(model, 'ühe lõigu');
+});
+
+test('Hilisemad etapid: diskreetne rada (7b) ja mitu kohta kärul (7c)', () => {
+  const discrete = LayoutG();
+  discrete.Tracks[1].Mode = 'Discrete';
+  assertEnumError(discrete, 'etapis 7b');
+  const places = LayoutG();
+  places.Tracks[0].PlacesPerCart = 2;
+  assertEnumError(places, 'etapis 7c');
+});
+
+// ---------------------------------------------------------------------
+// Animaator: mitme raja geomeetria
+// ---------------------------------------------------------------------
+
+test('Animaator: iga raja jaamad ekraanil oma ikooni keskel (ka konnektori jaam raja otsas)', () => {
+  for (const network of [NetworkOf(LayoutG()), NetworkOf(LayoutG2()), NetworkOf(LayoutH())]) {
+    network.Tracks.forEach((track, trackIndex) => {
+      const geometry = TrackGeometry(network, trackIndex);
+      for (const station of network.Stations.filter(item => item.Track === trackIndex)) {
+        const point = TrackPoint(geometry, station.Position);
+        assert.ok(Math.abs(point.X - (station.Junction.X + 0.5)) < 1e-3 && Math.abs(point.Y - (station.Junction.Y + 0.5)) < 1e-3,
+          `${network.Name}: ${station.Name} rajal ${track.Name} -> (${point.X}, ${point.Y})`);
+      }
+    });
+  }
+});
+
+test('Animaator: avatud konveieril on punktid pidevad algusest lõpuni', () => {
+  const network = NetworkOf(LayoutH());
+  const geometry = TrackGeometry(network, 0);
+  let previous = TrackPoint(geometry, 0);
+  assert.ok(Math.abs(previous.X - 0) < 1e-6);
+  for (let position = 1; position < 900; position++) {
+    const point = TrackPoint(geometry, position);
+    assert.ok(Math.hypot(point.X - previous.X, point.Y - previous.Y) < 0.02, `hüpe kohal ${position}`);
+    previous = point;
+  }
+  assert.ok(Math.abs(previous.X - 8.99) < 1e-3);
+});

@@ -184,10 +184,12 @@ test('Kontroll 5: pideval rajal pole suunda', () => {
   assertEnumError(model, 'pole liikumissuunda');
 });
 
-test('Kontroll 1: rada pole suletud', () => {
+// Etapist 7a on katkine silmus avatud konveier (DISAIN.md 10.1). Viga tuleb sellest, et osa
+// objekte jääb FromCS-ist vastuvoolu; teade ütleb, et konveier on avatud ja kus on otsad.
+test('Kontroll 1: rada pole suletud → avatud konveier, objektid vastuvoolu', () => {
   const model = demo();
   model.Layout.Cells = model.Layout.Cells.filter(cell => !(cell.X === 6 && cell.Y === 3));
-  assertEnumError(model, 'katkeb');
+  assertEnumError(model, 'avatud: algus (5, 3), lõpp (7, 3)');
 });
 
 test('Kontroll 1: ikoonid ei sobi kokku', () => {

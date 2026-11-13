@@ -502,3 +502,61 @@ test('Pingi kustutamine joonisel: fail jääb laaditavaks, viga annab kontroll',
   const { Errors: errors } = ModelProblems(model);
   assert.ok(errors.some(error => /freesimine/.test(error.Message)), JSON.stringify(errors));
 });
+
+// ---------------------------------------------------------------------
+// 7a: konnektorid ja mitu rada
+// ---------------------------------------------------------------------
+
+// Stsenaarium G2 (test/network.test.js) redaktoriga: avatud sisendkonveier (rada 1) lõpeb
+// konnektoris, konnektorist edasi silmus (rada 2) pingi ja väljundiga.
+test('Konnektor redaktoriga: rada otsast konnektorisse ja konnektorist silmusele (G2)', () => {
+  const model = Blank(8, 6);
+  PlaceIcon(model, 3, 1, Item('HorCon'));
+  assert.equal(LayPath(model, Cells([0, 1], [3, 1]), { Track: 1 }), 0);          // raja ots konnektoris
+  assert.equal(LayPath(model, Cells([4, 0], [7, 0], [7, 2], [4, 2], [4, 0]), { Track: 2 }), 0);
+  assert.equal(LayPath(model, Cells([3, 1], [4, 1]), { Track: 2 }), 0);          // konnektor -> silmus: hargnemine
+  assert.equal(IconAt(model, 4, 1), 'TeeW');
+  assert.equal(IconAt(model, 2, 1), 'HorTr');
+  assert.equal(LaySegment(model, 3, 1, 'N'), false);                               // konnektoril on ainult W ja E
+  PlaceIcon(model, 1, 3, Item('FromCS'));
+  PlaceIcon(model, 5, 4, Item('InOutBuf'));
+  PlaceIcon(model, 5, 5, Item('MachToolUp'));
+  PlaceIcon(model, 6, 4, Item('SysOut'));
+  for (const [x, fromY, toY] of [[1, 3, 1], [5, 4, 2], [6, 4, 2]]) {
+    assert.equal(LayPath(model, Cells([x, fromY], [x, toY]), { Dot: true }), 0);
+  }
+  CycleDirection(model, 0, 1);
+  CycleDirection(model, 7, 1);
+  const expected = [
+    [0, 1, 'HorTr', 1, 'E'], [1, 1, 'TeeS', 1], [2, 1, 'HorTr', 1], [3, 1, 'HorCon'],
+    [4, 0, 'ArcSE', 2], [5, 0, 'HorTr', 2], [6, 0, 'HorTr', 2], [7, 0, 'ArcSW', 2],
+    [4, 1, 'TeeW', 2], [7, 1, 'VertTr', 2, 'S'],
+    [4, 2, 'ArcNE', 2], [5, 2, 'TeeS', 2], [6, 2, 'TeeS', 2], [7, 2, 'ArcNW', 2],
+  ];
+  for (const [x, y, type, number, dir] of expected) {
+    const cell = CellAt(model, x, y);
+    assert.equal(cell.T, type, `(${x}, ${y})`);
+    assert.equal(cell.N, number, `(${x}, ${y}) N`);
+    assert.equal(cell.Dir, dir, `(${x}, ${y}) Dir`);
+  }
+  assert.equal(model.Tracks.length, 2);
+  model.Workpieces = [{ Name: 'Võll', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: OPERATIONS[0], Mean: 200, Dev: 0 }] }] }];
+  model.Storage = null;
+  assert.deepEqual(ModelProblems(model).Errors, []);
+  const network = Enumerate(model).Network;
+  assert.deepEqual(network.Tracks.map(track => track.Closed), [false, true]);
+  assert.deepEqual(network.Stations.map(station => station.Name), ['FromCS', 'CON1', 'CON1', 'SysOut', 'BUF1']);
+  const report = SimRun({ ...network, Sim: { ...network.Sim, Duration: 3600 } }, { CheckInvariants: true });
+  assert.ok(report.Completed > 0);
+});
+
+test('Konnektor redaktoriga: punktiir hargnemisest konnektori küljeni (G)', () => {
+  const model = Blank(8, 6);
+  LayPath(model, Cells([5, 0], [7, 0], [7, 2], [5, 2], [5, 0]), { Track: 1 });
+  PlaceIcon(model, 3, 1, Item('HorCon'));
+  assert.equal(LayPath(model, Cells([3, 1], [5, 1]), { Dot: true }), 0);
+  assert.ok(CellAt(model, 4, 1).Dot);
+  assert.equal(IconAt(model, 5, 1), 'TeeW');
+  PlaceIcon(model, 3, 3, Item('VertCon'));
+  assert.ok(LayPath(model, Cells([3, 3], [5, 3]), { Dot: true }) > 0);   // VertCon-il pole E külge
+});

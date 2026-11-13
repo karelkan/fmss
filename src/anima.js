@@ -173,6 +173,7 @@ function EventPlace(state, event, type, code) {
     case 'Machine': return { Kind: 'Machine', Index: code };
     case 'SysInput': return { Kind: 'FromCS' };
     case 'SysOutput': return { Kind: state.StationArray[code].Kind };   // ToCS või SysOut
+    case 'Connector': return { Kind: 'Connector', Index: code };
     default: return null;
   }
 }
@@ -189,6 +190,7 @@ function LocationPlace(state, workpiece) {
     case 'Machine': return { Kind: 'Machine', Index: location.Index };
     case 'FromCS': return { Kind: 'FromCS', Slot: state.FromCSQueue.indexOf(workpiece.Id) };
     case 'Storage': return { Kind: 'ToCS' };
+    case 'Connector': return { Kind: 'Connector', Index: location.Index };
     default: return null;
   }
 }
@@ -439,7 +441,8 @@ function ObjectLabel(model, cell) {
 }
 
 // [U] DrawLayout – kogu ruudustik: taust, ruudustiku punktid, ikoonid.
-//     style.MachineRole(cell) – pingi värv olekust; style.Grid: false – ilma ruudustiku punktideta
+//     style.MachineRole(cell) – pingi värv olekust; style.TrackRole – raja värv (roll või
+//     funktsioon lahtrist, iga raja jaoks oma); style.Grid: false – ilma ruudustiku punktideta
 //     (View). Kutsub: Animator, redaktor (fms_ed.js).
 export function DrawLayout(theme, view, model, style = {}) {
   const { Dim: dim } = view;
@@ -453,7 +456,7 @@ export function DrawLayout(theme, view, model, style = {}) {
     Number(IconTypes[first.T]?.Kind !== 'Track') - Number(IconTypes[second.T]?.Kind !== 'Track'));
   for (const cell of cells) {
     DrawIcon(theme, view, cell, ObjectLabel(model, cell), {
-      TrackRole: style.TrackRole,
+      TrackRole: typeof style.TrackRole === 'function' ? style.TrackRole(cell) : style.TrackRole,
       MachineRole: style.MachineRole ? style.MachineRole(cell) : undefined,
     });
   }
@@ -511,6 +514,10 @@ function PlacePoint(anim, state, scene, place) {
       return { X: cell.X + 0.5, Y: cell.Y + 0.6 };
     }
     case 'FromCS': return QueuePoint(anim.StationCells.FromCS, Math.max(0, place.Slot ?? 0));
+    case 'Connector': {
+      const cell = network.Connectors[place.Index].Cell;
+      return { X: cell.X + 0.5, Y: cell.Y + 0.5 };
+    }
     default: {
       const cell = anim.StationCells[place.Kind];
       return cell ? { X: cell.X + 0.5, Y: cell.Y + 0.62 } : { X: 0, Y: 0 };
@@ -648,6 +655,7 @@ function RelatedObjects(anim, event) {
     if (code === null || code === undefined) return;
     if (type === 'Machine') cells.push(anim.Network.Machines[code]?.Cell);
     else if (type === 'Buffer') cells.push(anim.Network.Buffers[code]?.Cell);
+    else if (type === 'Connector') cells.push(anim.Network.Connectors[code]?.Cell);
     else if (type === 'Pallette') pallets.push({ Track: event.Track ?? 0, Pal: code });
     else if (type === 'SysInput' || type === 'SysOutput' || type === 'Station') cells.push(anim.Network.Stations[code]?.Cell);
   };
@@ -657,11 +665,23 @@ function RelatedObjects(anim, event) {
   return { Cells: cells.filter(Boolean), Pallets: pallets, WP: event.WP };
 }
 
-// [O] Animator – kogu pilt: rada, pingid (olek), puhvrid, laod, alused, detailid, esiletõstmine.
+// Konnektor: broneeritud (detail tuleb) – kontuur ümber kasti.
+function DrawConnectors(theme, view, anim, state) {
+  (anim.Network.Connectors ?? []).forEach((connector, connectorIndex) => {
+    if (state.ConnectorArray[connectorIndex].Reserved === 0) return;
+    const box = CellBox(view, connector.Cell, 0.3, 0.3);
+    theme.StrokeRect(box.X, box.Y, box.Width, box.Height, 'SlotReserved', { Width: 1, Dash: view.Ega ? null : [2, 1.5] });
+  });
+}
+
+// [O] Animator – kogu pilt: rajad, pingid (olek), puhvrid, laod, konnektorid, alused, detailid,
+//     esiletõstmine. Iga raja värv oma seisu järgi (seisab, kui mõni laadimine käib).
 function Animator(theme, view, anim, state, scene) {
-  const track = state.Tracks[0];
   DrawLayout(theme, view, anim.Model, {
-    TrackRole: track && track.StopCount > 0 ? 'TrackStopped' : 'Track',
+    TrackRole: cell => {
+      const trackIndex = cell.N !== undefined && !cell.Dot ? anim.TrackIndex.get(cell.N - 1) : undefined;
+      return trackIndex !== undefined && state.Tracks[trackIndex].StopCount > 0 ? 'TrackStopped' : 'Track';
+    },
     MachineRole: cell => {
       const machineIndex = anim.MachineIndex.get(`${cell.X},${cell.Y}`);
       return machineIndex === undefined ? 'MachIdle' : MACHINE_ROLES[state.MachineArray[machineIndex].State];
@@ -669,6 +689,7 @@ function Animator(theme, view, anim, state, scene) {
   });
   DrawBufferSlots(theme, view, anim, state);
   DrawStorages(theme, view, anim, state);
+  DrawConnectors(theme, view, anim, state);
   Transport(theme, view, anim, state, scene);
 
   const points = new Map();   // detaili Id → punkt (esiletõstmiseks)
@@ -1194,6 +1215,7 @@ export function StartAnimator({ Model: model, Network: network, OnSummary: onSum
     Model: model, Network: network, OnSummary: onSummary, OnExit: onExit,
     Geometry: network.Tracks.map((track, trackIndex) => TrackGeometry(network, trackIndex)),
     MachineIndex: new Map(network.Machines.map((machine, machineIndex) => [`${machine.Cell.X},${machine.Cell.Y}`, machineIndex])),
+    TrackIndex: new Map(network.Tracks.map((track, trackIndex) => [track.ModelIndex, trackIndex])),   // mudeli rada -> võrgu rada
     StationCells: { FromCS: stationCell('FromCS'), ToCS: stationCell('ToCS'), SysOut: stationCell('SysOut') },
     Running: false, Max: false, Finished: false, Speed: DEFAULT_SPEED,
     Accumulator: 0, Fraction: 1, PrevOffsets: SimState().Tracks.map(track => track.Offset),

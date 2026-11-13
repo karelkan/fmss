@@ -93,7 +93,8 @@ export function CellPorts(cell) {
 }
 
 // [U] IsDotTarget – kas punktiirühendus võib lõppeda selle objektiga (puhver, ladu, väljund).
-//     Sama reegel on Enumerate-i FollowDotLink-is.
+//     Konnektorini jõuab punktiir konnektori raja küljest (SegmentEnd). Sama reegel on
+//     Enumerate-i FollowDotLink-is.
 export function IsDotTarget(cell) {
   const kind = IconTypes[cell.T]?.Kind;
   return kind === 'Buffer' || kind === 'Storage' || kind === 'Output';
@@ -196,7 +197,7 @@ function CleanEdgeLengths(model) {
 function SegmentEnd(grid, cell, port, dot) {
   if (!cell) return { Create: true, Ports: [port] };
   const kind = IconTypes[cell.T].Kind;
-  if (kind === 'Connector') return !dot && CellPorts(cell).includes(port) ? { Keep: true } : null;
+  if (kind === 'Connector') return CellPorts(cell).includes(port) ? { Keep: true } : null;   // rada või punktiir
   if (kind !== 'Track') return dot && IsDotTarget(cell) ? { Keep: true } : null;
   const linked = LinkedPorts(grid, cell);
   if (dot && !cell.Dot) {

@@ -144,3 +144,43 @@ Redaktori loogika ([src/fms_ed.js](src/fms_ed.js), DISAIN.md osa 15) muudab mude
 
 **Mida see EI kontrolli:** vormide joonistust automaatselt (kontrolliti silmaga); diskreetseid radu ja konnektoreid (redaktor lubab need joonistada, Simulate annab etapi 7 teate).
 
+
+---
+
+# Etapp 7a: rajavõrgu graaf (mitu rada, konnektorid, avatud konveier)
+
+Uus loogika (DISAIN.md osa 2.3): `Enumerate` teeb igast raja numbrist silmuse või avatud konveieri, konnektorid seovad radu, `StationPaths` annab lühima tee jaamast jaama, `Depart` broneerib tee konnektorid koos sihtkohaga. Testid: [test/network.test.js](test/network.test.js), redaktor [test/editor.test.js](test/editor.test.js).
+
+Enne täisteostust kontrolliti simulaatorit (stsenaariumid kirjutatud joonisena, invariandid igal sekundil), alles siis tehti animaator ja redaktor.
+
+| Test | Tulemus |
+|---|---|
+| **Võrdlus prototüübiga** – A ja C (üks silmus) | aruanded identsed nagu varem: ühe silmuse korral on tee pikkus sama mis vana kaugus konveieri suunas ✔ |
+| **G1** kaks silmust + konnektor, üks detail, üks alus kummalgi rajal | tsükliaeg **625 s** – täpselt käsitsi arvutatud (arvutus testi kommentaaris), 10 laadimist, konnektoris 2 ülekannet ✔ |
+| **H1** avatud konveier, kaks pinki järjest, üks alus | tsükliaeg **683 s** – täpselt käsitsi arvutatud ✔ |
+| **G** täiskoormusel (3 alust rajal) 8 h | 11,1 tk/h (pink: 3600 / 320 = 11,25), pink 100 %, iga detail ületab konnektori 2 korda ✔ |
+| **H** täiskoormusel 8 h | 11,0 tk/h (MT1 pudelikael 100 %, MT2 68 %); koormaga alus ei jõua kunagi raja lõppu (invariant igal sekundil) ✔ |
+| **G2** avatud sisendkonveier lõpeb konnektoris, edasi silmus | konnektori jaam otsaikooni keskel (250 cm), 4 h ilma ummikuta, pink 99 % ✔ |
+| **S** (stress) kaks silmust, 3 pinki, ristmarsruudid, puhvrid 1 koht, `Kl` 0,95, 5 seemet | 8 h ilma lahendamatu ummikuta, parkimisi 1, 5,9–6,1 tk/h; korratav ✔ |
+| **Invariantide kontroll** – meelega viga: detaili sõidu lõpp viidi olematusse jaama | „koormaga alus läbis avatud konveieri lõpu“ tabati kohe ✔ |
+| **Andmekontroll** – konnektori üks külg vaba, konnektor ühendab raja iseendaga, kaks rada puutuvad ilma konnektorita, järgmise operatsiooni pink vastuvoolu, SysOut vastuvoolu, `EdgeLengths` ühelgi rajal | kõik annavad vea ✔ |
+| **Animaator** – iga raja jaam ekraanil oma ikooni keskel (ka konnektori jaam raja otsas); avatud konveieril pidev joon algusest lõpuni | ✔ |
+| **Redaktor** – G2 tühjast ruudustikust: rada otsast konnektorisse, konnektorist silmusele (tekib hargnemine), punktiir hargnemisest konnektorini; kontroll korras ja simulatsioon käib | ✔ |
+| **Brauseris** (käsitsi): S EGA-s (kaks silmust, konnektori broneering, rada värvub seistes eraldi, kokkuvõttes „CON1: ülekandeid“), G2 kaasaegses (avatud konveier, alus seisab otsaikooni keskel konnektori ees, Event List), Layout-is „kontroll korras“; konsoolis vigu pole | ✔ |
+
+Puhvri mahu ja konnektori mõju stsenaariumis S (seeme 1):
+
+| Puhvri maht | Valmis 8 h | Konnektor hõivatud | sellest ainult broneering (detail alles teel) |
+|---|---|---|---|
+| 1 | 49 | 30 % | 23 % |
+| 2 | 86 | 55 % | 43 % |
+| 3 | 107 | 71 % | 55 % |
+
+## Leiud
+
+1. **Katkine silmus on nüüd avatud konveier.** Originaali viga 1 („topoloogia pole suletud“) ei saa enam tähendada lihtsalt „rada katkeb“, sest avatud konveier on lubatud. Kui katkestus on kogemata, jääb osa objekte vastuvoolu ja kättesaadavuse kontroll annab vea; teates on konveieri otsad („konveier … on avatud: algus (5, 3), lõpp (7, 3)“). Test „Kontroll 1“ muudeti vastavalt.
+2. **Konnektor broneeritakse kogu tee ajaks.** Nii ei teki konnektorites ringootamist ja avatud konveieri koormaga alus ei pea lõpust mööda sõitma. Hind: ~¾ konnektori hõivatusest on broneering ajal, mil detail alles ootab alust või sõidab (tabel). Testides polnud see pudelikael (S-is piirasid ühekohalised puhvrid), aga suurel koormusel võib olla. Võimalik hilisem parandus: silmusel broneerida konnektor alles lähenedes (alus võib ringi teha) või anda konnektorile mahutavus.
+3. **Avatud konveier ilma tagasiteeta** (alused lõpust otse algusesse) töötab sama `MinuteMan`-iga, mis silmus – muudatust polnud vaja. Ohutuse tagab Planner (ainult allavoolu); invariant kontrollib seda igal sekundil.
+4. **Kättesaadavus tuleb kontrollida kõigist võimalikest kohtadest**, mitte ainult FromCS-ist: kui operatsiooni teeb mitu pinki, võib detail jõuda pinki, kust järgmise operatsiooni pinki ei saa. `CheckReachability` käib marsruudi läbi kõigi võimalike kohtadega (ja kesklao korral ka FromCS-iga, sest pargitud detail tuleb sealt tagasi).
+
+**Mida see EI kontrolli:** diskreetseid radu (etapp 7b), mitut detaili alusel (7c), konnektori mahutavust üle 1.
