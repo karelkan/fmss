@@ -16,6 +16,7 @@ const MODEL_EXTENSION = '.fms.json';
 // [U] DemoModels – programmiga kaasas olevad näidismudelid (kaust models/).
 export const DemoModels = [
   { File: 'demo.fms.json', Name: 'Näidis-PTS (joon. 5.5)' },
+  { File: 'agv.fms.json', Name: 'Näidis-AGV (diskreetne rada, 7b)' },
 ];
 
 // [U] ParseModelText – teeb failisisust mudeli ja kontrollib seda (CheckModel).

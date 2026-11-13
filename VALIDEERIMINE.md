@@ -262,6 +262,8 @@ Enne täisteostust kontrolliti simulaatorit; alles siis tehti animaator ja redak
 | **Invariantide kontroll** – meelega vead: tsoon ilma broneeringuta, kaks käru ühes tsoonis, käru vastu ühesuunalist lõiku | kõik tabati kohe ✔ |
 | **Andmekontroll** – vastuolulised nooled samal lõigul, rada kahes tükis, kärusid rohkem kui sõlmi, ühesuunaline lõik teeb pingi kättesaamatuks | viga ✔ |
 
+**Näidis-AGV** (`models/agv.fms.json`, File → Load): ühesuunaline ringtee päripäeva (nool igal lõigul), kahesuunaline põiktee keskel, parkimisharu vasakul; 3 pinki, FromCS, ToCS, SysOut; 3 käru, 25 cm/s. 1–4 käru × 5 seemet 8 h: ilma ummikuta, 0 `Collision`-it, suurim ootamine < 40 s. Valmis (seeme 1): 1 käru 107, 2 käru 132, 3 käru 139, 4 käru 140 – siis on pudelikael MT2 (~90 %).
+
 Kärude arvu mõju, kui transport on pudelikael (**F**, seeme 1):
 
 | Kärusid | Valmis 8 h | Pingid MT1 / MT2 | Käru keskmiselt: tühi / koormaga / laadib / ootab / vaba |

@@ -441,6 +441,30 @@ test('Animaator: käru liigub sekundi sees sujuvalt; sammhaaval lugedes on aruan
   assert.deepEqual(SimReport(), expected);
 });
 
+// ---------------------------------------------------------------------
+// Näidis-AGV (models/agv.fms.json, File → Load): ühesuunaline ringtee päripäeva, kahesuunaline
+//   põiktee keskel, parkimisharu vasakul; MT1, MT2, MT3, FromCS, ToCS, SysOut; 3 käru.
+// ---------------------------------------------------------------------
+function DemoAgv({ Carts = 3, Seed = 1 } = {}) {
+  const model = JSON.parse(readFileSync(new URL('../models/agv.fms.json', import.meta.url), 'utf8'));
+  model.Tracks[0].Carts = Carts;
+  model.Sim.Seed = Seed;
+  return model;
+}
+
+test('Näidis-AGV: 8 h ilma ummikuta (1–4 käru, 5 seemet), rohkem kärusid – rohkem valmis', () => {
+  const completed = [];
+  for (let carts = 1; carts <= 4; carts++) {
+    for (let seed = 1; seed <= 5; seed++) {
+      const report = SimRun(NetworkOf(DemoAgv({ Carts: carts, Seed: seed })), seed === 1 ? CHECKED : {});
+      assert.equal(report.Deadlock, false, `${carts} käru, seeme ${seed}: ${report.DeadlockReason}`);
+      assert.ok(report.Tracks[0].MaxWait < 120, `${carts} käru, seeme ${seed}: ootas ${report.Tracks[0].MaxWait} s`);
+      if (seed === 1) completed.push(report.Completed);
+    }
+  }
+  assert.ok(completed[0] < completed[1] && completed[1] < completed[2], `valmis 1–4 käruga: ${completed}`);
+});
+
 // Invariantide kontroll: meelega tehtud vead tabatakse kohe.
 test('Invariandid: tsoon ilma broneeringuta, kaks käru ühes tsoonis, vastu ühesuunalist lõiku', () => {
   const network = NetworkOf(LayoutE4({ OneWay: true }));

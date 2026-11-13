@@ -1,0 +1,421 @@
+{
+  "Meta": {
+    "Name": "Näidis-AGV",
+    "Version": 1
+  },
+  "Scale": 100,
+  "Layout": {
+    "Dim": {
+      "X": 13,
+      "Y": 8
+    },
+    "Cells": [
+      {
+        "X": 3,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 2
+      },
+      {
+        "X": 10,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 3
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 2
+      },
+      {
+        "X": 10,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 3
+      },
+      {
+        "X": 1,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 1
+      },
+      {
+        "X": 2,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 3,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 5,
+        "Y": 2,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 7,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 9,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 10,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 1
+      },
+      {
+        "X": 0,
+        "Y": 3,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 1,
+        "Y": 3,
+        "T": "TeeW",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "S"
+      },
+      {
+        "X": 1,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "N"
+      },
+      {
+        "X": 5,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1
+      },
+      {
+        "X": 1,
+        "Y": 5,
+        "T": "ArcNE",
+        "N": 1
+      },
+      {
+        "X": 2,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 4,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 5,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 7,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 9,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 10,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 5,
+        "T": "ArcNW",
+        "N": 1
+      },
+      {
+        "X": 2,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 7,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 9,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 2,
+        "Y": 7,
+        "T": "FromCS"
+      },
+      {
+        "X": 7,
+        "Y": 7,
+        "T": "ToCS"
+      },
+      {
+        "X": 9,
+        "Y": 7,
+        "T": "SysOut"
+      }
+    ]
+  },
+  "EdgeLengths": [],
+  "Tracks": [
+    {
+      "Name": "AGV",
+      "Mode": "Discrete",
+      "Carts": 3,
+      "PlacesPerCart": 1,
+      "Speed": 25,
+      "LoadTime": 15,
+      "AccessTime": 0
+    }
+  ],
+  "Machines": [
+    {
+      "Name": "MT1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 120,
+      "Ops": [
+        "treimine",
+        "puurimine"
+      ]
+    },
+    {
+      "Name": "MT2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 90,
+      "Ops": [
+        "freesimine",
+        "puurimine"
+      ]
+    },
+    {
+      "Name": "MT3",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 60,
+      "Ops": [
+        "lihvimine",
+        "mõõtmine"
+      ]
+    }
+  ],
+  "Buffers": [
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    }
+  ],
+  "Storage": {
+    "Capacity": 30,
+    "LoadTime": 20
+  },
+  "Workpieces": [
+    {
+      "Name": "Võll",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 120,
+              "Dev": 20
+            },
+            {
+              "Op": "lihvimine",
+              "Mean": 90,
+              "Dev": 15
+            }
+          ]
+        },
+        {
+          "Priority": 2,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 120,
+              "Dev": 20
+            },
+            {
+              "Op": "puurimine",
+              "Mean": 80,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 40,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Äärik",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine",
+              "Mean": 110,
+              "Dev": 20
+            },
+            {
+              "Op": "puurimine",
+              "Mean": 70,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 40,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Sim": {
+    "Seed": 1,
+    "Duration": 28800,
+    "Kl": 0.85,
+    "StallTime": 600
+  }
+}
