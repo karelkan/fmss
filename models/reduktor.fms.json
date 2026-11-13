@@ -1,0 +1,899 @@
+{
+  "Meta": {
+    "Name": "Reduktori FMS (AGV-d ja rikked)",
+    "Version": 1
+  },
+  "Scale": 300,
+  "Layout": {
+    "Dim": {
+      "X": 19,
+      "Y": 9
+    },
+    "Cells": [
+      {
+        "X": 4,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 2
+      },
+      {
+        "X": 8,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 3
+      },
+      {
+        "X": 10,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 4
+      },
+      {
+        "X": 12,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 5
+      },
+      {
+        "X": 14,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 6
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 2
+      },
+      {
+        "X": 8,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 3
+      },
+      {
+        "X": 10,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 4
+      },
+      {
+        "X": 12,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 5
+      },
+      {
+        "X": 14,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 6
+      },
+      {
+        "X": 2,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 4,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 6,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 8,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 10,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 12,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 13,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 14,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 15,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 16,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 1
+      },
+      {
+        "X": 2,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "N"
+      },
+      {
+        "X": 16,
+        "Y": 3,
+        "T": "TeeE",
+        "N": 1
+      },
+      {
+        "X": 17,
+        "Y": 3,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 18,
+        "Y": 3,
+        "T": "ToCS"
+      },
+      {
+        "X": 0,
+        "Y": 4,
+        "T": "FromCS"
+      },
+      {
+        "X": 1,
+        "Y": 4,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 2,
+        "Y": 4,
+        "T": "TeeW",
+        "N": 1
+      },
+      {
+        "X": 16,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "S"
+      },
+      {
+        "X": 2,
+        "Y": 5,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "N"
+      },
+      {
+        "X": 16,
+        "Y": 5,
+        "T": "TeeE",
+        "N": 1
+      },
+      {
+        "X": 17,
+        "Y": 5,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 18,
+        "Y": 5,
+        "T": "SysOut"
+      },
+      {
+        "X": 2,
+        "Y": 6,
+        "T": "ArcNE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 4,
+        "Y": 6,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 6,
+        "Y": 6,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 8,
+        "Y": 6,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 10,
+        "Y": 6,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 12,
+        "Y": 6,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 13,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 14,
+        "Y": 6,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 15,
+        "Y": 6,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 16,
+        "Y": 6,
+        "T": "ArcNW",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 7,
+        "T": "InOutBuf",
+        "N": 7
+      },
+      {
+        "X": 6,
+        "Y": 7,
+        "T": "InOutBuf",
+        "N": 8
+      },
+      {
+        "X": 8,
+        "Y": 7,
+        "T": "InOutBuf",
+        "N": 9
+      },
+      {
+        "X": 10,
+        "Y": 7,
+        "T": "InOutBuf",
+        "N": 10
+      },
+      {
+        "X": 12,
+        "Y": 7,
+        "T": "InOutBuf",
+        "N": 11
+      },
+      {
+        "X": 14,
+        "Y": 7,
+        "T": "InOutBuf",
+        "N": 12
+      },
+      {
+        "X": 4,
+        "Y": 8,
+        "T": "MachToolUp",
+        "N": 7
+      },
+      {
+        "X": 6,
+        "Y": 8,
+        "T": "MachToolUp",
+        "N": 8
+      },
+      {
+        "X": 8,
+        "Y": 8,
+        "T": "MachToolUp",
+        "N": 9
+      },
+      {
+        "X": 10,
+        "Y": 8,
+        "T": "MachToolUp",
+        "N": 10
+      },
+      {
+        "X": 12,
+        "Y": 8,
+        "T": "MachToolUp",
+        "N": 11
+      },
+      {
+        "X": 14,
+        "Y": 8,
+        "T": "MachToolUp",
+        "N": 12
+      }
+    ]
+  },
+  "EdgeLengths": [],
+  "Tracks": [
+    {
+      "Name": "AGV",
+      "Mode": "Discrete",
+      "Carts": 4,
+      "PlacesPerCart": 1,
+      "Speed": 80,
+      "LoadTime": 30,
+      "AccessTime": 0
+    }
+  ],
+  "Machines": [
+    {
+      "Name": "TR1",
+      "Model": "CNC treipink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "TR2",
+      "Model": "CNC treipink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "HF1",
+      "Model": "hambafreespink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "hambafreesimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "HF2",
+      "Model": "hambafreespink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "hambafreesimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "HP1",
+      "Model": "hammaste pistmispink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "hammaste pistmine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "LV1",
+      "Model": "välislihvpink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "välislihvimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "HMC1",
+      "Model": "horisontaalne töötluskeskus",
+      "LoadTime": 120,
+      "SetupTime": 300,
+      "Ops": [
+        "freesimine (korpus)",
+        "freesimine (kaas)"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "HMC2",
+      "Model": "horisontaalne töötluskeskus",
+      "LoadTime": 120,
+      "SetupTime": 300,
+      "Ops": [
+        "freesimine (korpus)",
+        "freesimine (kaas)"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "LS1",
+      "Model": "sisselihvpink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "sisselihvimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "HL1",
+      "Model": "hammaste lihvpink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "hammaste lihvimine"
+      ],
+      "CrashMean": 206520,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "PE1",
+      "Model": "pesumasin",
+      "LoadTime": 30,
+      "SetupTime": 0,
+      "Ops": [
+        "pesemine"
+      ],
+      "CrashMean": 0,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    },
+    {
+      "Name": "KMM1",
+      "Model": "koordinaatmõõtemasin",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "mõõtmine"
+      ],
+      "CrashMean": 0,
+      "RepairMean": 4680,
+      "RepairDev": 1800
+    }
+  ],
+  "Buffers": [
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    }
+  ],
+  "Storage": {
+    "Capacity": 30,
+    "LoadTime": 30
+  },
+  "Workpieces": [
+    {
+      "Name": "Sisendvõll",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 600,
+              "Dev": 60
+            },
+            {
+              "Op": "hambafreesimine",
+              "Mean": 900,
+              "Dev": 90
+            },
+            {
+              "Op": "välislihvimine",
+              "Mean": 600,
+              "Dev": 60
+            },
+            {
+              "Op": "hammaste lihvimine",
+              "Mean": 600,
+              "Dev": 60
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 240,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Väljundvõll",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 900,
+              "Dev": 90
+            },
+            {
+              "Op": "välislihvimine",
+              "Mean": 720,
+              "Dev": 70
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 240,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Hammasratas z23",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 480,
+              "Dev": 50
+            },
+            {
+              "Op": "hambafreesimine",
+              "Mean": 720,
+              "Dev": 70
+            },
+            {
+              "Op": "sisselihvimine",
+              "Mean": 420,
+              "Dev": 40
+            },
+            {
+              "Op": "hammaste lihvimine",
+              "Mean": 480,
+              "Dev": 50
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Hammasratas z61",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 720,
+              "Dev": 70
+            },
+            {
+              "Op": "hambafreesimine",
+              "Mean": 1500,
+              "Dev": 150
+            },
+            {
+              "Op": "sisselihvimine",
+              "Mean": 480,
+              "Dev": 50
+            },
+            {
+              "Op": "hammaste lihvimine",
+              "Mean": 900,
+              "Dev": 90
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 240,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Vaheratas",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine",
+              "Mean": 540,
+              "Dev": 50
+            },
+            {
+              "Op": "hammaste pistmine",
+              "Mean": 1200,
+              "Dev": 120
+            },
+            {
+              "Op": "sisselihvimine",
+              "Mean": 420,
+              "Dev": 40
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Korpus",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (korpus)",
+              "Mean": 2700,
+              "Dev": 270
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 180,
+              "Dev": 20
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 600,
+              "Dev": 60
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Kaas",
+      "Priority": 1,
+      "Batch": 1,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (kaas)",
+              "Mean": 1200,
+              "Dev": 120
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 240,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Sim": {
+    "Seed": 1,
+    "Duration": 28800,
+    "Kl": 0.4,
+    "StallTime": 900,
+    "Distribution": "Triangular"
+  }
+}

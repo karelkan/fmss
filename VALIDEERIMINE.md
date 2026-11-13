@@ -613,3 +613,121 @@ Pikkus on sama, aga ümardamise tõttu oli vahejaama kaudu tee 0,001 s „kiirem
 | test `11b: ShortestPaths – ümardus …` (`test/network.test.js`) – sama arvudega võrk | ilma paranduseta kukub (kaks sõitu), parandusega üks sõit ✔ |
 | kõik varasemad testid (sh prototüübiga võrdlus, näidismudelid) | tulemused samad, 189/189 ✔ |
 | kinnitustehase mudel (simulaatori koopias) | 3 seemet × 8 h ilma ummikuta ✔ |
+
+# Etapp 11c: näidismudelid – kolm suurt tootmissüsteemi
+
+Kolm uut näidist (`models/kinnitus.fms.json`, `allhange.fms.json`, `reduktor.fms.json`, nimekirjas `models/index.json`), igaühes 12–16 tööpinki. Mudelifailid tehti ajutise generaatoriga (paigutus ASCII-joonisena, marsruudid tabelist); repos on ainult tulemus. Simulaator ja mudelifaili vorming ei muutunud (pärast parandust 11b).
+
+## Allikad ja hinnangud
+
+Ükski allikas ei anna terviklikke tööaegu. Seepärast on enamik arve **hinnatud**: tootjate ja juhtumiuuringute vahemike ning tavaliste lõikeaja normide põhjal. Mudelid on õppenäited, mitte konkreetse tehase koopia.
+
+| Mis | Allikas | Mudelis |
+|---|---|---|
+| kinnitusdetailide protsessi järjekord (pressimine → keere → karastus → pinnakate → kontroll; mutril keere puuritakse) | [expometals – Fastener manufacturing basics](https://ssr.expometals.net/en/metal-working-basics/fastener-manufacturing-the-basics), [AISC – Whole bolts](https://www.aisc.org/globalassets/modern-steel/archives/2014/10/whole_bolts.pdf), [Hex nut (b2bwiki)](https://b2bwiki.baidu.com/en/encyclopedic/hex-nut-3) | A marsruudid |
+| külmpressi kiirus 70–350 tk/min, keermerullimine 50–300 tk/min | [MW Components – Cold-forming](https://www.mwcomponents.com/process/cold-forming-technology), expometals | A: press 60–250, rullimine 90–250 tk/min tüübi järgi (**hinnang** vahemiku sees) |
+| mutri keermestaja, optiline sorteerija, lintahi, trummel-tsinkimine | allikas puudub | **hinnang**: keermestaja 80–200 tk/min, sorteerija 200–400 tk/min, ahi 600 kg/h, tsinkimisliin 400 kg/h |
+| tükimass | DIN 933 / DIN 934 tabelite suurusjärk | **hinnang**: polt M8 × 40 22 g … M16 160 g, mutter M8 5 g … M16 32 g |
+| allhanketehase profiil (4- ja 5-teljelised töötluskeskused, treimine, roostevaba ja alumiinium, elektropoleerimine, meditsiini- ja toiduainetööstus; KMM-mõõtmine) | [HANZA Mechanics Tartu](https://hanza.com/hanza-mechanics-tartu/), [Kolmeks](https://kolmeks.com/en/?p=25354) | B: pinkide liigid ja detailid; mudeli nimi on üldine, tööajad on **hinnatud** (avalikke pole) |
+| horisontaalsed töötluskeskused reduktori korpusele: häälestus enne automaatikat kuni 60 min, töötlemine aluse kohta kuni 50 min | [Fastems – Wemco / ABM Greiffenberger](https://www.fastems.com/case/wemco-abm/) | C: korpus 45 min, häälestus HMC-l 5 min (alustega süsteem) |
+| reduktori tootmise taust (alustega süsteem, hammasrataste lihvimine kui kitsaskoht) | [Liebherr – Kordel](https://www.liebherr.com/en-de/gear-technology-and-automation-systems/information-service/customer-magazine/customer-magazine-2020/kordel-phs-1500/pallet-handling-at-kordel-3819346), [Gear Solutions (KAPP NILES)](https://gearsolutions.com/?p=47066) | C marsruudid (**hinnatud** ajad) |
+| CNC-pinkide MTBF 3442 min ja MTTR 78 min (enne ennetavat hooldust) | [lõputöö, DPU](https://libdoc.dpu.ac.th/thesis/Kittipich.Mon.pdf) | C: `CrashMean` 206 520 s, `RepairMean` 4680 ± 1800 s (kõrvalekalle **hinnang**). Allikas on MTBF kalendriaeg, mudelis töötlemisaeg – rikkeid on veidi vähem kui päris tehases |
+| ahju rike | allikas puudub | A: ahjudel rike keskmiselt 4 h töötlemise kohta, remont 45 ± 15 min (**hinnang**; vale karastus → kast on praak) |
+
+## Mudelid
+
+**A. Kinnitustehas (poldid ja mutrid)** – 16 pinki, 8 tüüpi, ruudustik 22 × 8, üks suletud konveier (14 alust, 25 cm/s, ikoon 2 m). **Detail = kast**: poldid 100 kg, mutrid 25 kg (`Batch` näitab tükke kastis, nt polt M8 4545 tk). Kõik pingid on ühe operatsiooniga, häälestust pole (iga pink teeb kõiki suurusi – lihtsustus). Ühiste etappide (ahi, tsinkimine, sorteerimine) puhvrid 4 kohta, teised 2.
+
+| Tüüp | Marsruut: operatsioon keskmine ± kõrvalekalle (s) |
+|---|---|
+| Polt M8 | külmpressimine 1360 ± 70 → keermerullimine 1090 ± 50 → karastamine 600 ± 30 → tsinkimine 900 ± 50 → sorteerimine 910 ± 50 |
+| Polt M10 | külmpressimine 950 ± 50 → keermerullimine 710 ± 40 → karastamine 600 ± 30 → tsinkimine 900 ± 50 → sorteerimine 480 ± 20 |
+| Polt M12 | külmpressimine 790 ± 40 → keermerullimine 580 ± 30 → karastamine 600 ± 30 → tsinkimine 900 ± 50 → sorteerimine 350 ± 20 |
+| Polt M16 | külmpressimine 630 ± 30 → keermerullimine 420 ± 20 → karastamine 600 ± 30 → tsinkimine 900 ± 50 → sorteerimine 190 ± 10 |
+| Mutter M8 | mutripressimine 1200 ± 60 → keermepuurimine 1500 ± 80 → karastamine 150 ± 10 → tsinkimine 230 ± 10 → sorteerimine 750 ± 40 |
+| Mutter M10 | mutripressimine 620 ± 30 → keermepuurimine 910 ± 50 → karastamine 150 ± 10 → tsinkimine 230 ± 10 → sorteerimine 340 ± 20 |
+| Mutter M12 | mutripressimine 490 ± 20 → keermepuurimine 740 ± 40 → karastamine 150 ± 10 → tsinkimine 230 ± 10 → sorteerimine 250 ± 10 |
+| Mutter M16 | mutripressimine 330 ± 20 → keermepuurimine 590 ± 30 → karastamine 150 ± 10 → tsinkimine 230 ± 10 → sorteerimine 160 ± 10 |
+
+Pingid: KP1–KP3 külmpress, MP1–MP2 mutripress, KR1–KR2 keermerullija, KT1–KT2 mutrikeermestaja, AH1–AH2 lintahi (rikked), TS1–TS3 tsinkimisliin, OS1–OS2 optiline sorteerija. Ajad: tükke kastis / kiirus (ahi ja tsinkimine: mass / kg/h).
+
+**B. Allhanketehas (CNC-töötlus)** – 15 pinki, 12 tüüpi, ruudustik 33 × 8, kolm osakonda (treimine, freesimine, viimistlus) – kolm suletud konveierit, vahel konnektorid CON1, CON2. Treipinkidel kaks operatsioonide perekonda (`treimine (võll)` ja `treimine (äärik)`) ja 5-teljelistel kaks (`korpus`, `tiivik`) – perekonna vahetus annab häälestuse (treipink 10 min, 5-teljeline 15 min). Liitmikul on alternatiivne marsruut. Viimistluse ühiste pinkide puhvrid 5 kohta, teised 2.
+
+| Tüüp | Marsruut: operatsioon keskmine ± kõrvalekalle (s) |
+|---|---|
+| Võll Ø20 | treimine (võll) 420 ± 40 → freesimine 240 ± 20 → lihvimine 300 ± 30 → pesemine 90 ± 10 |
+| Võll Ø40 | treimine (võll) 720 ± 70 → freesimine 300 ± 30 → lihvimine 480 ± 50 → pesemine 150 ± 20 → mõõtmine 240 ± 20 |
+| Puks | treimine (äärik) 300 ± 30 → pesemine 90 ± 10 |
+| Äärik DN50 | treimine (äärik) 540 ± 50 → freesimine 360 ± 40 → silumine 240 ± 20 → pesemine 90 ± 10 |
+| Äärik DN80 | treimine (äärik) 780 ± 80 → freesimine 480 ± 50 → silumine 300 ± 30 → pesemine 150 ± 20 → mõõtmine 240 ± 20 |
+| Kronstein Al | freesimine 600 ± 60 → silumine 180 ± 20 → pesemine 90 ± 10 |
+| Kronstein RV | freesimine 900 ± 90 → silumine 240 ± 20 → elektropoleerimine 420 ± 40 → pesemine 90 ± 10 |
+| Korpus Al | 5-teljeline (korpus) 1500 ± 150 → silumine 300 ± 30 → pesemine 150 ± 20 → mõõtmine 360 ± 40 |
+| Kaas Al | freesimine 720 ± 70 → silumine 180 ± 20 → pesemine 90 ± 10 |
+| Tiivik | treimine (äärik) 480 ± 50 → 5-teljeline (tiivik) 1800 ± 180 → elektropoleerimine 420 ± 40 → pesemine 150 ± 20 → mõõtmine 360 ± 40 |
+| Liitmik | 1) treifreesimine 600 ± 60 → elektropoleerimine 300 ± 30 → pesemine 90 ± 10<br>2) treimine (äärik) 540 ± 50 → freesimine 360 ± 40 → elektropoleerimine 300 ± 30 → pesemine 90 ± 10 |
+| Ventiilikorpus | treifreesimine 900 ± 90 → 5-teljeline (korpus) 1200 ± 120 → elektropoleerimine 420 ± 40 → pesemine 150 ± 20 → mõõtmine 360 ± 40 |
+
+Pingid: TR1–TR3 CNC treipink, TK1 treitöötluskeskus, VT1–VT3 vertikaalne töötluskeskus, 5X1–5X3 5-teljeline töötluskeskus, LI1 ümarlihvpink, SI1 silumine, PE1 pesumasin, EP1 elektropoleerimisliin, KMM1 koordinaatmõõtemasin.
+
+**C. Reduktori FMS (AGV-d ja rikked)** – 12 pinki, 7 tüüpi, ruudustik 19 × 9, diskreetne rada: **ühesuunaline ring** (iga lõik noolega – kahesuunalisel ringil 3+ käruga oleks 7b leid 6), 4 AGV-d, 80 cm/s, laadimine 30 s, ikoon 3 m. Detail = detail kinnitusrakisega alusel; karastus on väljaspool süsteemi (allhange). Rikked kõigil töötlemispinkidel (mitte pesumasinal ega KMM-il). Puhvrid 3, ühistel pinkidel (LS1, HL1, PE1, KMM1) 5.
+
+| Tüüp | Marsruut: operatsioon keskmine ± kõrvalekalle (s) |
+|---|---|
+| Sisendvõll | treimine 600 ± 60 → hambafreesimine 900 ± 90 → välislihvimine 600 ± 60 → hammaste lihvimine 600 ± 60 → pesemine 120 ± 10 → mõõtmine 240 ± 20 |
+| Väljundvõll | treimine 900 ± 90 → välislihvimine 720 ± 70 → pesemine 120 ± 10 → mõõtmine 240 ± 20 |
+| Hammasratas z23 | treimine 480 ± 50 → hambafreesimine 720 ± 70 → sisselihvimine 420 ± 40 → hammaste lihvimine 480 ± 50 → pesemine 120 ± 10 |
+| Hammasratas z61 | treimine 720 ± 70 → hambafreesimine 1500 ± 150 → sisselihvimine 480 ± 50 → hammaste lihvimine 900 ± 90 → pesemine 120 ± 10 → mõõtmine 240 ± 20 |
+| Vaheratas | treimine 540 ± 50 → hammaste pistmine 1200 ± 120 → sisselihvimine 420 ± 40 → pesemine 120 ± 10 |
+| Korpus | freesimine (korpus) 2700 ± 270 → pesemine 180 ± 20 → mõõtmine 600 ± 60 |
+| Kaas | freesimine (kaas) 1200 ± 120 → pesemine 120 ± 10 → mõõtmine 240 ± 20 |
+
+Pingid: TR1–TR2 CNC treipink, HF1–HF2 hambafreespink, HP1 hammaste pistmispink, LV1 välislihvpink, HMC1–HMC2 horisontaalne töötluskeskus, LS1 sisselihvpink, HL1 hammaste lihvpink, PE1 pesumasin, KMM1 koordinaatmõõtemasin. Kõigis mudelites on jaotus kolmnurkne, kõrvalekalle 5–10 %.
+
+## Tulemused (8 h, seemned 1–5, invariandid igal sekundil – ummikuid ja parkimisi 0)
+
+| | A. Kinnitustehas | B. Allhanketehas | C. Reduktori FMS |
+|---|---|---|---|
+| valmis | 58–67 kasti | 103–109 detaili | 63–68 detaili |
+| läbilaskevõime kokku / 4–8 h | 7,3–8,4 / 8,8–10,8 tk/h | 12,9–13,6 / 15,0–16,0 tk/h | 7,9–8,5 / 8,5–10,0 tk/h |
+| tsükliaeg | 175–195 min | 92–96 min | 139–147 min |
+| detaile süsteemis (`Kl`) | 31 (0,4) | 23 (0,3) | 24 (0,4) |
+| rakendatus (seeme 1) | 44–78 %, suurim KT1 | 36–82 %, suurim 5X3 (treipingid 70–80 %, sh häälestus 21–27 %) | 44–94 %, suurim HMC1 |
+| tsükliaja osad (seeme 1) | töötlemine 29, laadimine 7, transport 19, ootamine 45 % | töötlemine 28, häälestus 5, laadimine 10, transport 12, ootamine 44 % | töötlemine 30, laadimine 10, transport 6, ootamine 54 % |
+| rikked / praak | 1–4 / 1–4 (ahi) | – | 0–2 / 0–1 |
+| transport | konveier liigub 61 % (seisab laadimiste ajal) | konveierid liiguvad 73–85 %; CON1 121, CON2 112 ülekannet | AGV: kokkupõrkeid 0, kõrvalepõikeid 254, käru koormaga 27 % ajast |
+
+**Käsitsi arvutatud ülempiir.** Ühe tsükli (iga tüüp üks detail, esimene marsruut) töö pingi kohta: operatsioon + 2 × pingi laadimine, jagatud sama operatsiooniga pinkidele.
+
+| Mudel | Suurim töö tsüklis | Ülempiir | Simulatsioon 4–8 h | Selgitus |
+|---|---|---|---|---|
+| A | OS1–OS2 36,6 min / 8 kasti | 13,1 tk/h | 8,8–10,8 | konveier seisab ~40 % ajast – iga laadimine (rada ↔ jaam 10 s, ladu 20 s) peatab kogu ringi; ~180 s seisakut kasti kohta |
+| B | KMM1 36,0 min / 12 detaili | 20,0 tk/h | 15,0–16,0 | treipingid: 22 min tööd tsüklis + perekonna vahetused (~2 × 10 min) ≈ 42 min → **~17 tk/h** – häälestus on kitsaskoht |
+| C | HL1 39,0 min / 7 detaili | 10,8 tk/h | 8,5–10,0 | HMC: (2700 + 1200 + 4 × 120) / 2 = 36,5 min + vaheldumise häälestus 5 min ≈ 41,5 min → **10,1 tk/h**; HMC1 rakendatus 94 % |
+
+Simulatsioon jääb kõigil ülempiiri alla ja vahe on seletatav. Kitsaskohad on usutavad: kinnitustehases transport, allhankes väikeste partiide häälestus, reduktoritootmises korpuse töötlus.
+
+## Leiud
+
+1. **Simulaatori viga** (`ShortestPaths` ümardus) – leitud mudeliga A, parandatud versioonis 1.2 (etapp 11b).
+2. **Partii (`Batch`) ja prioriteet ei mõjuta sissetoomist**: `AdmitWorkpieces` võtab alati kõige vähem alustatud tüübi – kõiki tüüpe tuleb võrdselt (1 : 1 : …) ja järjest vaheldumisi. Partii väli on vormis ja aruandes, aga simulatsioonis ei kasutata. Mudelites valiti tüübid, mille võrdne kogus on mõistlik. Tagajärg B-s: treipink vahetab perekonda peaaegu iga detaili järel (häälestus 21–27 % ajast) – päris tehases tehtaks partiid. Idee 2.0-le: sissetoomine partiide kaupa (originaali „partiid“ valikuna, DISAIN.md 5.2).
+3. **Häälestus tuleb ainult operatsiooni nime vahetusel** (`LastOp`) – tüübi vahetus ise häälestust ei anna. Seepärast on B-s ja C-s operatsioonide nimedes perekond (nt `treimine (võll)`).
+4. **Ühiste pinkide väikesed puhvrid piiravad voogu.** Ummiku vältimise reegel (pink alustab alles siis, kui järgmise pingi koht on broneeritud, DISAIN.md 3.3) hoiab broneeringuid kaua – 2-kohalised puhvrid olid broneeringuid täis, kuigi füüsiliselt tühjad, ja eelmised pingid seisid. C-s seisid mõlemad treipingid, sest Vaheratas ootas nende puhvris sisselihvpingi broneeringut. Suuremad puhvrid ühistel pinkidel: B +35 % (püsiseisus 11,5 → 16 tk/h), C +20 % (7,8 → 9,5 tk/h). A-s mõju väike (seal piirab konveier). Ummikuid ei tekkinud – reegel töötab, aga nõuab puhvrimahtu. See on disaini teadlik hind, mitte viga.
+5. **Pidev konveier seisab iga laadimise ajal** (DISAIN.md 3.1) – suures süsteemis on see kitsaskoht (A: ~40 % seisakut). Päris tehases oleks jaamades eraldi ülekandekohad või kahveltõstukid.
+6. **EGA kokkuvõtte aknas jäävad nupud ekraani alla**, kui pinke on palju (kokkuvõte näitab kuni 6 pinki ja 6 puhvrit + ülejäänud read – kõrgus ületab 350 pikslit). Kaasaegses välimuses mahub. Klaviatuur (Enter / nooled) töötab, aga nuppe pole näha. **Parandatud versioonis 1.3**: `SimSummaryLines` (nüüd `fms_rep.js`-is) näitab nii palju pinke ja puhvreid, kui dialoogi mahub (`MessageBoxMaxLines`, EGA-s 19 rida); väikestes mudelites ei muutu midagi. Test `1.3: kokkuvõte …` (`test/report.test.js`): kolmes suures mudelis ≤ 19 rida, vähemalt üks pink ja „… ja veel“; Näidis-PTS ja Näidis-AGV samad mis ilma piirita.
+7. **EGA Load-aknas lõigati pikk nimi** („Allhanketehas (mehaaniline töötlus)“) – nimi lühendati: „Allhanketehas (CNC-töötlus)“.
+
+## Brauseris (no-store server)
+
+| Kontroll | Tulemus |
+|---|---|
+| File → Load | 6 näidist nimekirjast ✔ |
+| Kinnitustehas, EGA, Simulate | ikoon 48 × 35, kerimine paremale, olekurida „←→↑↓ Keri“; M → 8:00:00, valmis 67, 8,4 tk/h, rikkeid 1 – sama mis Node'is ✔ |
+| Kinnitustehas, kaasaegne | kokkuvõte koos nuppudega; „Aruanne“ – 369 rida (Static, Dynamic, aegrida, sündmused: Crash 1, Repair 1) ✔ |
+| Kinnitustehas, EGA kokkuvõte (1.2) | nupud ekraani all (leid 6) ✗ |
+| Allhanketehas, EGA, M → kokkuvõte (1.3) | 2 pinki, 2 puhvrit, „… ja veel 13“, 3 rada, 2 konnektorit; nupud OK ja Aruanne nähtaval; Aruanne → 370 rida EGA aknas ✔ |
+| Reduktori FMS, kaasaegne | 4 AGV-d ühesuunalisel ringil, Event Listis `Crash` ✔ |
+| Allhanketehas, kaasaegne | kolm konveierit ja konnektorid; suum vähendab nii, et kogu mudel on näha ✔ |
+| konsool | vigu pole ✔ |
+
+**Mida see EI kontrolli:** tööaegade vastavust konkreetsele tehasele (hinnangud); C aruannet EGA-s (sama kood); max-režiimi kiirust nähtava paaniga (peidetud paanis aeglustub `requestAnimationFrame`, Node'is jookseb 8 h ~0,3 s).

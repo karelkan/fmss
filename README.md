@@ -2,7 +2,7 @@
 
 **Paindautomatiseeritud tootmise simulatsioonisüsteem.** Diplomiprojekt, Tallinna Tehnikaülikool, Arvutitehnika Instituut, 1993 (autor K. Kannel, juhendaja J. Riives, konsultant V. Leppikson). Kirjutati Turbo Pascalis ja jäi pooleli; versioon 1.0 valmis 2026 brauseris – *läks ainult 33 aastat, aga valmis sai*.
 
-**Veebis:** [karelkan.github.io/fmss](https://karelkan.github.io/fmss/) – avaleht ja lühijuhend; versioon 1 (praegu 1.2): [karelkan.github.io/fmss/v1](https://karelkan.github.io/fmss/v1/).
+**Veebis:** [karelkan.github.io/fmss](https://karelkan.github.io/fmss/) – avaleht ja lühijuhend; versioon 1 (praegu 1.3): [karelkan.github.io/fmss/v1](https://karelkan.github.io/fmss/v1/).
 
 Kolm osa nagu originaalis:
 
@@ -59,10 +59,10 @@ tools/site.sh /tmp/fmss-site
 - [x] 8. Rikked ja juhuslikkus (`src/fms_sim.js`: tööpingi rike töötlemise ajal – `Crash`, remont `Repair`, praak SysOut-i; rikete vahe eksponentjaotusega, pingi oma juhuarvujada; kestuse jaotus ühtlane / kolmnurkne / normaalne – [DISAIN.md](DISAIN.md) osa 17, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8); animaator (rikkes pink R, praak ristiga), kokkuvõte, redaktori vormid
 - [x] 9. Aruanded (`src/fms_rep.js`: menüü Report – Static (algne seis ja lõppseis teemade kaupa), Dynamic (tsükliaeg ja osakaalud, tüüpide kaupa, aegrida graafikuga, sündmused), Output ekraanile (kerimisega aken mõlemas välimuses) või tekstifaili; Simulate kokkuvõttes nupp „Aruanne“; ka ummiku ja katkestuse korral – [DISAIN.md](DISAIN.md) osa 18, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9)
 - [x] 10. Avaldamine – versioon 1.0 (avaleht ja lühijuhend `site/index.html`, `/v1/` tag'ist `v1.0`, `tools/site.sh`, GitHub Pages'i töövoog; näidiste nimekiri `models/index.json`, näidis riketega; Advise → „tuleb versioonis 2.0“ – [DISAIN.md](DISAIN.md) osa 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 10). Avaldatud: https://karelkan.github.io/fmss/ (tag `v1.0`)
-- [ ] 11. Näidismudelid: 2–3 suurt tootmissüsteemi (10+ tööpinki) avalike lugude põhjal ([PLAAN.md](PLAAN.md))
+- [x] 11. Näidismudelid: 3 suurt tootmissüsteemi (12–16 tööpinki) avalike lugude põhjal; versioonid 1.1–1.3 ([PLAAN.md](PLAAN.md))
   - [x] 11a. Versioon 1.1 – kerimine ja suum: suur mudel animaatoris (EGA kerib, ikoon jääb 48 × 35; kaasaegne kahandab kuni 36 px, siis kerib; suum hiire rattaga, lohistamine, `0`), redaktoris kaasaegne suum (Ctrl + ratas); `/v1/` tag'ist `v1.1` – [DISAIN.md](DISAIN.md) osa 14, 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11a
   - [x] 11b. Versioon 1.2 – parandus: `ShortestPaths` ümardas aega igal sammul ja suletud konveieril võis tee tulla vahejaama kaudu (0,001 s „kiirem“) – simulatsioon katkes erindiga (leiti mudeliga A); `PATH_TIME_EPSILON` – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11b
-  - [ ] 11c. Mudelid
+  - [x] 11c. Mudelid: Kinnitustehas (16 pinki, 8 tüüpi, konveier), Allhanketehas (15 pinki, 12 tüüpi, 3 konveierit konnektoritega), Reduktori FMS (12 pinki, 7 tüüpi, 4 AGV-d, rikked) – `models/`, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11c. Versioon 1.3: Simulate kokkuvõte mahub EGA-s ekraanile (`SimSummaryLines`, `MessageBoxMaxLines`)
 - [ ] 12. Dokumentatsioon: diplomitööga sarnane – teooria koos täiendustega, arhitektuur diagrammidega, andmeobjektid ja protseduurid ([PLAAN.md](PLAAN.md))
 - [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
 

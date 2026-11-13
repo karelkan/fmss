@@ -6,7 +6,7 @@
   <title>FMSS – paindtootmise simulaator</title>
   <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Diplomiprojekt, TTÜ 1993, valmis 2026.">
   <!-- FMSS avaleht ja lühijuhend (etapp 10). Saidi ülesehitus: / – see leht, /v1/ – versioon 1
-       (tag v1.2). Kokku paneb tools/site.sh; veebis .github/workflows/pages.yml. -->
+       (tag v1.3). Kokku paneb tools/site.sh; veebis .github/workflows/pages.yml. -->
   <style>
     @font-face {
       font-family: 'FMSS EGA';
@@ -121,7 +121,7 @@ Alustatud 1993 … valmis 2026
 <span class="bright">(läks ainult 33 aastat, aga valmis sai)</span></div>
 
   <div class="actions">
-    <a class="button" href="v1/">Ava FMSS 1.2</a>
+    <a class="button" href="v1/">Ava FMSS 1.3</a>
     <span class="note">Töötab brauseris, paigaldada pole vaja. Mõeldud arvutile klaviatuuri ja hiirega.</span>
   </div>
 
@@ -131,7 +131,7 @@ Alustatud 1993 … valmis 2026
     keskladu ning detailid, millel on oma marsruudid. Diplomitöö kirjutati 1993. aastal Turbo Pascalis,
     aga programm jäi siis pooleli. Versioon 1.0 on sama lahendus valmis kujul: originaali menüüd,
     vormid ja EGA ekraan (640 × 350, 16 värvi). Lisaks on kaasaegne välimus, mida saab vahetada klahviga <kbd>F2</kbd>.
-    Versioonis 1.1 saab ekraanist suuremat mudelit animatsioonis kerida ja kaasaegses välimuses suumida; 1.2 parandab vea, mis võis suures mudelis simulatsiooni katkestada.
+    Versioonis 1.1 saab ekraanist suuremat mudelit animatsioonis kerida ja kaasaegses välimuses suumida; 1.2 ja 1.3 parandavad suurte näidismudelitega leitud vead.
   </p>
   <div class="cards">
     <div class="card"><h3>Editor</h3><p>Tootmissüsteemi joonistamine: rajad, tööpingid, puhvrid, keskladu; masinate, detailide ja marsruutide andmed.</p></div>
@@ -142,7 +142,7 @@ Alustatud 1993 … valmis 2026
 
   <h2>Viis minutit: esimene simulatsioon</h2>
   <ol>
-    <li>Ava <a href="v1/">FMSS 1.2</a>. Avaekraanil vajuta mõnda klahvi kaks korda.</li>
+    <li>Ava <a href="v1/">FMSS 1.3</a>. Avaekraanil vajuta mõnda klahvi kaks korda.</li>
     <li><kbd>F2</kbd> vahetab välimust (EGA või kaasaegne). Seda saab teha igal ajal.</li>
     <li>Kõige alguses on laaditud <b>Näidis-PTS</b> (diplomitöö joonis 5.5). Teise näidise saad valida menüüst <b>File → Load</b>.</li>
     <li><b>Edit → Layout</b> näitab ja muudab joonist. <b>Edit → Check</b> kontrollib andmeid.</li>
@@ -158,6 +158,9 @@ Alustatud 1993 … valmis 2026
     <tr><td>Näidis-PTS (joon. 5.5)</td><td>Diplomitöö näide: kaks tööpinki, suletud konveier, keskladu, kaks detailitüüpi koos alternatiivse marsruudiga.</td></tr>
     <tr><td>Näidis-PTS riketega</td><td>Sama süsteem, aga tööpingid lähevad rikki ja neid remonditakse. Rikke ajal pooleli olnud detail läheb praaki.</td></tr>
     <tr><td>Näidis-AGV</td><td>Diskreetne rada: transpordikärud (AGV-d) ristmike ja tsoonidega, mis väldivad kokkupõrkeid.</td></tr>
+    <tr><td>Kinnitustehas (poldid ja mutrid)</td><td>16 masinat: külmpressid, keermerullijad ja -puurijad, karastusahjud, tsinkimine, optiline sorteerimine. Detail on kast (100 kg polte või 25 kg mutreid). Üks suur konveier, mis on ka kitsaskoht.</td></tr>
+    <tr><td>Allhanketehas (CNC-töötlus)</td><td>15 pinki kolmes osakonnas (treimine, freesimine, viimistlus), igal oma konveier, vahel konnektorid. 12 detailitüüpi roostevabast terasest ja alumiiniumist; väikeste partiide hind on häälestus.</td></tr>
+    <tr><td>Reduktori FMS (AGV-d ja rikked)</td><td>Klassikaline paindtootmissüsteem: võllid, hammasrattad, korpus ja kaas 12 pingil. Neli AGV-d ühesuunalisel ringil, pingid lähevad rikki. Kitsaskoht on korpuse töötlemine.</td></tr>
   </table>
   </div>
   <p class="note">

@@ -36,6 +36,7 @@ const WHEEL_LINES = 3;                   // [U] hiire ratta üks samm, ridu
 export const Percent = (value) => `${Math.round(value * 100)} %`;
 export const Decimal = (value, digits = 1) => value.toFixed(digits).replace('.', ',');
 const Seconds = (value) => String(Math.round(value));
+const SIM_SHOWN_OBJECTS = 6;   // [U] kokkuvõttes kõige rohkem nii mitu pinki / puhvrit (vähem, kui ei mahu)
 const Bar = (length) => '▄'.repeat(Math.max(0, Math.round(length)));
 
 // Aruande rida: string või { Text, Kind }; Kind: 'Section' (teema pealkiri), 'Sub' (algne seis /
@@ -716,4 +717,70 @@ function ReportInput(input) {
     return true;
   }
   return false;
+}
+
+// =====================================================================
+// Simulatsiooni kokkuvõte (Simulate)
+// =====================================================================
+
+// [U] SimSummaryLines – simulatsiooni kokkuvõte dialoogi ridadeks (Simulate, fms.js). Pinke ja puhvreid
+//     näidatakse kuni SIM_SHOWN_OBJECTS, aga vähem, kui muidu ei mahuks maxLines reale (EGA-s 19 rida –
+//     suures mudelis jäid nupud ekraani alla, etapp 11c leid 6); ülejäänud „… ja veel n“, täielik info aruandes.
+export function SimSummaryLines(report, warnings, maxLines = Infinity) {
+  let lines = [];
+  for (let shown = SIM_SHOWN_OBJECTS; shown >= 1; shown--) {
+    lines = SummaryLinesShown(report, warnings, shown);
+    if (lines.length <= maxLines) break;
+  }
+  return lines;
+}
+
+// Kokkuvõtte read, kui pinke ja puhvreid näidatakse kuni shown tükki.
+function SummaryLinesShown(report, warnings, shown) {
+  const limited = (items, format) => {
+    const lines = items.slice(0, shown).map(format);
+    if (items.length > shown) lines.push(FormatText(Texts.SimMore, { Count: items.length - shown }));
+    return lines;
+  };
+  const lines = [
+    FormatText(Texts.SimHeader, { Name: report.Model || Texts.DesktopUntitled, Time: ClockText(report.Time), Seed: report.Seed }),
+  ];
+  if (report.Deadlock) {
+    lines.push({ Text: FormatText(Texts.SimDeadlock, { Time: ClockText(report.Time), Reason: report.DeadlockReason }), Role: 'Error' });
+  }
+  lines.push(
+    FormatText(Texts.SimCounts, report),
+    ...(report.Crashes > 0 ? [FormatText(Texts.SimCrashes, report)] : []),
+    FormatText(Texts.SimThroughput, { Throughput: Decimal(report.ThroughputPerHour), Cycle: ClockText(Math.round(report.AvgCycleTime)) }),
+    FormatText(Texts.SimShares1, { Process: Percent(report.Shares.Process), Setup: Percent(report.Shares.Setup), Load: Percent(report.Shares.Load) }),
+    FormatText(Texts.SimShares2, { Transport: Percent(report.Shares.Transport), Wait: Percent(report.Shares.Wait) }),
+    ...limited(report.Machines, (machine) => FormatText(machine.Crashes > 0 ? Texts.SimMachineDown : Texts.SimMachine, {
+      Name: machine.Name, Utilization: Percent(machine.Utilization), Processing: Percent(machine.ProcessingShare), Ops: machine.OpsDone,
+      Down: Percent(machine.DownShare), Crashes: machine.Crashes,
+    })),
+    ...limited(report.Buffers, (buffer) => FormatText(Texts.SimBuffer, {
+      Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,
+    })),
+    ...report.Tracks.flatMap((track) => {
+      // mitu kohta alusel (7c): täituvus ja kogumissõidud
+      const places = track.Places > 1
+        ? [FormatText(Texts.SimPlaces, { Places: track.Places, Avg: Decimal(track.AvgLoad), Max: track.MaxLoad, Pooled: track.Pooled })]
+        : [];
+      if (!track.Discrete) return [FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops }), ...places];
+      const average = (state) => track.Carts.reduce((sum, cart) => sum + cart[state], 0) / track.Carts.length;
+      return [
+        FormatText(Texts.SimCarts, { Name: track.Name, Count: track.Carts.length, Collisions: track.Collisions }),
+        FormatText(Texts.SimCartsShares, {
+          Loaded: Percent(average('LOADED')), Empty: Percent(average('EMPTY')),
+          Loading: Percent(average('LOADING')), Waiting: Percent(average('WAIT_ZONE')),
+        }),
+        ...places,
+      ];
+    }),
+    ...report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector)),
+  );
+  if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
+  for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });
+  lines.push('', Texts.SimReportHint);
+  return lines;
 }

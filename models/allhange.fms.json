@@ -1,0 +1,1292 @@
+{
+  "Meta": {
+    "Name": "Allhanketehas (CNC-töötlus)",
+    "Version": 1
+  },
+  "Scale": 200,
+  "Layout": {
+    "Dim": {
+      "X": 33,
+      "Y": 8
+    },
+    "Cells": [
+      {
+        "X": 4,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 2
+      },
+      {
+        "X": 13,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 3
+      },
+      {
+        "X": 15,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 4
+      },
+      {
+        "X": 17,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 5
+      },
+      {
+        "X": 24,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 6
+      },
+      {
+        "X": 26,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 7
+      },
+      {
+        "X": 28,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 8
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 2
+      },
+      {
+        "X": 13,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 3
+      },
+      {
+        "X": 15,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 4
+      },
+      {
+        "X": 17,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 5
+      },
+      {
+        "X": 24,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 6
+      },
+      {
+        "X": 26,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 7
+      },
+      {
+        "X": 28,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 8
+      },
+      {
+        "X": 2,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 2
+      },
+      {
+        "X": 12,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 13,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 14,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 15,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 16,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 17,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 18,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 19,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 2
+      },
+      {
+        "X": 22,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 3
+      },
+      {
+        "X": 23,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 24,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 25,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 26,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 27,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 28,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 29,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 30,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 3
+      },
+      {
+        "X": 0,
+        "Y": 3,
+        "T": "FromCS"
+      },
+      {
+        "X": 1,
+        "Y": 3,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 2,
+        "Y": 3,
+        "T": "TeeW",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 3,
+        "T": "TeeE",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 3,
+        "T": "HorCon"
+      },
+      {
+        "X": 10,
+        "Y": 3,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 11,
+        "Y": 3,
+        "T": "TeeW",
+        "N": 2
+      },
+      {
+        "X": 19,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 2
+      },
+      {
+        "X": 22,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 3
+      },
+      {
+        "X": 30,
+        "Y": 3,
+        "T": "TeeE",
+        "N": 3
+      },
+      {
+        "X": 31,
+        "Y": 3,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 32,
+        "Y": 3,
+        "T": "ToCS"
+      },
+      {
+        "X": 2,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "N"
+      },
+      {
+        "X": 8,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 2
+      },
+      {
+        "X": 19,
+        "Y": 4,
+        "T": "TeeE",
+        "N": 2
+      },
+      {
+        "X": 20,
+        "Y": 4,
+        "T": "HorCon"
+      },
+      {
+        "X": 21,
+        "Y": 4,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 22,
+        "Y": 4,
+        "T": "TeeW",
+        "N": 3
+      },
+      {
+        "X": 30,
+        "Y": 4,
+        "T": "TeeE",
+        "N": 3
+      },
+      {
+        "X": 31,
+        "Y": 4,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 32,
+        "Y": 4,
+        "T": "SysOut"
+      },
+      {
+        "X": 2,
+        "Y": 5,
+        "T": "ArcNE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 5,
+        "T": "ArcNW",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 5,
+        "T": "ArcNE",
+        "N": 2
+      },
+      {
+        "X": 12,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 13,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 14,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 15,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 16,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 17,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 18,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 2,
+        "Dir": "W"
+      },
+      {
+        "X": 19,
+        "Y": 5,
+        "T": "ArcNW",
+        "N": 2
+      },
+      {
+        "X": 22,
+        "Y": 5,
+        "T": "ArcNE",
+        "N": 3
+      },
+      {
+        "X": 23,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 24,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 25,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 26,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 27,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 28,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 3
+      },
+      {
+        "X": 29,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 30,
+        "Y": 5,
+        "T": "ArcNW",
+        "N": 3
+      },
+      {
+        "X": 4,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 9
+      },
+      {
+        "X": 6,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 10
+      },
+      {
+        "X": 13,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 11
+      },
+      {
+        "X": 15,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 12
+      },
+      {
+        "X": 17,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 13
+      },
+      {
+        "X": 25,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 14
+      },
+      {
+        "X": 27,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 15
+      },
+      {
+        "X": 4,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 9
+      },
+      {
+        "X": 6,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 10
+      },
+      {
+        "X": 13,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 11
+      },
+      {
+        "X": 15,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 12
+      },
+      {
+        "X": 17,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 13
+      },
+      {
+        "X": 25,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 14
+      },
+      {
+        "X": 27,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 15
+      }
+    ]
+  },
+  "EdgeLengths": [],
+  "Tracks": [
+    {
+      "Name": "Treimine",
+      "Mode": "Continuous",
+      "Carts": 4,
+      "PlacesPerCart": 1,
+      "Speed": 20,
+      "LoadTime": 10,
+      "AccessTime": 0
+    },
+    {
+      "Name": "Freesimine",
+      "Mode": "Continuous",
+      "Carts": 5,
+      "PlacesPerCart": 1,
+      "Speed": 20,
+      "LoadTime": 10,
+      "AccessTime": 0
+    },
+    {
+      "Name": "Viimistlus",
+      "Mode": "Continuous",
+      "Carts": 5,
+      "PlacesPerCart": 1,
+      "Speed": 20,
+      "LoadTime": 10,
+      "AccessTime": 0
+    }
+  ],
+  "Machines": [
+    {
+      "Name": "TR1",
+      "Model": "CNC treipink",
+      "LoadTime": 60,
+      "SetupTime": 600,
+      "Ops": [
+        "treimine (võll)",
+        "treimine (äärik)"
+      ]
+    },
+    {
+      "Name": "TR2",
+      "Model": "CNC treipink",
+      "LoadTime": 60,
+      "SetupTime": 600,
+      "Ops": [
+        "treimine (võll)",
+        "treimine (äärik)"
+      ]
+    },
+    {
+      "Name": "VT1",
+      "Model": "vertikaalne töötluskeskus",
+      "LoadTime": 90,
+      "SetupTime": 0,
+      "Ops": [
+        "freesimine"
+      ]
+    },
+    {
+      "Name": "VT2",
+      "Model": "vertikaalne töötluskeskus",
+      "LoadTime": 90,
+      "SetupTime": 0,
+      "Ops": [
+        "freesimine"
+      ]
+    },
+    {
+      "Name": "VT3",
+      "Model": "vertikaalne töötluskeskus",
+      "LoadTime": 90,
+      "SetupTime": 0,
+      "Ops": [
+        "freesimine"
+      ]
+    },
+    {
+      "Name": "LI1",
+      "Model": "ümarlihvpink",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "lihvimine"
+      ]
+    },
+    {
+      "Name": "SI1",
+      "Model": "vibro- ja harjasilumine",
+      "LoadTime": 30,
+      "SetupTime": 0,
+      "Ops": [
+        "silumine"
+      ]
+    },
+    {
+      "Name": "PE1",
+      "Model": "pesumasin",
+      "LoadTime": 30,
+      "SetupTime": 0,
+      "Ops": [
+        "pesemine"
+      ]
+    },
+    {
+      "Name": "TR3",
+      "Model": "CNC treipink",
+      "LoadTime": 60,
+      "SetupTime": 600,
+      "Ops": [
+        "treimine (võll)",
+        "treimine (äärik)"
+      ]
+    },
+    {
+      "Name": "TK1",
+      "Model": "treitöötluskeskus",
+      "LoadTime": 60,
+      "SetupTime": 600,
+      "Ops": [
+        "treifreesimine"
+      ]
+    },
+    {
+      "Name": "5X1",
+      "Model": "5-teljeline töötluskeskus",
+      "LoadTime": 120,
+      "SetupTime": 900,
+      "Ops": [
+        "5-teljeline (korpus)",
+        "5-teljeline (tiivik)"
+      ]
+    },
+    {
+      "Name": "5X2",
+      "Model": "5-teljeline töötluskeskus",
+      "LoadTime": 120,
+      "SetupTime": 900,
+      "Ops": [
+        "5-teljeline (korpus)",
+        "5-teljeline (tiivik)"
+      ]
+    },
+    {
+      "Name": "5X3",
+      "Model": "5-teljeline töötluskeskus",
+      "LoadTime": 120,
+      "SetupTime": 900,
+      "Ops": [
+        "5-teljeline (korpus)",
+        "5-teljeline (tiivik)"
+      ]
+    },
+    {
+      "Name": "EP1",
+      "Model": "elektropoleerimisliin",
+      "LoadTime": 30,
+      "SetupTime": 0,
+      "Ops": [
+        "elektropoleerimine"
+      ]
+    },
+    {
+      "Name": "KMM1",
+      "Model": "koordinaatmõõtemasin",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "mõõtmine"
+      ]
+    }
+  ],
+  "Buffers": [
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 5,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    }
+  ],
+  "Storage": {
+    "Capacity": 40,
+    "LoadTime": 20
+  },
+  "Workpieces": [
+    {
+      "Name": "Võll Ø20",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (võll)",
+              "Mean": 420,
+              "Dev": 40
+            },
+            {
+              "Op": "freesimine",
+              "Mean": 240,
+              "Dev": 20
+            },
+            {
+              "Op": "lihvimine",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Võll Ø40",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (võll)",
+              "Mean": 720,
+              "Dev": 70
+            },
+            {
+              "Op": "freesimine",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "lihvimine",
+              "Mean": 480,
+              "Dev": 50
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 150,
+              "Dev": 20
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 240,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Puks",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (äärik)",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Äärik DN50",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (äärik)",
+              "Mean": 540,
+              "Dev": 50
+            },
+            {
+              "Op": "freesimine",
+              "Mean": 360,
+              "Dev": 40
+            },
+            {
+              "Op": "silumine",
+              "Mean": 240,
+              "Dev": 20
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Äärik DN80",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (äärik)",
+              "Mean": 780,
+              "Dev": 80
+            },
+            {
+              "Op": "freesimine",
+              "Mean": 480,
+              "Dev": 50
+            },
+            {
+              "Op": "silumine",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 150,
+              "Dev": 20
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 240,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Kronstein Al",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine",
+              "Mean": 600,
+              "Dev": 60
+            },
+            {
+              "Op": "silumine",
+              "Mean": 180,
+              "Dev": 20
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Kronstein RV",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine",
+              "Mean": 900,
+              "Dev": 90
+            },
+            {
+              "Op": "silumine",
+              "Mean": 240,
+              "Dev": 20
+            },
+            {
+              "Op": "elektropoleerimine",
+              "Mean": 420,
+              "Dev": 40
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Korpus Al",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "5-teljeline (korpus)",
+              "Mean": 1500,
+              "Dev": 150
+            },
+            {
+              "Op": "silumine",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 150,
+              "Dev": 20
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 360,
+              "Dev": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Kaas Al",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine",
+              "Mean": 720,
+              "Dev": 70
+            },
+            {
+              "Op": "silumine",
+              "Mean": 180,
+              "Dev": 20
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Tiivik",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (äärik)",
+              "Mean": 480,
+              "Dev": 50
+            },
+            {
+              "Op": "5-teljeline (tiivik)",
+              "Mean": 1800,
+              "Dev": 180
+            },
+            {
+              "Op": "elektropoleerimine",
+              "Mean": 420,
+              "Dev": 40
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 150,
+              "Dev": 20
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 360,
+              "Dev": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Liitmik",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treifreesimine",
+              "Mean": 600,
+              "Dev": 60
+            },
+            {
+              "Op": "elektropoleerimine",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        },
+        {
+          "Priority": 2,
+          "Ops": [
+            {
+              "Op": "treimine (äärik)",
+              "Mean": 540,
+              "Dev": 50
+            },
+            {
+              "Op": "freesimine",
+              "Mean": 360,
+              "Dev": 40
+            },
+            {
+              "Op": "elektropoleerimine",
+              "Mean": 300,
+              "Dev": 30
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 90,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Ventiilikorpus",
+      "Priority": 1,
+      "Batch": 10,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treifreesimine",
+              "Mean": 900,
+              "Dev": 90
+            },
+            {
+              "Op": "5-teljeline (korpus)",
+              "Mean": 1200,
+              "Dev": 120
+            },
+            {
+              "Op": "elektropoleerimine",
+              "Mean": 420,
+              "Dev": 40
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 150,
+              "Dev": 20
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 360,
+              "Dev": 40
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Sim": {
+    "Seed": 1,
+    "Duration": 28800,
+    "Kl": 0.3,
+    "StallTime": 900,
+    "Distribution": "Triangular"
+  }
+}

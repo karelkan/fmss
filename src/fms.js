@@ -6,9 +6,9 @@ import { EmptyModel, ModelSummary, MAX_WORKPIECE_TYPES } from './fms_glb.js';
 import { Enumerate, SimState } from './fms_sim.js';
 import {
   STATIC_TOPICS, DYNAMIC_TOPICS, KeepReport, LastSimulation, StaticReport, DynamicReport, ReportText, ReportFileName,
-  ShowReport, CloseReport,
+  ShowReport, CloseReport, SimSummaryLines,
 } from './fms_rep.js';
-import { StartAnimator, StopAnimator, ClockText } from './anima.js';
+import { StartAnimator, StopAnimator } from './anima.js';
 import { EditLayout, ViewLayout, StopEditor, EnsureTrack, NoteEditorChange, SetEditorCursor, EditorCursorRect } from './fms_ed.js';
 import {
   EditConfig, ConfigAllCells, EditTransportSystem, EditWorkpieceData, NewWorkpiece, CopyWorkpiece, FlushWorkpiece,
@@ -22,7 +22,7 @@ import {
 import { ROW_HEIGHT, CreateEgaTheme, CreateModernTheme, LoadEgaFont } from './fms_theme.js';
 import {
   InitScreen, SetTheme, SetFullScreen, SetDesktop, SetHotkeys, RequestRedraw,
-  MessageBox, ListBox, InputBox, FormBox, DialogOpen,
+  MessageBox, MessageBoxMaxLines, ListBox, InputBox, FormBox, DialogOpen,
 } from './windows.js';
 
 // =====================================================================
@@ -294,11 +294,6 @@ function MenuWriteAs() {
 // =====================================================================
 
 const SIM_SHOWN_ERRORS = 8;    // [U] mitu viga dialoogis näidatakse
-const SIM_SHOWN_OBJECTS = 6;   // [U] mitu pinki / puhvrit kokkuvõttes näidatakse
-
-// [U] Percent, Decimal – protsent ja kümnendmurd (komaga) kokkuvõttes.
-const Percent = (value) => `${Math.round(value * 100)} %`;
-const Decimal = (value, digits = 1) => value.toFixed(digits).replace('.', ',');
 
 // [U] CheckLine – kontrolli tulemus dialoogi reaks (lahtri asukoht on juba teates).
 function CheckLine(problem) {
@@ -329,62 +324,12 @@ function MenuSimulate() {
     Network: result.Network,
     OnSummary: (report, onClose) => {
       KeepReport(report, SimState(), modelText, fileName);
-      MessageBox(Texts.SimTitle, SimSummaryLines(report, result.Warnings), [Texts.ButtonOk, Texts.ButtonReport], (button) => {
+      MessageBox(Texts.SimTitle, SimSummaryLines(report, result.Warnings, MessageBoxMaxLines()), [Texts.ButtonOk, Texts.ButtonReport], (button) => {
         if (onClose) onClose();
         if (button === 1) FullReport();
       });
     },
   });
-}
-
-// [U] SimSummaryLines – simulatsiooni kokkuvõte dialoogi ridadeks.
-function SimSummaryLines(report, warnings) {
-  const limited = (items, format) => {
-    const lines = items.slice(0, SIM_SHOWN_OBJECTS).map(format);
-    if (items.length > SIM_SHOWN_OBJECTS) lines.push(FormatText(Texts.SimMore, { Count: items.length - SIM_SHOWN_OBJECTS }));
-    return lines;
-  };
-  const lines = [
-    FormatText(Texts.SimHeader, { Name: report.Model || Texts.DesktopUntitled, Time: ClockText(report.Time), Seed: report.Seed }),
-  ];
-  if (report.Deadlock) {
-    lines.push({ Text: FormatText(Texts.SimDeadlock, { Time: ClockText(report.Time), Reason: report.DeadlockReason }), Role: 'Error' });
-  }
-  lines.push(
-    FormatText(Texts.SimCounts, report),
-    ...(report.Crashes > 0 ? [FormatText(Texts.SimCrashes, report)] : []),
-    FormatText(Texts.SimThroughput, { Throughput: Decimal(report.ThroughputPerHour), Cycle: ClockText(Math.round(report.AvgCycleTime)) }),
-    FormatText(Texts.SimShares1, { Process: Percent(report.Shares.Process), Setup: Percent(report.Shares.Setup), Load: Percent(report.Shares.Load) }),
-    FormatText(Texts.SimShares2, { Transport: Percent(report.Shares.Transport), Wait: Percent(report.Shares.Wait) }),
-    ...limited(report.Machines, (machine) => FormatText(machine.Crashes > 0 ? Texts.SimMachineDown : Texts.SimMachine, {
-      Name: machine.Name, Utilization: Percent(machine.Utilization), Processing: Percent(machine.ProcessingShare), Ops: machine.OpsDone,
-      Down: Percent(machine.DownShare), Crashes: machine.Crashes,
-    })),
-    ...limited(report.Buffers, (buffer) => FormatText(Texts.SimBuffer, {
-      Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,
-    })),
-    ...report.Tracks.flatMap((track) => {
-      // mitu kohta alusel (7c): täituvus ja kogumissõidud
-      const places = track.Places > 1
-        ? [FormatText(Texts.SimPlaces, { Places: track.Places, Avg: Decimal(track.AvgLoad), Max: track.MaxLoad, Pooled: track.Pooled })]
-        : [];
-      if (!track.Discrete) return [FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops }), ...places];
-      const average = (state) => track.Carts.reduce((sum, cart) => sum + cart[state], 0) / track.Carts.length;
-      return [
-        FormatText(Texts.SimCarts, { Name: track.Name, Count: track.Carts.length, Collisions: track.Collisions }),
-        FormatText(Texts.SimCartsShares, {
-          Loaded: Percent(average('LOADED')), Empty: Percent(average('EMPTY')),
-          Loading: Percent(average('LOADING')), Waiting: Percent(average('WAIT_ZONE')),
-        }),
-        ...places,
-      ];
-    }),
-    ...report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector)),
-  );
-  if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
-  for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });
-  lines.push('', Texts.SimReportHint);
-  return lines;
 }
 
 // =====================================================================

@@ -370,6 +370,12 @@ function HandleMenuKey(name) {
 // Tulemus: nupu indeks; nimekirjas valitud rea indeks; sisestusväljas tekst; Esc → null.
 
 // [O] MessageBox – teade nuppudega. onClose(nupu indeks | null).
+// [U] MessageBoxMaxLines – mitu tekstirida mahub nuppudega MessageBoxi menüü- ja olekurea vahele
+//     (DialogLayout: pealkiri + read + nupud 2 rida + 1 rida varu). EGA-s 19. Kutsub: fms.js (kokkuvõte).
+export function MessageBoxMaxLines() {
+  return Math.floor(ActiveTheme.Height / ROW_HEIGHT) - 6;
+}
+
 export function MessageBox(title, lines, buttons = [Texts.ButtonOk], onClose = null) {
   OpenDialog({ Title: title, Lines: lines, Buttons: buttons, ButtonIndex: 0, OnClose: onClose });
 }

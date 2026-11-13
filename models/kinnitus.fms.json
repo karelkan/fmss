@@ -1,0 +1,1037 @@
+{
+  "Meta": {
+    "Name": "Kinnitustehas (poldid ja mutrid)",
+    "Version": 1
+  },
+  "Scale": 200,
+  "Layout": {
+    "Dim": {
+      "X": 22,
+      "Y": 8
+    },
+    "Cells": [
+      {
+        "X": 3,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 2
+      },
+      {
+        "X": 7,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 3
+      },
+      {
+        "X": 9,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 4
+      },
+      {
+        "X": 11,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 5
+      },
+      {
+        "X": 13,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 6
+      },
+      {
+        "X": 15,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 7
+      },
+      {
+        "X": 17,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 8
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 2
+      },
+      {
+        "X": 7,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 3
+      },
+      {
+        "X": 9,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 4
+      },
+      {
+        "X": 11,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 5
+      },
+      {
+        "X": 13,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 6
+      },
+      {
+        "X": 15,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 7
+      },
+      {
+        "X": 17,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 8
+      },
+      {
+        "X": 2,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 10,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 13,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 14,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 15,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 16,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 17,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 18,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 19,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 1
+      },
+      {
+        "X": 0,
+        "Y": 3,
+        "T": "FromCS"
+      },
+      {
+        "X": 1,
+        "Y": 3,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 2,
+        "Y": 3,
+        "T": "TeeW",
+        "N": 1
+      },
+      {
+        "X": 19,
+        "Y": 3,
+        "T": "TeeE",
+        "N": 1
+      },
+      {
+        "X": 20,
+        "Y": 3,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 21,
+        "Y": 3,
+        "T": "ToCS"
+      },
+      {
+        "X": 2,
+        "Y": 4,
+        "T": "VertTr",
+        "N": 1,
+        "Dir": "N"
+      },
+      {
+        "X": 19,
+        "Y": 4,
+        "T": "TeeE",
+        "N": 1
+      },
+      {
+        "X": 20,
+        "Y": 4,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 21,
+        "Y": 4,
+        "T": "SysOut"
+      },
+      {
+        "X": 2,
+        "Y": 5,
+        "T": "ArcNE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 10,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 13,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 14,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 15,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 16,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 17,
+        "Y": 5,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 18,
+        "Y": 5,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "W"
+      },
+      {
+        "X": 19,
+        "Y": 5,
+        "T": "ArcNW",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 9
+      },
+      {
+        "X": 5,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 10
+      },
+      {
+        "X": 7,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 11
+      },
+      {
+        "X": 9,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 12
+      },
+      {
+        "X": 11,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 13
+      },
+      {
+        "X": 13,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 14
+      },
+      {
+        "X": 15,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 15
+      },
+      {
+        "X": 17,
+        "Y": 6,
+        "T": "InOutBuf",
+        "N": 16
+      },
+      {
+        "X": 3,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 9
+      },
+      {
+        "X": 5,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 10
+      },
+      {
+        "X": 7,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 11
+      },
+      {
+        "X": 9,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 12
+      },
+      {
+        "X": 11,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 13
+      },
+      {
+        "X": 13,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 14
+      },
+      {
+        "X": 15,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 15
+      },
+      {
+        "X": 17,
+        "Y": 7,
+        "T": "MachToolUp",
+        "N": 16
+      }
+    ]
+  },
+  "EdgeLengths": [],
+  "Tracks": [
+    {
+      "Name": "Konveier",
+      "Mode": "Continuous",
+      "Carts": 14,
+      "PlacesPerCart": 1,
+      "Speed": 25,
+      "LoadTime": 10,
+      "AccessTime": 0
+    }
+  ],
+  "Machines": [
+    {
+      "Name": "KP1",
+      "Model": "külmpress 5 pos.",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "külmpressimine"
+      ]
+    },
+    {
+      "Name": "KP2",
+      "Model": "külmpress 5 pos.",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "külmpressimine"
+      ]
+    },
+    {
+      "Name": "KP3",
+      "Model": "külmpress 5 pos.",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "külmpressimine"
+      ]
+    },
+    {
+      "Name": "MP1",
+      "Model": "mutripress",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "mutripressimine"
+      ]
+    },
+    {
+      "Name": "MP2",
+      "Model": "mutripress",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "mutripressimine"
+      ]
+    },
+    {
+      "Name": "KR1",
+      "Model": "keermerullija",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "keermerullimine"
+      ]
+    },
+    {
+      "Name": "KR2",
+      "Model": "keermerullija",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "keermerullimine"
+      ]
+    },
+    {
+      "Name": "KT1",
+      "Model": "mutrikeermestaja",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "keermepuurimine"
+      ]
+    },
+    {
+      "Name": "KT2",
+      "Model": "mutrikeermestaja",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "keermepuurimine"
+      ]
+    },
+    {
+      "Name": "AH1",
+      "Model": "lintahi",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "karastamine"
+      ],
+      "CrashMean": 14400,
+      "RepairMean": 2700,
+      "RepairDev": 900
+    },
+    {
+      "Name": "AH2",
+      "Model": "lintahi",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "karastamine"
+      ],
+      "CrashMean": 14400,
+      "RepairMean": 2700,
+      "RepairDev": 900
+    },
+    {
+      "Name": "TS1",
+      "Model": "trummel-tsinkimisliin",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "tsinkimine"
+      ]
+    },
+    {
+      "Name": "TS2",
+      "Model": "trummel-tsinkimisliin",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "tsinkimine"
+      ]
+    },
+    {
+      "Name": "TS3",
+      "Model": "trummel-tsinkimisliin",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "tsinkimine"
+      ]
+    },
+    {
+      "Name": "OS1",
+      "Model": "optiline sorteerija",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "sorteerimine"
+      ]
+    },
+    {
+      "Name": "OS2",
+      "Model": "optiline sorteerija",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "sorteerimine"
+      ]
+    }
+  ],
+  "Buffers": [
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 10
+    }
+  ],
+  "Storage": {
+    "Capacity": 40,
+    "LoadTime": 20
+  },
+  "Workpieces": [
+    {
+      "Name": "Polt M8",
+      "Priority": 1,
+      "Batch": 4545,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "külmpressimine",
+              "Mean": 1360,
+              "Dev": 70
+            },
+            {
+              "Op": "keermerullimine",
+              "Mean": 1090,
+              "Dev": 50
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 600,
+              "Dev": 30
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 900,
+              "Dev": 50
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 910,
+              "Dev": 50
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Polt M10",
+      "Priority": 1,
+      "Batch": 2381,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "külmpressimine",
+              "Mean": 950,
+              "Dev": 50
+            },
+            {
+              "Op": "keermerullimine",
+              "Mean": 710,
+              "Dev": 40
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 600,
+              "Dev": 30
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 900,
+              "Dev": 50
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 480,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Polt M12",
+      "Priority": 1,
+      "Batch": 1449,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "külmpressimine",
+              "Mean": 790,
+              "Dev": 40
+            },
+            {
+              "Op": "keermerullimine",
+              "Mean": 580,
+              "Dev": 30
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 600,
+              "Dev": 30
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 900,
+              "Dev": 50
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 350,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Polt M16",
+      "Priority": 1,
+      "Batch": 625,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "külmpressimine",
+              "Mean": 630,
+              "Dev": 30
+            },
+            {
+              "Op": "keermerullimine",
+              "Mean": 420,
+              "Dev": 20
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 600,
+              "Dev": 30
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 900,
+              "Dev": 50
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 190,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Mutter M8",
+      "Priority": 1,
+      "Batch": 5000,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "mutripressimine",
+              "Mean": 1200,
+              "Dev": 60
+            },
+            {
+              "Op": "keermepuurimine",
+              "Mean": 1500,
+              "Dev": 80
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 150,
+              "Dev": 10
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 230,
+              "Dev": 10
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 750,
+              "Dev": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Mutter M10",
+      "Priority": 1,
+      "Batch": 2273,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "mutripressimine",
+              "Mean": 620,
+              "Dev": 30
+            },
+            {
+              "Op": "keermepuurimine",
+              "Mean": 910,
+              "Dev": 50
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 150,
+              "Dev": 10
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 230,
+              "Dev": 10
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 340,
+              "Dev": 20
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Mutter M12",
+      "Priority": 1,
+      "Batch": 1471,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "mutripressimine",
+              "Mean": 490,
+              "Dev": 20
+            },
+            {
+              "Op": "keermepuurimine",
+              "Mean": 740,
+              "Dev": 40
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 150,
+              "Dev": 10
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 230,
+              "Dev": 10
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 250,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Mutter M16",
+      "Priority": 1,
+      "Batch": 781,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "mutripressimine",
+              "Mean": 330,
+              "Dev": 20
+            },
+            {
+              "Op": "keermepuurimine",
+              "Mean": 590,
+              "Dev": 30
+            },
+            {
+              "Op": "karastamine",
+              "Mean": 150,
+              "Dev": 10
+            },
+            {
+              "Op": "tsinkimine",
+              "Mean": 230,
+              "Dev": 10
+            },
+            {
+              "Op": "sorteerimine",
+              "Mean": 160,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Sim": {
+    "Seed": 1,
+    "Duration": 28800,
+    "Kl": 0.4,
+    "StallTime": 900,
+    "Distribution": "Triangular"
+  }
+}
