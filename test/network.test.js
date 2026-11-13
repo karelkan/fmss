@@ -90,9 +90,10 @@ test('G: Enumerate – kaks rada, konnektori jaam kummalgi, asukohad metrokaardi
 test('G: StationPaths – tee üle konnektori, mõlemas suunas', () => {
   const network = NetworkOf(LayoutG());
   const paths = StationPaths(network);
-  assert.deepEqual(paths[0][4], { Length: 700, Legs: [{ Track: 0, From: 0, To: 1 }, { Track: 1, From: 3, To: 4 }] });
-  assert.deepEqual(paths[4][2], { Length: 1000, Legs: [{ Track: 1, From: 4, To: 3 }, { Track: 0, From: 1, To: 2 }] });
-  assert.deepEqual(paths[1][1], { Length: 0, Legs: [{ Track: 0, From: 1, To: 1 }] });   // silmus: ring ümber
+  // Time = pikkus / kiirus (20 cm/s) – teed valitakse aja järgi (etapp 7b)
+  assert.deepEqual(paths[0][4], { Length: 700, Time: 35, Legs: [{ Track: 0, From: 0, To: 1 }, { Track: 1, From: 3, To: 4 }] });
+  assert.deepEqual(paths[4][2], { Length: 1000, Time: 50, Legs: [{ Track: 1, From: 4, To: 3 }, { Track: 0, From: 1, To: 2 }] });
+  assert.deepEqual(paths[1][1], { Length: 0, Time: 0, Legs: [{ Track: 0, From: 1, To: 1 }] });   // silmus: ring ümber
 });
 
 // G1. Üks detail korraga (Kl 0,1), üks alus kummalgi rajal (20 cm/s, ring 50 s), laadimine 10 s.
@@ -425,10 +426,7 @@ test('EdgeLengths: kirje, mille lahtrid pole ühelgi rajal', () => {
   assertEnumError(model, 'ühe lõigu');
 });
 
-test('Hilisemad etapid: diskreetne rada (7b) ja mitu kohta kärul (7c)', () => {
-  const discrete = LayoutG();
-  discrete.Tracks[1].Mode = 'Discrete';
-  assertEnumError(discrete, 'etapis 7b');
+test('Hilisem etapp: mitu kohta kärul (7c)', () => {
   const places = LayoutG();
   places.Tracks[0].PlacesPerCart = 2;
   assertEnumError(places, 'etapis 7c');

@@ -231,3 +231,54 @@ Mõju (seeme 1, pink 120 s, 8 h):
 | 3 | 204 / 100 % | 137 / 68 % |
 
 Ühe konnektoriga oli konnektor pudelikael (see on 7a leid 2: konnektor on broneeritud kogu tee ajaks); teine konnektor kaotab selle. Broneerimine alles lähenedes jääb hilisemaks.
+
+## Diskreetne rada (AGV-d)
+
+Uus loogika: [DISAIN.md](DISAIN.md) osa 11. Testid: [test/agv.test.js](test/agv.test.js). Kõik simulatsioonid kontrollivad invariante igal sekundil, nende hulgas uued (`CheckCarts`): igas tsoonis kõige rohkem üks käru ja käru on ainult enda broneeritud tsoonis; broneeritud tsoonid on käru kohal või tema teel; ühesuunalist lõiku läbitakse õiges suunas; koormaga käru sõidab detaili sõidu lõppjaama poole.
+
+Enne täisteostust kontrolliti simulaatorit; alles siis tehti animaator ja redaktor.
+
+### Käsitsi arvutatud ajad
+
+| Test | Tulemus |
+|---|---|
+| **I1** üks AGV joonel (FromCS, BUF1, SysOut; 50 cm/s, laadimine 10 s), üks detail | tsükliaeg **371 s** – täpselt käsitsi arvutatud (arvutus testi kommentaaris): tühisõit 2 s, 6 laadimist, koormaga 8 s ✔ |
+| **E1** kaks käru vastassuunas, kaks haru hargnemiste vahel (lühem 457 cm, pikem 657 cm) | teine käru teeb kohe ümbersõidu pikemat haru mööda; kohal **t=7** ja **t=9** – täpselt sõiduajad, keegi ei oota, `Collision` 0 ✔ |
+| **E2** kaks käru vastassuunas joonel, hargnemisest kõrvalharu jaama | mõlemad jõuavad hargnemise ette (t=2), ring → `Collision` → käru 1 läheb kõrvalharule; kohal **t=5** ja **t=7** – nagu käsitsi ✔ |
+| **E3** sama joon ilma kõrvalharuta | ring → `Collision` → ümbersõitu ega kõrvalepõiget pole → simulatsioon peatub: „ootavad kärud üksteist (1, 2)“ ✔ |
+| **E4** möödasõidurada: pikk üherealine osa (1200 cm) – kaks haru – lühike osa | kahesuunaliste harudega (ümbersõit hargnemisel) ja ühesuunalistega (vastassuunalised nooled) sama: käru 2 ootab haru lõpus, kuni käru 1 on hargnemises; kohal **t=18** ja **t=24** – nagu käsitsi, `Collision` 0 ✔ |
+
+### Koormusega stsenaariumid (8 h, invariandid igal sekundil)
+
+| Test | Tulemus |
+|---|---|
+| **F** ristmik (`Cruise`), neli haru, igaühe otsas jaam – iga sõit läbib ristmikku; 1–3 käru, 5 seemet | ilma ummikuta, ristmikul korraga üks käru (invariant), suurim ootamine 32–40 s; korratav ✔ |
+| **I2** kaks käru üherealisel joonel (transport on pudelikael) | ilma ummikuta; teine käru on varuks – valmis sama palju kui ühega (513) ✔ |
+| **R** linnavõrk: kahesuunaline ringtee + põiktee, 3 pinki, ristmarsruudid, puhvrid 1 koht, keskladu (nagu 7a S); 1–4 käru, 5 seemet | ilma lahendamatu ummikuta, 58–60 valmis (pinkide ja puhvrite piir), parkimisi 1; korratav ✔ |
+| **M** segavõrk: pidev silmus (FromCS, SysOut) – konnektor – AGV-joon (MT1, MT2) | 115 valmis, iga detail läbib konnektorit kaks korda (232 ülekannet) ✔ |
+| **N** näidismudel diskreetse rajana, **ühesuunaline ring** (nool igal lõigul) | 1–5 käru (5 käru 5 sõlmel) ilma ummikuta ja ilma `Collision`-ita, 79–85 valmis ✔ |
+| **N** näidismudel nagu failis (üks nool – üks ühesuunaline lõik, muu kahesuunaline, möödumiskohti pole) | 1–2 käru: 83 valmis (pidevana 84); 3 käru: ummik ~40 min pärast, selge teade ✔ (vt leid 6) |
+| **P** paralleelsed konnektorid, **G, G2, H, S, A, C** jm – pidevad rajad pärast teede ajakaalu | tulemused samad ✔ |
+| **Invariantide kontroll** – meelega vead: tsoon ilma broneeringuta, kaks käru ühes tsoonis, käru vastu ühesuunalist lõiku | kõik tabati kohe ✔ |
+| **Andmekontroll** – vastuolulised nooled samal lõigul, rada kahes tükis, kärusid rohkem kui sõlmi, ühesuunaline lõik teeb pingi kättesaamatuks | viga ✔ |
+
+Kärude arvu mõju, kui transport on pudelikael (**F**, seeme 1):
+
+| Kärusid | Valmis 8 h | Pingid MT1 / MT2 | Käru keskmiselt: tühi / koormaga / laadib / ootab / vaba |
+|---|---|---|---|
+| 1 | 196 | 54 % / 48 % | 17 / 41 / 41 / 0 / 1 % |
+| 2 | 248 | 69 % / 60 % | 13 / 26 / 26 / 3 / 33 % |
+| 3 | 251 | 69 % / 62 % | 13 / 18 / 18 / 5 / 47 % |
+
+Teine käru annab +27 %, kolmas peaaegu mitte midagi: kõik sõidud läbivad sama ristmikku ja harud on üherealised (iga haru on korraga ühe käru käes) – pudelikael on rajavõrk, mitte kärud.
+
+### Leiud
+
+1. **Plokk koos lõpusõlmega takistas möödumist** (ettepaneku arutelus): kui käru ootab ainult sõlmes, ei saa möödasõiduraja harul oodata. Plokk lõpeb nüüd hargnemise ees ja käru ootab lõigu lõpus (E4).
+2. **Teine käru üherealisel joonel vähendas läbilaskevõimet** (378 vs 513, −26 %, 378 `Collision`-it): vaba käru seisis teise käru sihtjaamas, sai töö teisel pool teda ja pidi mööda pääsema. Parandus `FindPal`-is: eelistatud on käru, kelle teel pole teist käru, ja muidu ootab soov kuni 30 s (`REQUEST_PATIENCE`) – nüüd 513 ja 0 `Collision`-it.
+3. **Näiline ummik** (R, 4 käru): `CollisionProc` pidas ümbersõidu takistuseks ka ringist väljas olevaid kärusid (liikuv käru, vaba käru hargnemises). Parandus: arvesse lähevad ainult ringi kärude tsoonid; vaba käru ei jää seisma hargnemisse.
+4. **Vabade kärude ahel**: koormaga käru ootas vaba käru oma sihtjaamas, kelle ainsa väljapääsu sulges teine vaba käru – ringi polnud, ootamine kestis lõputult (25 000 s). Parandus: kõrvale mineva vaba käru teed takistavad ainult seisvad (ootavad, laadivad) kärud; teised vabad kärud lükatakse järgmisel sekundil edasi; kõrvale saamata vaba käru on ootegraafis ootaja (tema väljapääsude hoidjate järel) – nii leitakse ka „tühi käru taskus“ ring.
+5. **Ühesuunaline ring jäi tihedalt kinni** (4 käru 5 sõlmel): plokk nõudis koos sõlmega järgmist lõiku, nii et kärud ei saanud tühja sõlme oodata. Ühesuunalise lõigu ees on nüüd plokk ainult sõlm; ühesuunalise lõigu lõpus võib oodata ka siis, kui järgmine sõlm on tee lõpp. Tulemus: 5 käru 5 sõlmel töötab.
+6. **Lõputu ringlemine** (näidismudel, 3 käru, kahesuunaline ring): igal sekundil `Collision` ja ümbersõit, mis ei aidanud (26 599 korda 8 h jooksul). Parandus: kui ring (mõne samaga kärudest) kordub kohe, ümbersõitu ei proovita; 10 korda järjest → ummik ja selge teade. **Järeldus struktuuri kohta**: kahesuunalisel ringil, kus pole möödumiskohti, ei leia kohalikud reeglid 3 käru korral lahendust, mis vajaks mitme sammu plaani – selline paigutus sobib kuni kahele kärule; suunanooled (ühesuunaline ring) või möödasõidurajad lahendavad selle.
+
+**Mida see EI kontrolli:** tsoonide tükeldamist (`ZoneLength`), parkimiskohti, kärude kiirendust ja pikkust (käru on punkt), mitut detaili kärul (7c), rikkeid (8).

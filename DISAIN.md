@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Osa 11 (AGV-d) on veel valideerimata.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -63,10 +63,10 @@ Uus lahendus:
 
 ### 2.1 `Enumerate` – teostus (etapp 4) **[T + U]**
 
-Etapis 4 toetas `Enumerate` ühte suletud pidevat konveierit. Etapist 7a on rajavõrk graaf: mitu rada, konnektorid ja avatud konveier (osa 2.3). Diskreetne rada (7b) ja mitu detaili alusel (7c) annavad veel selge vea „… pole veel toetatud“.
+Etapis 4 toetas `Enumerate` ühte suletud pidevat konveierit. Etapist 7a on rajavõrk graaf: mitu rada, konnektorid ja avatud konveier (osa 2.3); etapist 7b ka diskreetne rada (`TraceGraph`, osa 11.1). Mitu detaili alusel (7c) annab veel selge vea „… pole veel toetatud“.
 
 - **Ikoonide küljed** (`IconTypes[...].Ports`, `fms_glb.js`): `HorTr` W–E, `VertTr` N–S, kaared oma kahe küljega (`ArcSE` = S, E), `Tee*` läbib W–E või N–S ja haru (`Branch`) on nimes olev külg (`TeeN` → haru N), `Cruise` neli külge (ühendatud ristmik), `CrossOver` neli külge, aga ei ühenda (sild, osa 2.3). Y kasvab alla.
-- **Suunanool** **[O]**: originaalis oli pideva raja liikumissuund nool ühe raja ikooni kõrval („kirjeldatakse ühel raja ikoonil“). Mudelis on see lahtri väli `"Dir": "N" | "E" | "S" | "W"` – **külg, kust kärud ikoonist väljuvad**. Lubatud ainult raja sirgel ja kaarel ning ainult ikooni külgede suunas (`DirectionPorts`): `HorTr` → `E`/`W`, `ArcSE` → `S`/`E`; hargnemisel, ristmikul ja punktiirühendusel noolt ei ole (`CheckModel`). Diskreetsel rajal noolt ei kasutata.
+- **Suunanool** **[O]**: originaalis oli pideva raja liikumissuund nool ühe raja ikooni kõrval („kirjeldatakse ühel raja ikoonil“). Mudelis on see lahtri väli `"Dir": "N" | "E" | "S" | "W"` – **külg, kust kärud ikoonist väljuvad**. Lubatud ainult raja sirgel ja kaarel ning ainult ikooni külgede suunas (`DirectionPorts`): `HorTr` → `E`/`W`, `ArcSE` → `S`/`E`; hargnemisel, ristmikul ja punktiirühendusel noolt ei ole (`CheckModel`). Diskreetsel rajal teeb nool lõigu ühesuunaliseks (osa 11.1).
 - **Mitu noolt** **[T]**: lubatud, kui need on kooskõlas (sama ringi suund); vastuolu on viga. Originaali lahendust me ei tea.
 - **Rada** (`TraceTrack`, `WalkTrack`): alustatakse esimesest noolega ikoonist, väljutakse noole küljest ja liigutakse naabrite kaudu, kuni jõutakse tagasi (**silmus**) või rada lõpeb (**avatud konveier** – siis käiakse ka noolest vastuvoolu raja alguseni, osa 2.3). Rada lõpeb tühja lahtri, objekti või konnektori juures. Vead: naaber ei sobi (viga 1), teise raja ikoon ilma konnektorita, ristmik või haru, mis pole punktiirühendus (viga 2), sama lahter kaks korda, raja ikoon rajast väljas.
 - **Jaam** (`FindStations`, `FollowDotLink`): igal hargnemisel peab haru olema punktiirühendus (üks või mitu `Dot`-ikooni, võib ka kohe objekt olla), mis viib puhvri, `FromCS`, `ToCS`, `SysOut`-i või konnektorini (konnektorisse selle raja küljest). Jaama asukoht on hargnemisikooni keskpunkt. Avatud raja ots konnektori kõrval on samuti jaam – otsaikooni keskel.
@@ -101,7 +101,7 @@ Originaalis: „Rajad on seotud konnektorite, tööpinkide või puhvrite kaudu�
 - **Mitu rada** **[O]**: iga raja number `N` on oma pidev konveier (silmus või avatud). Rajad on ühendatud ainult **konnektoritega**; kaks rada, mis puutuvad ilma konnektorita, on viga.
 - **Konnektor** **[U]** (osa 10.2): kahe raja ülekandekoht, mis **mahutab ühe detaili** (nullmahutavusega puhver nõuaks, et mõlema raja alused oleksid korraga kohal). Kummalgi küljel on üks rada: raja ots (`HorCon` W/E, `VertCon` N/S küljel) või punktiir hargnemisest. Kummalgi rajal on konnektori jaam. Andmeid pole: laadimisaeg tuleb rajalt (`LoadTime`), nimi `CON1`, `CON2` … joonise järjekorras.
 - **Avatud konveier** **[U]** (osa 10.1): rada, mis ei sulgu. Alused liiguvad nagu silmusel, aga raja lõpust lähevad nad (tühjalt) **otse algusesse** tagasi – nagu lindikonveier, mille tagasitee pole joonisel. Pikkus = raja pikkus. Jaamad on ikoonide keskel, seega mitte kunagi päris otstes.
-- **Transporditee** (`StationPaths`) **[U]**: lühim tee jaamast jaama (Dijkstra, viigi korral vähem sõlmi): rada mööda liikumissuunas, konnektori kaudu teisele rajale (pikkus 0). Avatud konveieril ainult **allavoolu**. Tee = sõidud (`Legs`: rada, algus- ja lõppjaam), nende vahel konnektorid. Arvutatakse `Enumerate`-s (kontroll) ja `SimInit`-is (`TransportPaths`); ühe lähtejaama teed annab `ShortestPaths`, millele saab öelda, milliseid konnektoreid läbida ei tohi.
+- **Transporditee** (`StationPaths`) **[U]**: lühim tee jaamast jaama (Dijkstra, viigi korral vähem sõlmi; etapist 7b kiireim – kaal on aeg = pikkus / kiirus, diskreetsel rajal raja graafis, osa 11.1): rada mööda liikumissuunas, konnektori kaudu teisele rajale (pikkus 0). Avatud konveieril ainult **allavoolu**. Tee = sõidud (`Legs`: rada, algus- ja lõppjaam), nende vahel konnektorid. Arvutatakse `Enumerate`-s (kontroll) ja `SimInit`-is (`TransportPaths`); ühe lähtejaama teed annab `ShortestPaths`, millele saab öelda, milliseid konnektoreid läbida ei tohi.
 - **Teele minek** (`Depart`) **[U]**: kui detailil on sihtkoht broneeritud (osa 5.2), valitakse **lühim vaba tee** (`FreePath`: kinnised konnektorid jäetakse välja – paralleelsetest konnektoritest võetakse vaba, etapp 7b) ja broneeritakse **kõik selle konnektorid korraga**. Siis ei jää detail kunagi konnektorisse järgmist ootama (ringootamist pole) ja koormaga alus ei pea avatud konveieri lõpust mööda sõitma. Kui vaba teed pole, jääb detail oma kohale (`WAIT_DEST`, sihtkoht jääb) ja Planner proovib igal kutsel uuesti. Sihtkoha valik (`FindMach`) kasutab endiselt lühimat teed sõltumata konnektorite seisust.
 - **Sõit** **[T]**: alus peatub mahalaadimiseks sõidu lõppjaamas (`Path[0].To`): sihtkohas või konnektoris. Konnektoris jääb detail `WAIT_PICKUP`-olekusse ja järgmise raja alus võtab ta sealt nagu puhvrist. Uus sündmuse objekt `Connector` (`Load` aluselt konnektorisse ja konnektorist alusele).
 - **Valik** **[T]**: `FindMach` arvestab ainult pinke, kuhu tee viib, ja „lähim“ on tee pikkus (ühe silmuse korral sama mis varem). Ummiku tuvastus (`FindDeadlockedWorkpieces`) arvestab samuti ainult kättesaadavaid pinke; tee ootel detail (konnektor kinni) loetakse liikuvaks, sest konnektor vabaneb alati.
@@ -340,8 +340,8 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 | **B. Näidis-PTS** – joon. 5.5: kaks pinki, `InOutBuf` ja `TurnBuf`, `FromCS`, `ToCS`, `SysOut` | Töötab lõpuni, mõistlik statistika. |
 | **C. Ristmarsruudid** – kaks tüüpi detaile, A→B ja B→A, väikesed puhvrid, kõrge `Kl` | Ummik tekib → avastatakse → lahendatakse kesklao kaudu. |
 | **D. Juhuslikkus** – sama seeme kaks korda | Tulemused identsed. |
-| **E. Vastassuunas kärud** – diskreetne rada, kaks käru vastassuunas samal kahesuunalisel lõigul (etapp 7) | Kokkupõrget ei toimu; vastastikune ootamine avastatakse ja Planner lahendab selle (ümbersõit või ootele). |
-| **F. Ristmik** – mitu käru, kõigi teekond läbi sama ristmiku (etapp 7) | Ristmikul on korraga üks käru; keegi ei jää lõputult ootama. |
+| **E. Vastassuunas kärud** – diskreetne rada, kaks käru vastassuunas samal kahesuunalisel lõigul (etapp 7b) | Kokkupõrget ei toimu; vastastikune ootamine avastatakse ja Planner lahendab selle (ümbersõit või ootele). *Valideeritud:* E1 ümbersõit, E2 kõrvalepõige, E3 lahendamatu → teade, E4 möödasõidurada. |
+| **F. Ristmik** – mitu käru, kõigi teekond läbi sama ristmiku (etapp 7b) | Ristmikul on korraga üks käru; keegi ei jää lõputult ootama. *Valideeritud* (1–3 käru, 5 seemet, suurim ootamine < 40 s). |
 
 Invariandid, mida kontrollitakse igal sekundil:
 - detailide arv: sisse tulnud − lahkunud = süsteemis olevad;
@@ -361,99 +361,75 @@ Invariandid, mida kontrollitakse igal sekundil:
 
 ---
 
-## 11. Diskreetsed rajad: transpordirobotid ja AGV-d (etapp 7)
+## 11. Diskreetsed rajad: transpordirobotid ja AGV-d (etapp 7b)
 
 Originaalis: diskreetne transpordirada (`DISCTRACK`), kus transporti teevad **transpordirobotid (TRB)** või **automaatkärud (AGV)** (lk 29–30); sündmus `Collision`, protseduurid `ProgTM` ja `FindPal`; konfliktid lahendab Planner (lk 43). **[O]**
 
-Tänapäevased nimetused: **AGV** (*automated guided vehicle*, automaatjuhitav käru) ja **RGV** (*rail-guided vehicle*, rööbaskäru). Simulatsiooni jaoks on need samad: kärud, mis liiguvad etteantud radadel iseseisvalt ja eri suundades.
+Tänapäevased nimetused: **AGV** (*automated guided vehicle*, automaatjuhitav käru) ja **RGV** (*rail-guided vehicle*, rööbaskäru). Simulatsiooni jaoks on need samad: kärud, mis liiguvad etteantud radadel iseseisvalt ja eri suundades. Teostus: `src/fms_sim.js` (etapp 7b), valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b. Etapis 1 kirjutatud kava (tsoonid, `Collision` kui ootegraafi ring) jäi alles; täpsustused tulid valideerimisest.
 
-### 11.1 Käru kui iseseisev objekt **[O + T]**
+### 11.1 Rada kui teedevõrk (`Enumerate`) **[O + U]**
 
-- Raja parameetrid (tabel 4.1): kärude arv, kohtade arv kärul, kiirus, laadimisaeg, pöördusaeg. **[O]**
-- Igal kärul (`Pallette`) on oma asukoht (lõik, kaugus), teekond (sõlmede loend), sihtkoht ja olek:
+- Rada, mille `Mode` on `Discrete`, on **graaf** nagu linna teed (`TraceGraph`): **sõlmed** on hargnemised (`Tee*`), ristmikud (`Cruise`) ja raja otsad (ka ots konnektori kõrval); **lõik** on rada kahe sõlme vahel. Hargnemise haru on kas rada (**raja-haru** – sõlmes on ≥ 3 haru, `Junction`) või punktiir (**jaam**, nagu pideval rajal). Sild (`CrossOver`) läbib otse ja on teine tasand.
+- Sõlm ja jaam on sõlme lahtri keskel; lõik algab ja lõpeb sõlme keskel (`MeasureGraph`). Pikkus nagu pideval rajal (sirge 1, kaar π/4 ikooni × `Scale`); metrokaart (`EdgeLengths`) kirjutab üle terve lõigu (lahtrid peavad olema lõigu sees, mitte sõlmes).
+- Lõik on **kahesuunaline**. **Suunanool** lõigu ikoonil teeb lõigu **ühesuunaliseks** (vastuolulised nooled samal lõigul – viga). Sõlme ikoonil (hargnemine, ristmik) noolt ei ole; kahe kõrvuti sõlme vahelisele lõigule ei saa noolt panna.
+- Rada peab olema **ühes tükis** (üks kärupark); kärusid ei tohi olla rohkem kui sõlmi.
+- **Ristumised** **[U]**: sama raja numbriga diskreetne rada on üks kärupark, selle `Cruise` on ühine tsoon. Eri radade vahel (AGV ↔ AGV, AGV ↔ konveier) on lubatud ainult konnektor või **sild** – sild on eri tasand ja tsoone ei jaga (ka siis, kui sama rada ristub iseendaga). Kokkupuude sillata on viga nagu 7a-s.
+- **Teed jaamast jaama** (`StationPaths`, `ShortestPaths`, osa 2.3) valitakse nüüd **aja** järgi (pikkus / kiirus, ka pidevatel radadel; ühe kiirusega mudelis sama mis pikkus); diskreetse raja sees `NodeDistances` (Dijkstra sõlmest sõlme). Jaamast samasse jaama diskreetsel rajal teed pole.
 
-```
-IDLE ──► TO_PICKUP ──► LOADING ──► TO_DROP ──► UNLOADING ──► IDLE
-  │            ▲                                              │
-  └─► PARKING ─┘   (vaba käru sõidab parkimiskohta)           │
-WAIT_ZONE – ootab järgmise tsooni vabanemist (igast sõiduolekust)
-DOWN – rike (etapp 8)
-```
+### 11.2 Käru kui iseseisev objekt **[O + T]**
 
-- Käru peatub ainult jaamas, parkimiskohas või tsooni piiril, kui järgmine tsoon on kinni. **[T]**
-- Parkimiskohad: jaamad, mis on mudelis märgitud parkimiseks; kui neid pole, jääb vaba käru sinna, kus ta on. **[U]**
+- Raja parameetrid (tabel 4.1): kärude arv, kohtade arv kärul (1, 7c), kiirus, laadimisaeg, pöördusaeg (ei kasuta). **[O]**
+- Käru (`Pallets[i]`, nagu konveieri alus – detaili asukoht `Pallet`) on **punkt**: sõlmes (`Node`) või lõigul (`Edge`, `Dir`, `Distance`). Tal on tee (`Route` – sammud `{ Edge, Dir }`, `RouteEnd`), töö sihtsõlm (`Goal`), detail (`WP`) või broneeritud detail (`ReservedWP`). Algul on kärud sõlmedes: enne jaamata otsad, siis muud sõlmed, siis hargnemised (`InitCarts`).
+- Olek statistikas (`CartState`): `LOADING` (laadimine), `WAIT_ZONE` (ootab tsooni), `LOADED` / `EMPTY` (sõidab koormaga / tühjalt, ka kõrvale), `IDLE` (vaba). Käru peatub ainult tee lõpus, sõlmes või lõigu ooteasendis (`WaitPoint` – pool ikooni enne sõlme keskpunkti).
+- Sündmused jäävad samaks: `StopMov` (käru jõudis jaama), `Load` (väli `Pal` = käru), `MoveZ` (laadimine läbi – käru jätkab, `CartContinues`), lisaks `Collision`. Parkimiskohti (`Parking`) ei teostatud: vaba käru jääb paigale, aga läheb ise hargnemisest ära ja lükatakse teelt kõrvale (11.5).
 
-### 11.2 Töö jagamine kärudele – `FindPal` **[O nimi, T sisu]**
+### 11.3 Töö jagamine kärudele – `FindPal` **[O nimi, T sisu]**
 
-Transpordisoov tekib siis, kui Planner on detailile sihtkoha broneerinud (osa 5.2).
+- Transpordisoov tekib, kui detail läheb teele (`Depart`, osa 2.3) ja tema sõit algab diskreetsel rajal. `FindPal` (igal sekundil enne liikumist) käib soovid läbi vanim enne ja annab igaühele vaba käru, kes jõuab **kõige kiiremini** kohale (`ProgTM`); viigi korral väiksem number.
+- Eelistatud on käru, kelle **teel pole teist käru**. Kui sobiv vaba käru peaks teisest mööda pääsema, ootab soov kuni `REQUEST_PATIENCE` (30 s) – vahepeal vabaneb tavaliselt lähem käru – ja alles siis antakse see ikkagi. *Valideerimisest (I2):* ilma selleta andis teine käru üherealisel joonel 26 % vähem valmis detaile.
+- Käru, kes jaamas maha laadis, võtab sealt kohe ootava soovi, millel käru pole (`CartPickupCandidate`).
 
-- **Soov otsib käru**: soovi saab lähim vaba käru (teekonna pikkuse järgi, mitte linnulennult).
-- **Käru otsib soovi**: kui käru vabaneb ja ootel on mitu soovi, võtab ta kõige kauem oodanu (FIFO); valitavana ka lähim soov.
-- Kui vaba käru pole, jääb soov järjekorda.
+### 11.4 Teekond – `ProgTM` **[O nimi, U sisu]**
 
-### 11.3 Teekond – `ProgTM` **[O nimi, U sisu]**
+- „Käru programmeerimine“ = tee arvutamine ja kärule andmine (`SetRoute`). Dijkstra raja graafis (`GraphSearch`), kaal = pikkus / kiirus, viigi korral vähem lõike; ühesuunalist lõiku ainult lubatud suunas. Lõigul olev käru võib kahesuunalisel lõigul **ümber pöörata**.
+- `blocked(tsoon)` jätab tsoonid välja – **ümbersõit**. `ProgTMOneWayInto` – tee, mille viimane lõik on ühesuunaline (selle lõpus saab oodata, kuni sihtsõlm vabaneb).
 
-- „Käru programmeerimine“ = teekonna arvutamine ja kärule andmine.
-- Lühim tee graafis Dijkstra algoritmiga; lõigu kaal = pikkus / kiirus.
-- Ühesuunalisi lõike läbitakse ainult lubatud suunas.
-- Kui tee on blokeeritud (osa 11.4), võib Planner kutsuda `ProgTM`-i uuesti, nii et blokeeritud tsoon jäetakse välja (ümbersõit).
+### 11.5 Liikluse juhtimine: tsoonid ja plokid **[U]**
 
-### 11.4 Liikluse juhtimine: tsoonide broneerimine **[U]**
+Originaalis avastati kahe käru ohtlik lähenemine (`Collision`), kärud seisati ja Planner programmeeris need ümber. Siin **kokkupõrkeid välditakse** broneerimisega nagu raudtee blokisignalisatsioonis:
 
-Originaalis avastati kahe käru ohtlik lähenemine (`Collision`), kärud seisati ja Planner programmeeris need ümber. Tänapäevane ja töökindlam viis on **kokkupõrkeid vältida** tsoonide broneerimisega, nagu raudtee blokisignalisatsioonis:
+- **Tsoon** on sõlm (`N<i>`) või lõik (`E<i>`); igas tsoonis on korraga **üks käru** (`track.Holder`). Tsooni ei tükeldata (`ZoneLength` jäi teostamata).
+- **Plokk** (`CartBlock`): enne sõlme sisenemist broneerib käru **korraga** sõlme ja sellele järgneva ahela – lõigud ja vahesõlmed kuni
+  - hargnemiseni (see jääb järgmisse plokki – käru ootab lõigu lõpus enne seda),
+  - ühesuunalise lõigu lõpuni (seal võib oodata – vastutulijat pole) või
+  - tee lõpuni (lõppsõlm kaasa).
 
-- **Tsoon** = lõik või sõlm (ristmik, hargnemine). Pikad lõigud võib tükeldada mitmeks tsooniks (pikkus `ZoneLength`, vaikimisi kogu lõik).
-- Tsoonis on korraga **üks käru**.
-- Käru broneerib järgmise tsooni **enne** sinna sisenemist. Kui tsoon on kinni, peatub käru oma tsooni lõpus olekus `WAIT_ZONE`.
-- Tsoon vabaneb, kui käru on sellest täielikult väljunud.
-- Ühesuunalisel lõigul võib tsoonis olla ka mitu käru üksteise järel (järjekorras), kui `ZoneLength` on väiksem kui lõik. **[T]**
+  Kui sõlm pole hargnemine ja sealt läheb edasi ühesuunaline lõik, on plokk ainult sõlm (seal võib oodata). Seega ei ole kahesuunalisel ahelal kunagi vastutulijat ja käru ootab ainult sõlmes või lõigu lõpus enne sõlme. Pikk kahesuunaline rada ilma hargnemisteta on korraga ühe käru käes.
+- Plokk broneeritakse niipea, kui käru on eelmise ploki viimasel lõigul (nagu signaal); tsoon vabaneb, kui käru on sellest väljunud (`MoveCart`).
+- **Ümbersõit** (`TryDetour`): kui plokk on kinni, arvutab käru tee, mis väldib teiste kärude tsoone; see võetakse, kui see on kõige rohkem `DETOUR_FACTOR` (1,5) × praegune aeg + `DETOUR_SLACK` (10 s). Nii valib käru hargnemisel vaba haru (**möödasõidurada**: üks ootab haru lõpus, teine läheb teist haru mööda).
+- **Vaba käru teelt ära** (`MoveCarts`, `SendAside`): vaba käru, kelle taga keegi ootab, saadetakse lähimasse sõlme, mis pole teiste teel (eelistus: väljapoole kõigi teid → väljapoole ootaja teed → väljapoole ootaja praegust plokki – siis sõidab ta ootajast ette). Tema teed takistavad ainult seisvad kärud (ootavad, laadivad) – liikuv käru vabastab tee ise ja teel seisvad vabad kärud lükatakse järgmisel sekundil edasi. Kui vaba sõlme pole, sobib teise käru sõlm, kuhu viib ühesuunaline lõik. Vaba käru ei jää seisma hargnemisse.
 
-### 11.5 `Collision` – vastastikune ootamine **[O nimi, U tähendus]**
+### 11.6 `Collision` – vastastikune ootamine **[O nimi, U tähendus]**
 
-Tsoonide broneerimisega kokkupõrget ei toimu, kuid kärud võivad üksteist **lõputult oodata**, näiteks:
-- kaks käru vastassuunas sama kahesuunalise lõigu otstes;
-- kärud ristmikul ringiootamises (A ootab B tsooni, B ootab A oma).
+Tsoonidega kokkupõrget ei toimu, kuid kärud võivad üksteist **lõputult oodata** (vastassuunas kärud ühel joonel, ristmikul ringiootamine, tühi käru väljapääsuta taskus).
 
-Seetõttu:
-- `MinuteMan` kontrollib igal sekundil ootegraafi (kes keda ootab). Kui leiab ringi, lisab sündmuse `Collision`.
-- `CollisionProc` kutsub Plannerit, mis valib ühe ringis oleva käru (madalam prioriteet: tühi käru enne koormaga, siis lühem ooteaeg) ja kas
-  1. arvutab talle uue teekonna, mis väldib kinnist tsooni (`ProgTM`), või
-  2. saadab ta lähimasse vabasse jaama või parkimiskohta, et teised saaksid mööda.
-- Kui kumbki ei õnnestu, simulatsioon peatub ja teatab ummikust (struktuuri probleem).
+- Pärast liikumist vaatab `MoveCarts` **ootegraafi** (`FindWaitCycle`: käru → tema ploki tsoonide hoidjad; kõrvale saamata vaba käru → tema väljapääsude hoidjad). Laadiv või liikuv käru ringi ei sulge. Ring → sündmus `Collision`.
+- `CollisionProc` valib ringist käru (tühi enne koormaga, siis lühema ooteajaga) ja annab talle **ümbersõidu**, mis väldib teiste ringi kärude tsoone (ringist väljas olevad liiguvad ise ära) – ka ühesuunalise lõigu kaudu teise käru käes olevasse sihtsõlme –, või saadab ta **kõrvale**.
+- Kui sama ring (mõne samaga kärudest) tekib kohe uuesti, ümbersõitu enam ei proovita (lõputu ringlemine); `COLLISION_RETRIES` (10) korda järjest või kui kumbki ei õnnestu → simulatsioon peatub: „rajal … ootavad kärud üksteist (1, 2) – ümbersõitu ega kõrvalepõiget pole“ – struktuur ei sobi (nagu C0).
+- *Piirang* (valideerimine N): kahesuunalisel ringil ilma möödumiskohtadeta ei leia kohalikud reeglid 3 käru korral lahendust, mis vajaks mitme sammu plaani (üks käru teise sihtjaama, siis kolmas …). Mudelis aitavad suunanooled või möödasõidurajad.
 
-### 11.6 `MinuteMan` diskreetsetel radadel **[O + T]**
+### 11.7 `MinuteMan` diskreetsetel radadel **[O + T]**
 
-Iga käru kohta, kes on sõiduolekus:
+Iga diskreetse raja kohta (`MoveCarts`): `FindPal` → iga käru (numbri järjekorras) liigub `Speed · 1 s` mööda oma teed (`MoveCart`: plokid, ümbersõit, ooteasend, tsoonide vabastamine, tee lõpus `CartArrives` → `StopMov`) → vabad kärud teelt ära → ootegraaf (`Collision`). Konveierit ei ole, seega pole ka `StopCount`-i – iga käru peatub ise.
 
-1. arvutab uue asukoha `Distance + Speed · 1 s` mööda oma teekonda;
-2. kui teel on tsooni piir ja järgmine tsoon pole broneeritud → üritab broneerida; kui ei saa, peatub piiril (`WAIT_ZONE`);
-3. kui jõuab sihtjaama → peatub täpselt jaamas, lisab `StopMov` käesolevale hetkele;
-4. vabastab tsoonid, millest on täielikult väljunud.
-
-Seejärel ootegraafi kontroll (11.5).
-
-Sündmused jäävad samaks: `MoveZ` (käru alustab sõitu), `StopMov` (jõudis jaama), `Load` (peale/maha, väli `Pal` = käru number), `Collision`.
-
-### 11.7 Andmemudeli lisad
+### 11.8 Andmemudel
 
 ```json
 "Tracks": [ { "Name": "AGV", "Mode": "Discrete", "Carts": 3, "PlacesPerCart": 1,
-              "Speed": 50, "LoadTime": 15, "AccessTime": 0,
-              "Dispatch": "Nearest", "ZoneLength": 0 } ],
-"EdgeDirections": [ { "Cells": [[5,1],[6,1]], "Dir": "OneWay", "From": [5,1] } ],
-"Parking": [ [2,3] ]
+              "Speed": 50, "LoadTime": 15, "AccessTime": 0 } ]
 ```
 
-- `ZoneLength: 0` tähendab: tsoon = terve lõik.
-- Lõigud on vaikimisi kahesuunalised; `EdgeDirections` muudab ühesuunaliseks.
-
-### 11.8 Riskid, mida prototüüp kontrollib
-
-- Ummikud kahesuunalistel lõikudel ja ristmikel (stsenaariumid E, F).
-- Kas tsooniks sobib terve lõik või tuleb pikad lõigud tükeldada (läbilaskevõime vs keerukus).
-- Kas kärud jõuavad tühisõitudega töö järel (kärude arv vs läbilaskevõime).
-
----
+Uusi välju pole: ühesuunalisus tuleb suunanoolest (`Dir` lõigu ikoonil). Etapi 1 kavast jäid ära `Dispatch` (alati lähim käru, FIFO), `ZoneLength`, `EdgeDirections` ja `Parking`.
 
 ## 12. Nimetamine ja sõnastik
 
@@ -505,7 +481,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `SYSTEM_TIME` | simulatsiooni kell, sekundit algusest | [O] |
 | `NO_EVENTS` | lipp: käesolevaks hetkeks pole rohkem sündmusi | [O] |
 | `SIMULATION_DONE` | lipp: simulatsioon on läbi | [O] |
-| `SimInit` | algväärtused, mälu, kärude algasendid | [O] |
+| `SimInit` | algväärtused, mälu, kärude algasendid (`InitCarts`) | [O] |
 | `SimStep` | üks peatsükli samm (üks sekund) | [U] |
 | `CheckInvariants` | kontrollib invariante (testides) | [U] |
 | `DEADLOCK` | lipp: lahendamatu ummik, simulatsioon peatati | [U] |
@@ -534,14 +510,11 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `Storage` | keskladu | [T] |
 | `Workpieces` | detailitüübid (max 16) | [O] |
 | `SysWPArray` | süsteemis olevad konkreetsed detailid | [O] |
-| `NodeArray` | rajavõrgu sõlmed | [U] |
-| `EdgeArray` | rajavõrgu lõigud | [U] |
 | `StationArray` | jaamad (kus kärud peatuvad ja laaditakse) | [U] |
 | `ConnectorArray` | konnektorid: radade ülekandekoht, mahutab 1 detaili (osa 2.3) | [O] |
 | `TransportPaths` | lühimad teed jaamast jaama (`StationPaths` tulemus) | [U] |
-| `ZoneArray` | liiklustsoonid diskreetsetel radadel | [U] |
-| `PalletArray` | kärud / alused | [T] |
-| `TransportRequests` | ootel transpordisoovid | [U] |
+| `Tracks[i].Pallets` | konveieri alused / diskreetse raja kärud (käru: `Node`, `Edge`, `Dir`, `Distance`, `Route`, `Goal`, `Waiting`) | [T] |
+| `Tracks[i].Nodes`, `Tracks[i].Edges`, `Tracks[i].Holder` | diskreetse raja sõlmed (`Junction` – hargnemine) ja lõigud (`OneWay`); tsoon → käru (osa 11) | [U] |
 | `Stats` | kogutud statistika (`Stats.Timeline` – aegrida) | [T] |
 
 **Protseduurid**
@@ -561,12 +534,19 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `TimelinePoint`, `CompareScores` | aegrea punkt; kriteeriumide võrdlus | [U] |
 | `MinuteMan` | liigutab konveiereid ja kärusid ühe sekundi võrra | [O] |
 | `Planner` | otsused: sissetoomine, marsruut, sihtkoht, pingi laadimine, konfliktid | [O] |
-| `FindMach`, `FindBuf`, `FindSysPos`, `FindPal` | sobivaima pingi / puhvri / väljundi / käru otsing | [O] |
-| `ProgTM` | käru teekonna arvutamine | [O] |
-| `ShortestPath` | lühim tee rajavõrgus (Dijkstra) | [U] |
+| `FindMach`, `FindBuf`, `FindSysPos`, `FindPal` | sobivaima pingi / puhvri / väljundi / käru otsing (`FindPal` – osa 11.3) | [O] |
+| `ProgTM`, `ProgTMOneWayInto`, `SetRoute` | käru tee (Dijkstra raja graafis, ümbersõit); tee, mille viimane lõik on ühesuunaline; tee kärule (osa 11.4) | [O nimi, U sisu] / [U] / [U] |
 | `ReserveSlot`, `ReleaseSlot` | koha broneerimine ja vabastamine | [U] |
 | `Depart`, `PathConnectors`, `FreePath`, `CanReserveConnector` | teele minek: tee konnektorite broneerimine korraga; tee konnektorid; lühim tee vabade konnektoritega (paralleelsed konnektorid, 7b); kas konnektor on vaba (osa 2.3) | [U] |
-| `ReserveZone`, `ReleaseZone` | tsooni broneerimine ja vabastamine | [U] |
+| `TraceGraph`, `FindGraphStations`, `MeasureGraph`, `OwnPorts`, `AllPorts`, `PortNeighbor` | diskreetse raja graaf (sõlmed, lõigud, nooled, sidusus); jaamad; lõikude pikkused ja geomeetria; raja küljed lahtris; ikooni küljed koos haruga; mis on külje taga (osa 11.1) | [U] |
+| `GraphSearch`, `GraphAdjacency`, `GraphSteps`, `NodeDistances`, `GraphCache` | Dijkstra raja graafis; väljuvad sammud; tee sammud; ajad sõlmest sõlme; vahemälu | [O nimi, U sisu] / [U] |
+| `CartBlock`, `TryHoldZones`, `ReleaseZone`, `NodeZone`, `EdgeZone`, `CartZone`, `HeldByOther`, `FarNode`, `WaitPoint` | plokk (osa 11.5); broneerimine korraga; vabastamine; tsooni võti; käru tsoon; kas teise käru käes; sõlm, kuhu käru sõidab; ooteasend lõigul | [U] |
+| `MoveCarts`, `MoveCart`, `CartArrives`, `CartContinues`, `TryDetour` | diskreetse raja sekund (`MinuteMan`); käru liikumine; tee lõpus; laadimise järel (`MoveZ`); ümbersõit kinnise ploki korral (osa 11.5, 11.7) | [U] |
+| `CartIdle`, `CartPickupCandidate`, `InitCarts`, `CartState`, `CheckCarts` | vaba käru; jaamas peale võetav detail; kärude algkohad; olek statistikas; diskreetse raja invariandid | [U] |
+| `SendAside`, `NeededZones`, `Blockers`, `Stuck`, `IsWaiting`, `FindWaitCycle`, `FindCollision` | käru kõrvale; tsoonid, mida käru veel vajab; kelle taga käru ootab; kõrvale saamata vaba käru; ootab ootegraafis; ootegraafi ring; `Collision`-i ring (osa 11.6) | [U] |
+| `CollisionProc` | `Collision`: ümbersõit või kõrvalepõige, muidu ummik (osa 11.6) | [O nimi, U tähendus] |
+| `DETOUR_FACTOR`, `DETOUR_SLACK`, `REQUEST_PATIENCE`, `COLLISION_RETRIES` | ümbersõidu piir (1,5 × + 10 s); soovi ootamine vaba teega käru järele (30 s); sama ring järjest (10) | [U] |
+| `DriveCart` | testidele: käru sõidab sõlme (ilma laadimiseta) | [U] |
 | `DetectDeadlock` | ummiku lahendamine (parkimine) ja varukontroll | [U] |
 | `FindDeadlockedWorkpieces` | ummikus olevad detailid (püsipunkt üle puhvrite) | [U] |
 | `LoadMachines`, `AssignDestinations`, `AdmitWorkpieces` | Planneri kolm sammu | [T] |

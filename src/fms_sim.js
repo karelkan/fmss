@@ -9,9 +9,10 @@
 //
 // Etapp 7a: mitu pidevat rada (silmus või avatud konveier), konnektorid radade vahel ja
 // transporditee üle mitme raja (StationPaths).
+// Etapp 7b: diskreetsed rajad (AGV-d) – raja graaf (TraceGraph), kärud, tsoonid ja plokid
+// (CartBlock), ProgTM, FindPal, Collision (DISAIN.md osa 11); paralleelsed konnektorid (FreePath).
 //
-// Piirangud (tulevad hiljem): diskreetseid radu pole (etapp 7b), alusel 1 detail (7c),
-// rikkeid pole (etapp 8).
+// Piirangud (tulevad hiljem): alusel / kärul 1 detail (7c), rikkeid pole (etapp 8).
 //
 // Moodul ei kasuta brauserit, nii et seda saab testida Node'iga.
 
@@ -160,7 +161,6 @@ export function Enumerate(model) {
   for (const trackIndex of usedTracks) {
     const track = model.Tracks[trackIndex];
     const path = `Tracks[${trackIndex + 1}]`;
-    if (track.Mode !== 'Continuous') EnumError(context, `${path}.Mode`, Texts.EnumLater, { What: Texts.EnumLaterDiscrete, Stage: '7b' });
     if (track.PlacesPerCart > 1) EnumError(context, `${path}.PlacesPerCart`, Texts.EnumLater, { What: Texts.EnumLaterPlaces, Stage: '7c' });
   }
   if (context.Errors.length > 0) return result();
@@ -168,17 +168,21 @@ export function Enumerate(model) {
   // Rajad: suunanoole järgi silmus või avatud konveier; harudel ja otstes jaamad
   const traces = [];
   for (const trackIndex of usedTracks) {
-    const trace = TraceTrack(context, trackIndex, trackCells);
+    const trace = model.Tracks[trackIndex].Mode === 'Discrete'
+      ? TraceGraph(context, trackIndex, trackCells)
+      : TraceTrack(context, trackIndex, trackCells);
     if (trace !== null) traces.push(trace);
   }
   if (context.Errors.length > 0) return result();   // katkine rada: muud vead oleksid selle tagajärg
-  const links = traces.flatMap(trace => FindStations(context, trace));
+  const links = traces.flatMap(trace => (trace.Discrete ? FindGraphStations(context, trace) : FindStations(context, trace)));
   DetectOpenCons(context, cells, traces);
   const objects = CheckObjects(context, cells, links);
   const machineLinks = LinkMachines(context, cells);
   if (context.Errors.length > 0) return result();
 
-  const geometries = traces.map(trace => MeasureTrack(context, trace, links.filter(link => link.Trace === trace)));
+  const geometries = traces.map(trace => (trace.Discrete
+    ? MeasureGraph(context, trace, links.filter(link => link.Trace === trace))
+    : MeasureTrack(context, trace, links.filter(link => link.Trace === trace))));
   (model.EdgeLengths || []).forEach((entry, i) => {
     if (!context.EdgeLengthsUsed.has(i)) EnumError(context, `EdgeLengths[${i + 1}]`, Texts.EnumEdgeNotFound);
   });
@@ -292,6 +296,264 @@ function WalkTrack(context, trackIndex, cell, exit, visited, closeEntry) {
     cell = next;
     exit = nextExit;
   }
+}
+
+// [U] OwnPorts – raja trackIndex küljed lahtris: sillal ainult selle raja telg (või mõlemad, kui
+//     sama rada ristub iseendaga), muidu ikooni küljed. Kutsub: TraceGraph.
+function OwnPorts(cell, trackIndex) {
+  if (!IconTypes[cell.T].CrossOver) return cell.N - 1 === trackIndex ? AllPorts(cell) : [];
+  return ['N', 'E', 'S', 'W'].filter(port => CellTrack(cell, port) - 1 === trackIndex);
+}
+
+// [U] AllPorts – raja ikooni kõik küljed koos hargnemise haruga (Ports + Branch).
+function AllPorts(cell) {
+  const icon = IconTypes[cell.T];
+  return icon.Branch ? [...icon.Ports, icon.Branch] : icon.Ports;
+}
+
+// [U] PortNeighbor – mis on diskreetse raja lahtri külje port taga: oma raja ikoon, mis on selle
+//     poole pööratud ({ Kind: 'Track', Cell, Entry }), konnektor ({ Kind: 'Connector', Cell }),
+//     vaba ots ({ Kind: 'Free' }) või viga ({ Kind: 'Error' }, teatatud). Kutsub: TraceGraph.
+function PortNeighbor(context, trackIndex, cell, port) {
+  const next = Neighbor(context, cell, port);
+  if (next === null) return { Kind: 'Free' };
+  const entry = DIRECTIONS[port].Opposite;
+  const icon = IconTypes[next.T];
+  const faces = Boolean(icon.Ports) && (icon.Kind === 'Track' ? AllPorts(next) : icon.Ports).includes(entry);
+  const badJoin = () => {
+    EnumError(context, CellPath(next), Texts.EnumBadJoin, { X: cell.X, Y: cell.Y, X2: next.X, Y2: next.Y });
+    return { Kind: 'Error' };
+  };
+  if (icon.Kind === 'Connector') return faces ? { Kind: 'Connector', Cell: next } : badJoin();
+  if (icon.Kind !== 'Track') return { Kind: 'Free' };              // objekt raja otsas
+  if (next.Dot) return faces ? badJoin() : { Kind: 'Free' };        // rada ei lähe punktiiri
+  if (!faces) return CellTrack(next, entry) - 1 === trackIndex ? badJoin() : { Kind: 'Free' };
+  if (CellTrack(next, entry) - 1 !== trackIndex) {
+    EnumError(context, CellPath(next), Texts.EnumTracksTouch, {
+      Track: context.Model.Tracks[trackIndex].Name, Track2: context.Model.Tracks[CellTrack(next, entry) - 1].Name, X: next.X, Y: next.Y,
+    });
+    return { Kind: 'Error' };
+  }
+  return { Kind: 'Track', Cell: next, Entry: entry };
+}
+
+// [U] TraceGraph – diskreetse raja graaf (DISAIN.md 11): sõlmed on hargnemised (Tee*), ristmikud
+//     (Cruise) ja raja otsad (ka ots konnektori kõrval); lõik on rada kahe sõlme vahel (sild läbib
+//     otse). Hargnemise haru on kas rada (raja-haru, ristmik) või punktiir (jaam, FindGraphStations).
+//     Lõik on kahesuunaline; suunanool lõigu ikoonil teeb selle ühesuunaliseks (vastuolu – viga).
+//     Rada peab olema sidus (üks kärupark). Tagastab { TrackIndex, Discrete, Closed: true, Nodes,
+//     Edges, Unvisited } või null. Nodes: [{ Cell, Ports: { külg: haru tüüp } }], Edges: [{ From, To,
+//     FromPort, ToPort, Inner: [{ Cell, Entry, Exit, Unit }], OneWay }] (OneWay: 0 mõlemat pidi,
+//     1 ainult From → To, -1 ainult To → From). Kutsub: Enumerate.
+function TraceGraph(context, trackIndex, trackCells) {
+  const name = context.Model.Tracks[trackIndex].Name;
+  const errorsBefore = context.Errors.length;
+  const ownCells = trackCells.filter(cell => OwnPorts(cell, trackIndex).length > 0);
+  const neighbors = new Map();   // lahter + külg -> PortNeighbor
+  const neighborOf = (cell, port) => {
+    const key = `${CellKey(cell.X, cell.Y)},${port}`;
+    if (!neighbors.has(key)) neighbors.set(key, PortNeighbor(context, trackIndex, cell, port));
+    return neighbors.get(key);
+  };
+
+  // sõlmed: hargnemine, ristmik, ots (külg pole oma rajaga ühendatud)
+  const nodes = [];
+  const nodeAt = new Map();
+  for (const cell of ownCells) {
+    const icon = IconTypes[cell.T];
+    if (icon.CrossOver) continue;
+    const ports = {};
+    for (const port of AllPorts(cell)) {
+      if (port === icon.Branch) {
+        const first = Neighbor(context, cell, port);
+        const isTrack = first !== null && IconTypes[first.T].Kind === 'Track' && !first.Dot;
+        ports[port] = isTrack ? neighborOf(cell, port).Kind : 'Station';
+      } else {
+        ports[port] = neighborOf(cell, port).Kind;
+      }
+    }
+    const kinds = Object.values(ports);
+    if (AllPorts(cell).length > 2 || kinds.some(kind => kind !== 'Track')) {
+      nodeAt.set(CellKey(cell.X, cell.Y), nodes.length);
+      nodes.push({ Cell: cell, Ports: ports });
+    }
+  }
+  if (context.Errors.length > errorsBefore) return null;
+  for (const node of nodes) {
+    if (AllPorts(node.Cell).length > 2 && Object.values(node.Ports).includes('Connector')) {
+      EnumError(context, CellPath(node.Cell), Texts.EnumBadJoin, { X: node.Cell.X, Y: node.Cell.Y, X2: node.Cell.X, Y2: node.Cell.Y });
+    }
+  }
+
+  // lõigud: igast sõlmest iga raja külje kaudu järgmise sõlmeni
+  const edges = [];
+  const usedPorts = new Set();
+  const visited = new Set(nodes.map(node => PartKey(node.Cell, null)));
+  const arrowSide = (cell, entry, exit) => {   // 1 – nool liikumise suunas, -1 vastu, 0 – noolt pole
+    if (cell.Dir === undefined) return 0;
+    if (cell.Dir === exit) return 1;
+    if (cell.Dir === entry) return -1;
+    return 0;
+  };
+  nodes.forEach((node, nodeIndex) => {
+    for (const [port, kind] of Object.entries(node.Ports)) {
+      if (kind !== 'Track' || usedPorts.has(`${nodeIndex},${port}`)) continue;
+      usedPorts.add(`${nodeIndex},${port}`);
+      const inner = [];
+      const arrows = [];
+      let cell = node.Cell;
+      let exit = port;
+      if (AllPorts(node.Cell).length === 2) arrows.push({ Cell: node.Cell, Side: arrowSide(node.Cell, OtherPort(node.Cell, port), port) });
+      for (;;) {
+        const next = neighborOf(cell, exit);
+        const nextIndex = nodeAt.get(CellKey(next.Cell.X, next.Cell.Y));
+        if (nextIndex !== undefined && !IconTypes[next.Cell.T].CrossOver) {
+          usedPorts.add(`${nextIndex},${next.Entry}`);
+          if (AllPorts(next.Cell).length === 2) {
+            arrows.push({ Cell: next.Cell, Side: arrowSide(next.Cell, next.Entry, OtherPort(next.Cell, next.Entry)) });
+          }
+          const sides = new Set(arrows.map(arrow => arrow.Side).filter(side => side !== 0));
+          if (sides.size > 1) {
+            const arrow = arrows.find(item => item.Side !== 0);
+            EnumError(context, CellPath(arrow.Cell), Texts.EnumDirConflict, { Track: name, X: arrow.Cell.X, Y: arrow.Cell.Y });
+          }
+          edges.push({ From: nodeIndex, To: nextIndex, FromPort: port, ToPort: next.Entry, Inner: inner,
+                       OneWay: sides.size === 1 ? [...sides][0] : 0 });
+          break;
+        }
+        const key = PartKey(next.Cell, next.Entry);
+        if (visited.has(key)) {
+          EnumError(context, CellPath(next.Cell), Texts.EnumCrossLoop, { Track: name, X: next.Cell.X, Y: next.Cell.Y });
+          return;
+        }
+        visited.add(key);
+        const nextExit = OtherPort(next.Cell, next.Entry);
+        inner.push({ Cell: next.Cell, Entry: next.Entry, Exit: nextExit, Unit: IconTypes[next.Cell.T].Arc ? ARC_LENGTH : 1 });
+        arrows.push({ Cell: next.Cell, Side: arrowSide(next.Cell, next.Entry, nextExit) });
+        cell = next.Cell;
+        exit = nextExit;
+      }
+    }
+  });
+  if (context.Errors.length > errorsBefore) return null;
+
+  // sidusus: kõik sõlmed ühes tükis
+  if (nodes.length > 0) {
+    const seen = new Set([0]);
+    const queue = [0];
+    while (queue.length > 0) {
+      const current = queue.shift();
+      for (const edge of edges) {
+        for (const [a, b] of [[edge.From, edge.To], [edge.To, edge.From]]) {
+          if (a === current && !seen.has(b)) { seen.add(b); queue.push(b); }
+        }
+      }
+    }
+    const apart = nodes.findIndex((node, nodeIndex) => !seen.has(nodeIndex));
+    if (apart >= 0) {
+      const cell = nodes[apart].Cell;
+      EnumError(context, CellPath(cell), Texts.EnumGraphSplit, { Track: name, X: cell.X, Y: cell.Y });
+      return null;
+    }
+  } else {
+    EnumError(context, `Tracks[${trackIndex + 1}]`, Texts.EnumGraphNoNodes, { Track: name });
+    return null;
+  }
+  return {
+    TrackIndex: trackIndex, Discrete: true, Closed: true, Nodes: nodes, Edges: edges,
+    Unvisited: ownCells.filter(own => OwnPorts(own, trackIndex).some(port => !visited.has(PartKey(own, port)))),
+  };
+}
+
+// [U] FindGraphStations – diskreetse raja jaamad: hargnemise haru, mis on punktiirühendus (või
+//     kohe objekt), ja raja ots konnektori kõrval. Jaam on sõlme lahtri keskel.
+//     Tagastab [{ Trace, Node, Object, Link, Side, AtEnd }]. Kutsub: Enumerate.
+function FindGraphStations(context, trace) {
+  const links = [];
+  trace.Nodes.forEach((node, nodeIndex) => {
+    for (const [port, kind] of Object.entries(node.Ports)) {
+      if (kind === 'Station') {
+        const link = FollowDotLink(context, node.Cell, port);
+        if (link !== null) links.push({ Trace: trace, Node: nodeIndex, Object: link.Object, Link: link.Cells, Side: link.Side, AtEnd: false });
+      } else if (kind === 'Connector') {
+        links.push({ Trace: trace, Node: nodeIndex, Object: Neighbor(context, node.Cell, port), Link: [],
+                     Side: DIRECTIONS[port].Opposite, AtEnd: true });
+      }
+    }
+  });
+  return links;
+}
+
+// [U] MeasureGraph – diskreetse raja lõikude pikkused ja geomeetria. Lõik algab ja lõpeb sõlme
+//     lahtri keskel (sõlme ikoonist pool kummalegi lõigule); pikkus = ikoonide pikkus × Scale,
+//     EdgeLengths kirjutab üle (metrokaart, nagu MeasureTrack). Lõigu Cells: [{ X, Y, T, Entry,
+//     Exit, F0, F1, Start, Length }] – ikoonid From-sõlmest To-sõlme, F0 … F1 osa ikoonist
+//     (CellPathPoint), Start – kaugus lõigu algusest. Tagastab { Nodes, Edges, StationNodes }.
+//     Kutsub: Enumerate.
+function MeasureGraph(context, trace, links) {
+  const model = context.Model;
+  const nodeUnit = cell => (IconTypes[cell.T].Arc ? ARC_LENGTH : 1);
+  const ownKeys = new Set();
+  trace.Nodes.forEach(node => ownKeys.add(CellKey(node.Cell.X, node.Cell.Y)));
+  trace.Edges.forEach(edge => edge.Inner.forEach(item => ownKeys.add(CellKey(item.Cell.X, item.Cell.Y))));
+  const edges = trace.Edges.map(edge => {
+    const fromCell = trace.Nodes[edge.From].Cell;
+    const toCell = trace.Nodes[edge.To].Cell;
+    const fromTwo = AllPorts(fromCell).length === 2;
+    const toTwo = AllPorts(toCell).length === 2;
+    const pieces = [
+      { Cell: fromCell, Entry: fromTwo ? OtherPort(fromCell, edge.FromPort) : DIRECTIONS[edge.FromPort].Opposite,
+        Exit: edge.FromPort, F0: 0.5, F1: 1, Unit: nodeUnit(fromCell) / 2 },
+      ...edge.Inner.map(item => ({ Cell: item.Cell, Entry: item.Entry, Exit: item.Exit, F0: 0, F1: 1, Unit: item.Unit })),
+      { Cell: toCell, Entry: edge.ToPort, Exit: toTwo ? OtherPort(toCell, edge.ToPort) : DIRECTIONS[edge.ToPort].Opposite,
+        F0: 0, F1: 0.5, Unit: nodeUnit(toCell) / 2 },
+    ];
+    const nominal = pieces.reduce((sum, piece) => sum + piece.Unit, 0) * model.Scale;
+    return { Edge: edge, Pieces: pieces, Nominal: nominal, Override: null };
+  });
+
+  (model.EdgeLengths || []).forEach((entry, i) => {
+    const path = `EdgeLengths[${i + 1}]`;
+    const keys = entry.Cells.every(pair => Array.isArray(pair) && pair.length === 2)
+      ? entry.Cells.map(pair => CellKey(pair[0], pair[1])) : null;
+    if (keys !== null && keys.length > 0 && !keys.every(key => ownKeys.has(key))) return;   // teise raja kirje
+    const found = keys !== null && keys.length > 0
+      ? edges.find(candidate => {
+        const innerKeys = new Set(candidate.Edge.Inner.map(item => CellKey(item.Cell.X, item.Cell.Y)));
+        return keys.every(key => innerKeys.has(key));
+      })
+      : undefined;
+    context.EdgeLengthsUsed.add(i);
+    if (found === undefined) { EnumError(context, path, Texts.EnumEdgeNotFound); return; }
+    if (found.Override !== null) { EnumError(context, path, Texts.EnumEdgeTwice); return; }
+    found.Override = entry.Length;
+  });
+
+  return {
+    Nodes: trace.Nodes.map((node, nodeIndex) => {
+      const ports = AllPorts(node.Cell);
+      const degree = trace.Edges.reduce((sum, edge) => sum + (edge.From === nodeIndex) + (edge.To === nodeIndex), 0);
+      // Entry, Exit: sõlme punkt on CellPathPoint(sõlm, 0,5) – kaare otsal kaare keskel
+      return { X: node.Cell.X, Y: node.Cell.Y, T: node.Cell.T, Entry: ports.length === 2 ? ports[0] : 'W',
+               Exit: ports.length === 2 ? ports[1] : 'E', Degree: degree, Junction: degree >= 3 };
+    }),
+    Edges: edges.map(({ Edge: edge, Pieces: pieces, Nominal: nominal, Override: override }) => {
+      const factor = override !== null ? override / nominal : 1;
+      let start = 0;
+      const cells = pieces.map(piece => {
+        const length = piece.Unit * model.Scale * factor;
+        const item = { X: piece.Cell.X, Y: piece.Cell.Y, T: piece.Cell.T, Entry: piece.Entry, Exit: piece.Exit,
+                       F0: piece.F0, F1: piece.F1, Start: RoundPosition(start), Length: RoundPosition(length) };
+        start += length;
+        return item;
+      });
+      return {
+        From: edge.From, To: edge.To, OneWay: edge.OneWay, Length: RoundPosition(nominal * factor), Stretched: override !== null,
+        Cells: cells, Inner: edge.Inner.map(item => [item.Cell.X, item.Cell.Y]),
+      };
+    }),
+    StationNodes: links.map(link => link.Node),
+  };
 }
 
 // [U] FindStations – iga hargnemise (Tee*) haru peab olema punktiirühendus, mis viib puhvri,
@@ -603,17 +865,19 @@ function BuildNetwork(context, traces, geometries, links, objects, machineLinks)
   traces.forEach((trace, trackIndex) => {
     const geometry = geometries[trackIndex];
     const own = links.filter(link => link.Trace === trace);
-    own.map((link, i) => ({ Link: link, Position: geometry.StationPositions[i] }))
+    own.map((link, i) => ({ Link: link, Position: trace.Discrete ? link.Node : geometry.StationPositions[i] }))
       .sort((first, second) => first.Position - second.Position)
       .forEach(({ Link: link, Position: position }) => {
         const objectKind = IconTypes[link.Object.T].Kind;
+        const junctionCell = trace.Discrete ? trace.Nodes[link.Node].Cell : trace.Sequence[link.SeqIndex].Cell;
         const station = {
-          Name: ObjectName(context, link.Object), Track: trackIndex, Position: position,
+          Name: ObjectName(context, link.Object), Track: trackIndex, Position: trace.Discrete ? null : position,
           Kind: objectKind === 'Buffer' || objectKind === 'Connector' ? objectKind : link.Object.T,
           Cell: { X: link.Object.X, Y: link.Object.Y },
-          Junction: { X: trace.Sequence[link.SeqIndex].Cell.X, Y: trace.Sequence[link.SeqIndex].Cell.Y },
+          Junction: { X: junctionCell.X, Y: junctionCell.Y },
           Link: link.Link,
         };
+        if (trace.Discrete) station.Node = link.Node;
         if (objectKind === 'Buffer') station.Buffer = bufferIndexOf(link.Object);
         if (objectKind === 'Connector') station.Connector = connectorCells.indexOf(link.Object);
         stations.push(station);
@@ -649,12 +913,16 @@ function BuildNetwork(context, traces, geometries, links, objects, machineLinks)
     Tracks: traces.map((trace, trackIndex) => {
       const modelTrack = model.Tracks[trace.TrackIndex];
       const geometry = geometries[trackIndex];
-      return {
+      const common = {
         Name: modelTrack.Name, Mode: modelTrack.Mode, Carts: modelTrack.Carts,
         PlacesPerCart: modelTrack.PlacesPerCart, Speed: modelTrack.Speed,
-        LoadTime: modelTrack.LoadTime, AccessTime: modelTrack.AccessTime,
-        ModelIndex: trace.TrackIndex, Closed: trace.Closed, Length: geometry.Length, Cells: geometry.Cells, Edges: geometry.Edges,
+        LoadTime: modelTrack.LoadTime, AccessTime: modelTrack.AccessTime, ModelIndex: trace.TrackIndex,
       };
+      if (trace.Discrete) {
+        return { ...common, Closed: null, Nodes: geometry.Nodes, Edges: geometry.Edges,
+                 Length: RoundPosition(geometry.Edges.reduce((sum, edge) => sum + edge.Length, 0)) };
+      }
+      return { ...common, Closed: trace.Closed, Length: geometry.Length, Cells: geometry.Cells, Edges: geometry.Edges };
     }),
     Stations: stations,
     Connectors: connectors,
@@ -681,6 +949,10 @@ function FindConflicts(context, network, traces) {
   })));
   const bufferPlaces = network.Buffers.reduce((sum, buffer) => sum + buffer.Capacity, 0);
   for (const track of network.Tracks) {
+    if (track.Mode === 'Discrete' && track.Carts > track.Nodes.length) {
+      EnumError(context, `Tracks[${track.ModelIndex + 1}].Carts`, Texts.EnumGraphTooManyCarts,
+        { Track: track.Name, Carts: track.Carts, Nodes: track.Nodes.length });
+    }
     const places = track.Carts * track.PlacesPerCart;
     if (places > bufferPlaces) {
       EnumWarning(context, `Tracks[${track.ModelIndex + 1}].Carts`, Texts.EnumTooManyCarts,
@@ -748,11 +1020,13 @@ function CheckReachability(context, network, traces) {
   }));
 }
 
-// [U] StationPaths – lühimad transporditeed jaamade vahel (Dijkstra): rada mööda liikumissuunas,
-//     radade vahel konnektori kaudu (konnektori kaks jaama, pikkus 0). Silmusel saab igast jaamast
-//     igasse, avatud konveieril ainult allavoolu. Viigi korral vähem sõlmi.
-//     Tagastab Paths[from][to] = { Length, Legs: [{ Track, From, To }] } või null (teed pole);
-//     Legs – rada mööda sõidud (alus viib From-jaamast To-jaama), nende vahel konnektorid.
+// [U] StationPaths – lühimad (kiireimad) transporditeed jaamade vahel (Dijkstra, kaal = aeg =
+//     pikkus / kiirus, viigi korral vähem sõlmi): pideval rajal liikumissuunas, diskreetsel rajal
+//     raja graafis (GraphSearch), radade vahel konnektori kaudu (konnektori kaks jaama, aeg 0).
+//     Silmusel saab igast jaamast igasse, avatud konveieril ainult allavoolu, diskreetsel rajal
+//     jaamast teise (samasse mitte).
+//     Tagastab Paths[from][to] = { Length, Time, Legs: [{ Track, From, To }] } või null (teed pole);
+//     Legs – rada mööda sõidud (alus / käru viib From-jaamast To-jaama), nende vahel konnektorid.
 //     Kutsub: CheckReachability, SimInit, testid. Sündmusi ei lisa.
 export function StationPaths(network) {
   return network.Stations.map((station, source) => ShortestPaths(network, source));
@@ -765,14 +1039,20 @@ export function StationPaths(network) {
 export function ShortestPaths(network, source, connectorOpen = () => true) {
   const stations = network.Stations;
   const count = stations.length;
+  const discrete = trackIndex => network.Tracks[trackIndex].Mode === 'Discrete';
   const closed = trackIndex => network.Tracks[trackIndex].Closed !== false;
-  const along = (from, to) => {   // sõit rada mööda jaamast from jaama to, cm või null
+  const along = (from, to) => {   // sõit rada mööda jaamast from jaama to: { Length, Time } või null
     const first = stations[from];
     const second = stations[to];
     if (first.Track !== second.Track || from === to) return null;
-    const length = network.Tracks[first.Track].Length;
-    if (closed(first.Track)) return ((second.Position - first.Position) % length + length) % length;
-    return second.Position > first.Position ? second.Position - first.Position : null;
+    const track = network.Tracks[first.Track];
+    if (discrete(first.Track)) return NodeDistances(track)[first.Node][second.Node];
+    const length = track.Length;
+    let distance;
+    if (closed(first.Track)) distance = ((second.Position - first.Position) % length + length) % length;
+    else if (second.Position > first.Position) distance = second.Position - first.Position;
+    else return null;
+    return { Length: distance, Time: distance / track.Speed };
   };
   const partners = stationIndex => {
     const station = stations[stationIndex];
@@ -780,31 +1060,36 @@ export function ShortestPaths(network, source, connectorOpen = () => true) {
     return network.Connectors[station.Connector].Stations.filter(other => other !== stationIndex);
   };
 
-  const best = Array.from({ length: count }, () => null);   // { Length, Hops, Previous, Cross }
+  const best = Array.from({ length: count }, () => null);   // { Length, Time, Hops, Previous, Cross }
   const done = new Array(count).fill(false);
-  best[source] = { Length: 0, Hops: 0, Previous: -1, Cross: false };
+  best[source] = { Length: 0, Time: 0, Hops: 0, Previous: -1, Cross: false };
+  const key = entry => [entry.Time, entry.Hops];
   for (;;) {
     let current = -1;
     for (let i = 0; i < count; i++) {
       if (done[i] || best[i] === null) continue;
-      if (current < 0 || CompareScores([best[i].Length, best[i].Hops], [best[current].Length, best[current].Hops]) < 0) current = i;
+      if (current < 0 || CompareScores(key(best[i]), key(best[current])) < 0) current = i;
     }
     if (current < 0) break;
     done[current] = true;
-    const relax = (next, length, cross) => {
-      const candidate = { Length: RoundPosition(best[current].Length + length), Hops: best[current].Hops + 1, Previous: current, Cross: cross };
-      if (best[next] === null || CompareScores([candidate.Length, candidate.Hops], [best[next].Length, best[next].Hops]) < 0) best[next] = candidate;
+    const relax = (next, step, cross) => {
+      const candidate = {
+        Length: RoundPosition(best[current].Length + step.Length), Time: RoundPosition(best[current].Time + step.Time),
+        Hops: best[current].Hops + 1, Previous: current, Cross: cross,
+      };
+      if (best[next] === null || CompareScores(key(candidate), key(best[next])) < 0) best[next] = candidate;
     };
     for (let next = 0; next < count; next++) {
-      const length = along(current, next);
-      if (length !== null && !done[next]) relax(next, length, false);
+      if (done[next]) continue;
+      const step = along(current, next);
+      if (step !== null) relax(next, step, false);
     }
-    for (const next of partners(current)) if (!done[next]) relax(next, 0, true);
+    for (const next of partners(current)) if (!done[next]) relax(next, { Length: 0, Time: 0 }, true);
   }
   return best.map((entry, target) => {
     if (target === source) {
-      return closed(stations[source].Track)
-        ? { Length: 0, Legs: [{ Track: stations[source].Track, From: source, To: source }] }
+      return !discrete(stations[source].Track) && closed(stations[source].Track)
+        ? { Length: 0, Time: 0, Legs: [{ Track: stations[source].Track, From: source, To: source }] }
         : null;
     }
     if (entry === null) return null;
@@ -812,8 +1097,87 @@ export function ShortestPaths(network, source, connectorOpen = () => true) {
     for (let node = target; best[node].Previous >= 0; node = best[node].Previous) {
       if (!best[node].Cross) legs.unshift({ Track: stations[node].Track, From: best[node].Previous, To: node });
     }
-    return { Length: entry.Length, Legs: legs };
+    return { Length: entry.Length, Time: entry.Time, Legs: legs };
   });
+}
+
+// =====================================================================
+// Diskreetse raja graaf (etapp 7b)
+// =====================================================================
+
+const GraphCache = new WeakMap();   // [U] raja objekt -> { Adjacent, Distances } (arvutatakse üks kord)
+
+// [U] GraphAdjacency – iga sõlme väljuvad sammud [{ Edge, Dir, Next }]: Dir 1 – lõigu From -> To,
+//     -1 – vastupidi; ühesuunalist lõiku ainult lubatud suunas. Kutsuvad: GraphSearch, NodeDistances.
+function GraphAdjacency(track) {
+  let cache = GraphCache.get(track);
+  if (cache === undefined) { cache = {}; GraphCache.set(track, cache); }
+  if (cache.Adjacent === undefined) {
+    cache.Adjacent = track.Nodes.map(() => []);
+    track.Edges.forEach((edge, edgeIndex) => {
+      if (edge.OneWay !== -1) cache.Adjacent[edge.From].push({ Edge: edgeIndex, Dir: 1, Next: edge.To });
+      if (edge.OneWay !== 1) cache.Adjacent[edge.To].push({ Edge: edgeIndex, Dir: -1, Next: edge.From });
+    });
+  }
+  return cache.Adjacent;
+}
+
+// [O nimi, U sisu] GraphSearch – Dijkstra diskreetse raja graafis: kaal = lõigu pikkus / kiirus,
+//     viigi korral vähem lõike. starts: [{ Node, Time, Length, Start }] – algsõlmed (käru lõigu
+//     sees: mõlemad otsad oma ajaga); blocked(tsoon) – tsoon, kuhu siseneda ei tohi ('N<sõlm>',
+//     'E<lõik>'; algsõlm on alati lubatud). Tagastab sõlmede kaupa { Time, Length, Hops, Previous,
+//     Edge, Dir, Start } või null. Kutsuvad: NodeDistances, ProgTM.
+function GraphSearch(track, starts, blocked = () => false) {
+  const adjacent = GraphAdjacency(track);
+  const count = track.Nodes.length;
+  const best = new Array(count).fill(null);
+  const done = new Array(count).fill(false);
+  const key = entry => [entry.Time, entry.Hops];
+  for (const start of starts) {
+    const entry = { Time: start.Time, Length: start.Length, Hops: 0, Previous: -1, Edge: -1, Dir: 0, Start: start.Start ?? null };
+    if (best[start.Node] === null || CompareScores(key(entry), key(best[start.Node])) < 0) best[start.Node] = entry;
+  }
+  for (;;) {
+    let current = -1;
+    for (let i = 0; i < count; i++) {
+      if (done[i] || best[i] === null) continue;
+      if (current < 0 || CompareScores(key(best[i]), key(best[current])) < 0) current = i;
+    }
+    if (current < 0) break;
+    done[current] = true;
+    for (const step of adjacent[current]) {
+      if (done[step.Next] || blocked(`E${step.Edge}`) || blocked(`N${step.Next}`)) continue;
+      const edge = track.Edges[step.Edge];
+      const candidate = {
+        Time: best[current].Time + edge.Length / track.Speed, Length: best[current].Length + edge.Length,
+        Hops: best[current].Hops + 1, Previous: current, Edge: step.Edge, Dir: step.Dir, Start: best[current].Start,
+      };
+      if (best[step.Next] === null || CompareScores(key(candidate), key(best[step.Next])) < 0) best[step.Next] = candidate;
+    }
+  }
+  return best;
+}
+
+// [U] GraphSteps – Dijkstra tulemusest tee sõlme target: sammud [{ Edge, Dir }] algusest.
+function GraphSteps(best, target) {
+  const steps = [];
+  for (let node = target; best[node].Previous >= 0; node = best[node].Previous) {
+    steps.unshift({ Edge: best[node].Edge, Dir: best[node].Dir });
+  }
+  return steps;
+}
+
+// [U] NodeDistances – kiireimad sõidud sõlmest sõlme: Distances[a][b] = { Length, Time } või null
+//     (sama sõlm või teed pole). Arvutatakse üks kord raja kohta. Kutsub: ShortestPaths.
+function NodeDistances(track) {
+  let cache = GraphCache.get(track);
+  if (cache === undefined) { cache = {}; GraphCache.set(track, cache); }
+  if (cache.Distances === undefined) {
+    cache.Distances = track.Nodes.map((node, source) => GraphSearch(track, [{ Node: source, Time: 0, Length: 0 }])
+      .map((entry, target) => (entry === null || target === source
+        ? null : { Length: RoundPosition(entry.Length), Time: RoundPosition(entry.Time) })));
+  }
+  return cache.Distances;
 }
 
 // =====================================================================
@@ -1065,6 +1429,7 @@ function NeedsStop(track, palletIndex, stationIndex) {
 function MinuteMan() {
   const EPSILON = 1e-6;
   Tracks.forEach((track, trackIndex) => {
+    if (track.Discrete) { MoveCarts(track); return; }
     if (track.StopCount > 0) return;
     const stepLength = track.Speed * 1;
     const spacing = track.Length / track.Carts;
@@ -1092,6 +1457,490 @@ function MinuteMan() {
 }
 
 // =====================================================================
+// Diskreetsed rajad: kärud (AGV-d) – DISAIN.md 11 (etapp 7b)
+// =====================================================================
+//
+// Käru on punkt: ta on kas sõlmes (Node) või lõigul (Edge, Dir, Distance). Tsoon on sõlm ('N<i>')
+// või lõik ('E<i>'), igas tsoonis on korraga üks käru (track.Holder: tsoon -> käru). Käru broneerib
+// enne sõitu ploki (CartBlock): sõlme, kuhu ta siseneb, ja sellele järgneva ahela. Seepärast ootab
+// käru ainult sõlmes või lõigu lõpus enne sõlme (WaitPoint), mitte kunagi vastutulijaga samal lõigul.
+
+const DETOUR_FACTOR = 1.5;   // [U] ümbersõit, kui see on kõige rohkem 1,5 × praegune tee + DETOUR_SLACK
+const DETOUR_SLACK = 10;     // [U] s
+const REQUEST_PATIENCE = 30; // [U] s: nii kaua ootab soov käru, kelle teel pole teist käru (FindPal)
+const COLLISION_RETRIES = 10; // [U] sama ring nii mitu korda järjest -> ummik (CollisionProc)
+
+// [U] NodeZone, EdgeZone – tsooni võti.
+const NodeZone = nodeIndex => `N${nodeIndex}`;
+const EdgeZone = edgeIndex => `E${edgeIndex}`;
+
+// [U] FarNode – sõlm, kuhu käru lõigul sõidab (samm { Edge, Dir } või käru ise).
+function FarNode(track, step) {
+  const edge = track.Edges[step.Edge];
+  return step.Dir > 0 ? edge.To : edge.From;
+}
+
+// [U] CartZone – tsoon, kus käru praegu on.
+function CartZone(cart) {
+  return cart.Edge >= 0 ? EdgeZone(cart.Edge) : NodeZone(cart.Node);
+}
+
+// [U] HeldByOther – kas tsooni hoiab mõni teine käru.
+function HeldByOther(track, zone, cart) {
+  return track.Holder.has(zone) && track.Holder.get(zone) !== cart.Index;
+}
+
+// [U] CartBlock – tsoonid, mis käru peab korraga broneerima, et siseneda sõlme node ja sõita
+//     sealt edasi (steps – tee pärast seda sõlme): sõlm (kui käru pole seal), siis lõigud ja
+//     vahesõlmed kuni hargnemiseni (sõlm, kus on ≥ 3 haru – see jääb järgmisse plokki), ühesuunalise
+//     lõigu lõpuni (selle lõpus võib oodata – vastutulijat pole) või tee lõpuni (lõppsõlm kaasa).
+//     Nii ei saa kahesuunalisel ahelal olla vastutulijat. Kui sõlmest (mis pole hargnemine) läheb
+//     edasi ühesuunaline lõik, on plokk ainult sõlm – seal võib oodata.
+//     Kutsub: MoveCart.
+function CartBlock(track, cart, node, steps) {
+  const zones = [];
+  if (cart.Edge >= 0 || cart.Node !== node) {
+    zones.push(NodeZone(node));
+    // sõlmes, kust edasi viib ühesuunaline lõik, võib oodata (vastutulijat pole), kui see pole hargnemine
+    if (steps.length > 0 && !track.Nodes[node].Junction && track.Edges[steps[0].Edge].OneWay !== 0) return zones;
+  }
+  for (let i = 0; i < steps.length; i++) {
+    const edge = track.Edges[steps[i].Edge];
+    const far = FarNode(track, steps[i]);
+    zones.push(EdgeZone(steps[i].Edge));
+    if (edge.OneWay !== 0) break;                                   // ühesuunalise lõigu lõpus võib oodata
+    if (i === steps.length - 1) { zones.push(NodeZone(far)); break; }
+    if (track.Nodes[far].Junction) break;
+    zones.push(NodeZone(far));
+  }
+  return zones;
+}
+
+// [U] TryHoldZones – broneerib kõik tsoonid korraga, kui ükski pole teise käru käes.
+function TryHoldZones(track, cart, zones) {
+  if (zones.some(zone => HeldByOther(track, zone, cart))) return false;
+  for (const zone of zones) track.Holder.set(zone, cart.Index);
+  return true;
+}
+
+// [U] ReleaseZone – käru vabastab tsooni (väljus sellest).
+function ReleaseZone(track, cart, zone) {
+  if (track.Holder.get(zone) === cart.Index) track.Holder.delete(zone);
+}
+
+// [U] WaitPoint – kus käru lõigul ootab järgmist sõlme: pool ikooni enne sõlme keskpunkti
+//     (sõlme ikooni serval), lühikesel lõigul lõigu keskel.
+function WaitPoint(edge) {
+  return Math.max(0, edge.Length - Math.min(edge.Length / 2, Model.Scale / 2));
+}
+
+// [O nimi, U sisu] ProgTM – käru programmeerimine: kiireim tee käru praegusest kohast sõlme goal
+//     (GraphSearch, kaal = pikkus / kiirus, ühesuunalist lõiku ainult lubatud suunas). Lõigul olev
+//     käru võib kahesuunalisel lõigul ka ümber pöörata (Start 'Back'). blocked(tsoon) – tsoonid,
+//     kuhu siseneda ei tohi (ümbersõit). Tagastab { Steps, Time, Start } või null.
+//     Kutsuvad: FindPal, CartContinues, MoveCart (ümbersõit), CollisionProc, SendAside.
+function ProgTM(track, cart, goal, blocked = () => false) {
+  const starts = [];
+  if (cart.Edge < 0) {
+    starts.push({ Node: cart.Node, Time: 0, Length: 0, Start: 'Node' });
+  } else {
+    const edge = track.Edges[cart.Edge];
+    const far = FarNode(track, cart);
+    const near = cart.Dir > 0 ? edge.From : edge.To;
+    if (!blocked(NodeZone(far))) {
+      starts.push({ Node: far, Time: (edge.Length - cart.Distance) / track.Speed, Length: edge.Length - cart.Distance, Start: 'Forward' });
+    }
+    if (edge.OneWay === 0 && !blocked(NodeZone(near))) {
+      starts.push({ Node: near, Time: cart.Distance / track.Speed, Length: cart.Distance, Start: 'Back' });
+    }
+  }
+  if (starts.length === 0) return null;
+  const best = GraphSearch(track, starts, blocked);
+  if (best[goal] === null) return null;
+  return { Steps: GraphSteps(best, goal), Time: best[goal].Time, Start: best[goal].Start, End: goal };
+}
+
+// [U] ProgTMOneWayInto – nagu ProgTM, aga viimane lõik sihtsõlme goal peab olema ühesuunaline
+//     (selle lõpus saab oodata, kuni goal vabaneb – teine käru lahkub sealt teist teed pidi).
+//     Tagastab { Steps, Time, Start, End } või null. Kutsuvad: CollisionProc, SendAside.
+function ProgTMOneWayInto(track, cart, goal, blocked) {
+  let best = null;
+  track.Edges.forEach((edge, edgeIndex) => {
+    const dir = edge.OneWay;
+    if (dir === 0 || (dir > 0 ? edge.To : edge.From) !== goal) return;
+    const from = dir > 0 ? edge.From : edge.To;
+    if (from === goal || blocked(EdgeZone(edgeIndex))) return;
+    const plan = cart.Edge < 0 && cart.Node === from
+      ? { Steps: [], Time: 0, Start: 'Node' }
+      : ProgTM(track, cart, from, zone => zone === NodeZone(goal) || blocked(zone));
+    if (plan === null) return;
+    const time = plan.Time + edge.Length / track.Speed;
+    if (best === null || time < best.Time) {
+      best = { Steps: [...plan.Steps, { Edge: edgeIndex, Dir: dir }], Time: time, Start: plan.Start, End: goal };
+    }
+  });
+  return best;
+}
+
+// [U] SetRoute – annab kärule uue tee (ProgTM tulemus): vajadusel pöörab lõigul ümber; tsoonid,
+//     mis olid broneeritud eespool (vana tee), vabastatakse.
+function SetRoute(track, cart, plan) {
+  if (plan.Start === 'Back') {
+    cart.Dir = -cart.Dir;
+    cart.Distance = track.Edges[cart.Edge].Length - cart.Distance;
+    if (Math.abs(cart.Distance) < 1e-9) cart.Distance = 0;
+  }
+  const current = CartZone(cart);
+  for (const [zone, holder] of [...track.Holder]) {
+    if (holder === cart.Index && zone !== current) track.Holder.delete(zone);
+  }
+  cart.Route = plan.Steps.map(step => ({ ...step }));
+  cart.RouteEnd = plan.End;
+  cart.Waiting = null;
+}
+
+// [U] CartIdle – kas käru on vaba (tööd pole, ei laadi). Liikuv (kõrvale minev) vaba käru on ka vaba.
+function CartIdle(cart) {
+  return cart.WP === null && cart.ReservedWP === null && !cart.Stopped && cart.Goal < 0;
+}
+
+// [O nimi, T sisu] FindPal – jagab transpordisoovid vabadele kärudele: soov (detail ootab käru
+//     selle raja jaamas, vanim enne) saab käru, mis jõuab kõige kiiremini kohale (ProgTM); viigi
+//     korral väiksema numbriga käru. Kutsub: MoveCarts.
+function FindPal(track) {
+  const requests = SysWPArray
+    .filter(workpiece => workpiece.State === 'WAIT_PICKUP' && workpiece.Path[0].Track === track.Index
+      && !track.Pallets.some(cart => cart.ReservedWP === workpiece.Id))
+    .sort((first, second) => first.StateSince - second.StateSince || first.Id - second.Id);
+  for (const workpiece of requests) {
+    const goal = StationArray[workpiece.Path[0].From].Node;
+    let chosen = null;
+    for (const cart of track.Pallets) {
+      if (!CartIdle(cart)) continue;
+      const plan = ProgTM(track, cart, goal);
+      if (plan === null) continue;
+      // eelistatud on käru, kelle teel pole teist käru (muidu peaks see temast mööda pääsema)
+      const free = ProgTM(track, cart, goal, zone => HeldByOther(track, zone, cart));
+      const score = [free !== null ? 0 : 1, plan.Time];
+      if (chosen === null || CompareScores(score, chosen.Score) < 0) chosen = { Cart: cart, Plan: plan, Score: score };
+    }
+    if (chosen === null) {
+      if (!track.Pallets.some(CartIdle)) break;   // vaba käru pole – soovid ootavad (FIFO)
+      continue;
+    }
+    // vaba käru tee on teise käru tõttu kinni: oota veidi, ehk vabaneb lähem käru (REQUEST_PATIENCE)
+    if (chosen.Score[0] === 1 && SYSTEM_TIME - workpiece.StateSince < REQUEST_PATIENCE) continue;
+    chosen.Cart.ReservedWP = workpiece.Id;
+    chosen.Cart.Goal = goal;
+    SetRoute(track, chosen.Cart, chosen.Plan);
+  }
+}
+
+// [U] CartPickupCandidate – detail, mille käru jaamas peale võtab: tema enda soov või (kui käru on
+//     vaba) jaamas ootav soov, millel käru veel pole. Kutsuvad: StopMovProc, AfterPalletAtStation.
+function CartPickupCandidate(cart, stationIndex) {
+  const track = Tracks[cart.Track];
+  if (cart.ReservedWP !== null) {
+    const own = SysWPArray[cart.ReservedWP];
+    return own.State === 'WAIT_PICKUP' && own.Path[0].From === stationIndex ? own : null;
+  }
+  const candidate = PickupCandidate(stationIndex);
+  if (candidate === null || candidate.Path[0].Track !== cart.Track) return null;
+  if (track.Pallets.some(other => other.ReservedWP === candidate.Id)) return null;
+  cart.Goal = StationArray[stationIndex].Node;
+  return candidate;
+}
+
+// [U] CartContinues – laadimine on läbi (MoveZ): koormaga käru sõidab detaili sõidu lõppjaama,
+//     tühi käru jääb vabaks (FindPal annab uue töö). Kutsub: MoveZProc.
+function CartContinues(track, cart) {
+  cart.Stopped = false;
+  if (cart.WP !== null) {
+    cart.Goal = StationArray[SysWPArray[cart.WP].Path[0].To].Node;
+    const plan = ProgTM(track, cart, cart.Goal);
+    if (plan === null) throw new Error(`CartContinues: rajal ${track.Name} pole teed sihtjaama`);
+    SetRoute(track, cart, plan);
+  } else {
+    cart.Goal = -1;
+    cart.Route = null;
+    cart.RouteEnd = -1;
+  }
+}
+
+// [U] CartArrives – käru jõudis oma tee lõppu. Sihtsõlmes: peatub laadimiseks (StopMov); kõrvale
+//     minnes: kui tal on töö, arvutab tee sihtkohta uuesti, muidu jääb vabaks. Lisab: StopMov.
+function CartArrives(track, cart) {
+  cart.Route = null;
+  cart.RouteEnd = -1;
+  cart.Waiting = null;
+  if (cart.Goal < 0) return;
+  if (cart.Node === cart.Goal) {
+    const stationIndex = track.NodeStation[cart.Node];
+    if ((cart.WP === null && cart.ReservedWP === null) || stationIndex < 0) { cart.Goal = -1; return; }   // sõidukäsk (testid)
+    cart.Stopped = true;
+    track.Stops++;
+    PutEvent({ Event: 'StopMov', Track: track.Index, Pal: cart.Index, ObjType: 'Station', ObjCode: stationIndex });
+    return;
+  }
+  const plan = ProgTM(track, cart, cart.Goal);
+  if (plan !== null) SetRoute(track, cart, plan);
+}
+
+// [U] TryDetour – käru ei saanud plokki: kas on ümbersõit, mis väldib teiste kärude tsoone ja pole
+//     palju pikem (DETOUR_FACTOR, DETOUR_SLACK)? Kui on, saab käru selle tee. Kutsub: MoveCart.
+function TryDetour(track, cart) {
+  const current = ProgTM(track, cart, cart.RouteEnd);
+  const detour = ProgTM(track, cart, cart.RouteEnd, zone => HeldByOther(track, zone, cart));
+  if (current === null || detour === null) return false;
+  if (detour.Start === current.Start && JSON.stringify(detour.Steps) === JSON.stringify(cart.Route)) return false;
+  if (detour.Time > current.Time * DETOUR_FACTOR + DETOUR_SLACK) return false;
+  SetRoute(track, cart, detour);
+  track.Detours++;
+  return true;
+}
+
+// [U] MoveCart – liigutab käru ühe sekundi (Speed cm) mööda tema teed: sõlmest lahkudes ja lõigu
+//     lõppu jõudes broneerib järgmise ploki (CartBlock); kui see on kinni, proovib ümbersõitu
+//     (TryDetour) või ootab (sõlmes või lõigu WaitPoint-is, olek Waiting). Tsoonist väljudes
+//     vabastab selle. Tee lõpus: CartArrives. Kutsub: MoveCarts.
+function MoveCart(track, cart) {
+  const EPSILON = 1e-6;
+  if (cart.Stopped || cart.Route === null) return;
+  let budget = track.Speed * 1;
+  for (let guard = 0; guard < 1000; guard++) {
+    if (cart.Edge < 0) {
+      if (cart.Route.length === 0) { CartArrives(track, cart); return; }
+      const zones = CartBlock(track, cart, cart.Node, cart.Route);
+      if (!TryHoldZones(track, cart, zones)) {
+        if (TryDetour(track, cart)) continue;
+        if (cart.Waiting === null) cart.WaitSince = SYSTEM_TIME;
+        cart.Waiting = zones;
+        return;
+      }
+      const step = cart.Route.shift();
+      ReleaseZone(track, cart, NodeZone(cart.Node));
+      cart.Node = -1;
+      cart.Edge = step.Edge;
+      cart.Dir = step.Dir;
+      cart.Distance = 0;
+      cart.Waiting = null;
+      continue;
+    }
+    const edge = track.Edges[cart.Edge];
+    const far = FarNode(track, cart);
+    if (track.Holder.get(NodeZone(far)) !== cart.Index) {
+      const zones = CartBlock(track, cart, far, cart.Route);
+      if (!TryHoldZones(track, cart, zones)) {
+        if (TryDetour(track, cart)) continue;
+        const stop = WaitPoint(edge);
+        if (cart.Distance < stop - EPSILON) {
+          const move = Math.min(budget, stop - cart.Distance);
+          cart.Distance = RoundPosition(cart.Distance + move);
+          if (cart.Distance < stop - EPSILON) { cart.Waiting = null; return; }
+        }
+        if (cart.Waiting === null) cart.WaitSince = SYSTEM_TIME;
+        cart.Waiting = zones;
+        return;
+      }
+    }
+    const remaining = edge.Length - cart.Distance;
+    if (budget < remaining - EPSILON) {
+      cart.Distance = RoundPosition(cart.Distance + budget);
+      cart.Waiting = null;
+      return;
+    }
+    budget -= remaining;
+    ReleaseZone(track, cart, EdgeZone(cart.Edge));
+    cart.Edge = -1;
+    cart.Dir = 0;
+    cart.Distance = 0;
+    cart.Node = far;
+    cart.Waiting = null;
+    if (cart.Route.length === 0) { CartArrives(track, cart); return; }
+  }
+  throw new Error(`MoveCart: rajal ${track.Name} käru ${cart.Index} ei saa ühe sekundiga hakkama`);
+}
+
+// [U] NeededZones – tsoonid, mida käru oma teel veel vajab (ootab või sõidab läbi).
+function NeededZones(track, cart) {
+  const zones = new Set(cart.Waiting ?? []);
+  for (const step of cart.Route ?? []) {
+    zones.add(EdgeZone(step.Edge));
+    zones.add(NodeZone(FarNode(track, step)));
+  }
+  if (cart.Edge >= 0) zones.add(NodeZone(FarNode(track, cart)));
+  return zones;
+}
+
+// [U] Stuck – vaba käru, keda keegi ootab, aga keda sel sekundil ei õnnestunud kõrvale saata.
+const Stuck = cart => CartIdle(cart) && cart.Route === null && cart.AsideFailed === SYSTEM_TIME;
+
+// [U] IsWaiting – kas käru ootab ootegraafis: ootab plokki või on kõrvale saamata (Stuck).
+const IsWaiting = cart => cart.Waiting !== null || Stuck(cart);
+
+// [U] Blockers – kärud, kelle taga käru ootab: ploki tsoonide hoidjad; kõrvale saamata vabal
+//     kärul tema sõlmest väljuvate lõikude ja nende järgmiste sõlmede hoidjad.
+function Blockers(track, cart) {
+  let zones = [];
+  if (cart.Waiting !== null) zones = cart.Waiting;
+  else if (Stuck(cart)) zones = GraphAdjacency(track)[cart.Node].flatMap(step => [EdgeZone(step.Edge), NodeZone(step.Next)]);
+  return [...new Set(zones.filter(zone => HeldByOther(track, zone, cart)).map(zone => track.Holder.get(zone)))]
+    .map(index => track.Pallets[index]);
+}
+
+// [U] FindWaitCycle – ootegraafis ring (käru ootab käru, kes ootab …): kärude loend või null.
+//     Laadiv või liikuv käru ringi ei sulge – ta liigub varsti edasi. Kutsub: FindCollision.
+function FindWaitCycle(track) {
+  for (const start of track.Pallets) {
+    const seen = new Map();   // käru -> järjekorranumber teel (sügavuti otsing)
+    const visit = (cart, path) => {
+      if (path.includes(cart)) return path.slice(path.indexOf(cart));
+      if (seen.has(cart) || !IsWaiting(cart)) return null;
+      seen.set(cart, true);
+      for (const blocker of Blockers(track, cart)) {
+        const cycle = visit(blocker, [...path, cart]);
+        if (cycle !== null) return cycle;
+      }
+      return null;
+    };
+    const cycle = visit(start, []);
+    if (cycle !== null) return cycle;
+  }
+  return null;
+}
+
+// [U] SendAside – saadab käru kõrvale: lähimasse sõlme, mis pole teise käru käes ega teiste teel
+//     (avoid), eelistatult mitte hargnemisse. Tee sinna võib minna läbi teiste vajatud tsoonide
+//     (nemad ootavad), aga mitte läbi teiste käes olevate (blockers – ainult nende kärude, null –
+//     kõigi). Kui vaba sõlme pole, sobib ka teise käru sõlm, kuhu viib ühesuunaline lõik (selle lõpus
+//     saab oodata). Töö (Goal) jääb alles – kohale jõudes arvutab käru tee uuesti. Tagastab, kas
+//     õnnestus. Kutsuvad: MoveCarts, CollisionProc.
+function SendAside(track, cart, avoid, blockers = null) {
+  const blocked = zone => HeldByOther(track, zone, cart)
+    && (blockers === null || blockers.includes(track.Pallets[track.Holder.get(zone)]));
+  let best = null;
+  track.Nodes.forEach((node, nodeIndex) => {
+    if (cart.Edge < 0 && cart.Node === nodeIndex) return;
+    if (blocked(NodeZone(nodeIndex)) || avoid.has(NodeZone(nodeIndex))) return;
+    const plan = ProgTM(track, cart, nodeIndex, blocked);
+    if (plan === null) return;
+    const score = [node.Junction ? 1 : 0, plan.Time, nodeIndex];
+    if (best === null || CompareScores(score, best.Score) < 0) best = { Plan: plan, Score: score };
+  });
+  if (best === null) {
+    // vaba sõlme pole: teise käru sõlm, kuhu viib ühesuunaline lõik – selle lõpus saab oodata, kuni
+    // too lahkub (nt ringil sõidab vaba käru ootajast ette)
+    track.Nodes.forEach((node, nodeIndex) => {
+      if ((cart.Edge < 0 && cart.Node === nodeIndex) || !HeldByOther(track, NodeZone(nodeIndex), cart)) return;
+      if (avoid.has(NodeZone(nodeIndex))) return;
+      const plan = ProgTMOneWayInto(track, cart, nodeIndex, zone => zone !== NodeZone(nodeIndex) && blocked(zone));
+      if (plan === null) return;
+      const score = [node.Junction ? 1 : 0, plan.Time, nodeIndex];
+      if (best === null || CompareScores(score, best.Score) < 0) best = { Plan: plan, Score: score };
+    });
+  }
+  if (best === null) return false;
+  SetRoute(track, cart, best.Plan);
+  track.Asides++;
+  return true;
+}
+
+// [U] MoveCarts – diskreetse raja sekund (MinuteMan): FindPal, kärude liikumine, siis ootegraaf:
+//     vaba käru, kelle taga keegi ootab, saadetakse kõrvale; ringootamine -> Collision.
+//     Kutsub: MinuteMan. Lisab: StopMov, Collision.
+function MoveCarts(track) {
+  FindPal(track);
+  for (const cart of track.Pallets) {
+    // vaba käru ei seisa hargnemises (see takistaks kõiki): läheb lähimasse vabasse sõlme
+    if (CartIdle(cart) && cart.Route === null && cart.Edge < 0 && track.Nodes[cart.Node].Junction) {
+      const avoid = new Set(track.Pallets.filter(other => other !== cart).flatMap(other => [...NeededZones(track, other)]));
+      SendAside(track, cart, avoid);
+    }
+    MoveCart(track, cart);
+  }
+  // vaba käru, kelle taga keegi ootab, läheb kõrvale. Tema teed takistavad ainult seisvad (ootavad
+  // või laadivad) kärud: liikuv käru vabastab tee ise ja teel seisvad vabad kärud lükatakse
+  // järgmisel sekundil omakorda kõrvale.
+  const parked = cart => CartIdle(cart) && cart.Route === null;
+  for (const cart of track.Pallets) {
+    for (const blocker of Blockers(track, cart)) {
+      if (!parked(blocker)) continue;
+      const working = track.Pallets.filter(other => other !== blocker && (other.Waiting !== null || other.Stopped));
+      const avoidAll = new Set(track.Pallets.filter(other => other !== blocker).flatMap(other => [...NeededZones(track, other)]));
+      // eelistus: väljapoole kõigi teid; väljapoole ootaja teed; väljapoole ootaja praegust plokki
+      // (siis sõidab vaba käru ootajast ette ja lükatakse vajadusel uuesti edasi)
+      if (!SendAside(track, blocker, avoidAll, working) && !SendAside(track, blocker, NeededZones(track, cart), working)
+          && !SendAside(track, blocker, new Set(cart.Waiting), working)) {
+        blocker.AsideFailed = SYSTEM_TIME;
+      }
+    }
+  }
+  if (!track.CollisionPending) {
+    const collision = FindCollision(track);
+    if (collision !== null) {
+      track.CollisionPending = true;
+      const first = collision.Victims[0];
+      PutEvent({ Event: 'Collision', Track: track.Index, Pal: first.Index, ObjType: 'Pallette', ObjCode: first.Index });
+    }
+  }
+}
+
+// [U] FindCollision – kärud, kes ei saa kunagi edasi: ootegraafi ring (FindWaitCycle; ringis võib
+//     olla ka vaba käru, keda ei õnnestunud kõrvale saata – tema väljapääsu sulgeb ootaja ise).
+//     Tagastab { Victims – ootavad kärud, kellele otsitakse lahendust, Holders – ringi kärud, kelle
+//     tsoone lahendus peab vältima } või null. Kutsuvad: MoveCarts, CollisionProc.
+function FindCollision(track) {
+  const cycle = FindWaitCycle(track);
+  if (cycle === null) return null;
+  return { Victims: cycle.filter(cart => cart.Waiting !== null), Holders: cycle };
+}
+
+// [O nimi, U tähendus] CollisionProc – kärud ootavad üksteist ringis (DISAIN.md 11.5). Valitakse
+//     käru (tühi enne koormaga, siis lühema ooteajaga) ja antakse talle ümbersõit, mis väldib teiste
+//     ringi kärude tsoone (ProgTM), või saadetakse ta kõrvale (SendAside), et teised mööda saaksid.
+//     Ringist väljas olevad kärud ei takista (nad liiguvad või lükatakse kõrvale). Kui kumbki ei
+//     õnnestu ühelgi ringi kärul, simulatsioon peatub ja teatab ummikust.
+function CollisionProc(currentEvent) {
+  const track = Tracks[currentEvent.Track];
+  track.CollisionPending = false;
+  const collision = FindCollision(track);
+  if (collision === null) return;
+  const cycle = collision.Holders;
+  track.Collisions++;
+  // ring (mõne samaga kärudest) kohe uuesti: eelmine lahendus ei aidanud (lõputu ringlemine) ->
+  // ainult kõrvalepõige; kui ka see ei aita COLLISION_RETRIES korda järjest, on see ummik
+  const members = cycle.map(cart => cart.Index);
+  const repeat = SYSTEM_TIME - track.LastCollision.Time <= 2
+    && members.some(index => track.LastCollision.Carts.includes(index));
+  track.LastCollision = { Carts: members, Time: SYSTEM_TIME, Count: repeat ? track.LastCollision.Count + 1 : 1 };
+  const candidates = [...collision.Victims].sort((first, second) => (first.WP !== null) - (second.WP !== null)
+    || second.WaitSince - first.WaitSince || first.Index - second.Index);
+  // ringist väljas olevad kärud liiguvad ise ära (või lükatakse kõrvale) – arvesse lähevad ringi
+  // kärude tsoonid
+  // ringi käru käes olevasse sihtsõlme võib minna ühesuunalist lõiku pidi (selle lõpus saab oodata)
+  const heldByCycle = cart => zone => HeldByOther(track, zone, cart) && cycle.includes(track.Pallets[track.Holder.get(zone)]);
+  for (const cart of (repeat ? [] : candidates)) {
+    const goal = cart.RouteEnd;
+    if (goal < 0) continue;
+    const detour = heldByCycle(cart)(NodeZone(goal))
+      ? ProgTMOneWayInto(track, cart, goal, heldByCycle(cart))
+      : ProgTM(track, cart, goal, heldByCycle(cart));
+    if (detour === null) continue;
+    SetRoute(track, cart, detour);
+    track.Detours++;
+    return;
+  }
+  for (const cart of (track.LastCollision.Count > COLLISION_RETRIES ? [] : candidates)) {
+    const avoid = new Set(cycle.filter(other => other !== cart).flatMap(other => [...NeededZones(track, other)]));
+    if (SendAside(track, cart, avoid, cycle)) return;
+  }
+  DEADLOCK = true;
+  Stats.DeadlockReason = FormatText(Texts.SimDeadlockCarts,
+    { Track: track.Name, List: cycle.map(cart => cart.Index + 1).sort((a, b) => a - b).join(', ') });
+  SIMULATION_DONE = true;
+}
+
+// =====================================================================
 // EventHandlerid
 // =====================================================================
 
@@ -1113,6 +1962,7 @@ function InSysProc(currentEvent) {
 // [O] MoveZProc – konveier võib edasi liikuda (üks peatus vähem).
 function MoveZProc(currentEvent) {
   const track = Tracks[currentEvent.Track];
+  if (track.Discrete) { CartContinues(track, track.Pallets[currentEvent.Pal]); return; }
   track.StopCount--;
   if (track.StopCount < 0) throw new Error(`MoveZProc: StopCount < 0 rajal ${track.Name}`);
 }
@@ -1129,13 +1979,13 @@ function StopMovProc(currentEvent) {
       return;
     }
   } else {
-    const candidate = PickupCandidate(stationIndex);
+    const candidate = track.Discrete ? CartPickupCandidate(pallet, stationIndex) : PickupCandidate(stationIndex);
     if (candidate !== null) {
       BeginPickup(currentEvent.Track, currentEvent.Pal, stationIndex, candidate);
       return;
     }
   }
-  PutEvent({ Event: 'MoveZ', Track: currentEvent.Track });  // tegevus kadus vahepeal
+  PutEvent({ Event: 'MoveZ', Track: currentEvent.Track, Pal: currentEvent.Pal });  // tegevus kadus vahepeal
 }
 
 // [U] BeginUnloadFromPallet – alustab detaili mahalaadimist aluselt jaama objekti: sihtkohta
@@ -1173,11 +2023,14 @@ function BeginPickup(trackIndex, palletIndex, stationIndex, workpiece) {
 //     peale (konveier seisab edasi), muidu konveier jätkab.
 function AfterPalletAtStation(trackIndex, palletIndex, stationIndex) {
   Planner('PalletUnloaded');
-  const candidate = PickupCandidate(stationIndex);
+  const track = Tracks[trackIndex];
+  const candidate = track.Discrete
+    ? CartPickupCandidate(track.Pallets[palletIndex], stationIndex)
+    : PickupCandidate(stationIndex);
   if (candidate !== null) {
     BeginPickup(trackIndex, palletIndex, stationIndex, candidate);
   } else {
-    PutEvent({ Event: 'MoveZ', Track: trackIndex });
+    PutEvent({ Event: 'MoveZ', Track: trackIndex, Pal: palletIndex });
   }
 }
 
@@ -1253,7 +2106,7 @@ function LoadProc(currentEvent) {
     pallet.WP = workpiece.Id;
     workpiece.Location = { Kind: 'Pallet', Track: currentEvent.Track, Pal: currentEvent.Pal };
     SetWPState(workpiece, 'ON_PALLET');
-    PutEvent({ Event: 'MoveZ', Track: currentEvent.Track });
+    PutEvent({ Event: 'MoveZ', Track: currentEvent.Track, Pal: currentEvent.Pal });
     Planner('BufferFreed');
 
   } else if (source === 'Buffer' && target === 'Machine') {
@@ -1366,6 +2219,7 @@ const EventHandlers = {
   StopMov: StopMovProc,
   Turn: TurnProc,
   Process: ProcessProc,
+  Collision: CollisionProc,
 };
 
 // =====================================================================
@@ -1503,7 +2357,7 @@ function FindMach(workpiece, operation, excludeMachine = -1) {
     const score = [
       busy === 0 && queueLength === 0 ? 0 : 1,
       queueLength + busy,
-      path !== null ? path.Length : 0,
+      path !== null ? path.Time : 0,
     ];
     if (bestScore === null || CompareScores(score, bestScore) < 0) { best = machine.Index; bestScore = score; }
   }
@@ -1719,6 +2573,7 @@ function CheckInvariants() {
     if ((machine.State === 'IDLE') !== (machine.WP === null)) fail(`pingi ${machine.Name} olek ${machine.State} ei klapi detailiga`);
   }
   Tracks.forEach((track, trackIndex) => {
+    if (track.Discrete) { CheckCarts(track, fail); return; }
     if (track.StopCount < 0) fail(`rada ${track.Name} StopCount < 0`);
     track.Pallets.forEach((pallet, palletIndex) => {
       const position = (track.Offset + palletIndex * track.Length / track.Carts) % track.Length;
@@ -1751,6 +2606,43 @@ function CheckInvariants() {
   }
 }
 
+// [U] CheckCarts – diskreetse raja invariandid (DISAIN.md 9): igas tsoonis kõige rohkem üks käru
+//     ja käru on ainult enda broneeritud tsoonis; broneeritud tsoonid on käru kohal või tema teel;
+//     ühesuunalist lõiku läbitakse õiges suunas; koormaga käru sõidab detaili sõidu lõppjaama poole;
+//     käru detail ja broneering on kooskõlas. Kutsub: CheckInvariants.
+function CheckCarts(track, fail) {
+  const occupied = new Map();
+  for (const cart of track.Pallets) {
+    const name = `rada ${track.Name} käru ${cart.Index + 1}`;
+    const zone = CartZone(cart);
+    if (occupied.has(zone)) fail(`${name}: tsoonis ${zone} on kaks käru`);
+    occupied.set(zone, cart.Index);
+    if (track.Holder.get(zone) !== cart.Index) fail(`${name}: on tsoonis ${zone}, mida ta pole broneerinud`);
+    if (cart.Edge >= 0) {
+      const edge = track.Edges[cart.Edge];
+      if (cart.Distance < -1e-6 || cart.Distance > edge.Length + 1e-6) fail(`${name}: väljaspool lõiku`);
+      if (edge.OneWay !== 0 && cart.Dir !== edge.OneWay) fail(`${name}: sõidab ühesuunalisel lõigul vastu suunda`);
+    }
+    if (cart.WP !== null) {
+      const workpiece = SysWPArray[cart.WP];
+      if (workpiece.Location.Kind !== 'Pallet' || workpiece.Location.Track !== track.Index || workpiece.Location.Pal !== cart.Index) {
+        fail(`${name}: detail WP${cart.WP} vale asukohaga`);
+      }
+      if (!cart.Stopped && cart.Goal !== StationArray[workpiece.Path[0].To].Node) fail(`${name}: koormaga käru ei sõida detaili sihtjaama`);
+    }
+    if (cart.ReservedWP !== null && !['WAIT_PICKUP', 'LOADING'].includes(SysWPArray[cart.ReservedWP].State)) {
+      fail(`${name}: broneeritud detail WP${cart.ReservedWP} ei oota käru`);
+    }
+    const allowed = new Set([zone]);
+    if (cart.Waiting !== null) cart.Waiting.forEach(item => allowed.add(item));
+    for (const step of cart.Route ?? []) { allowed.add(EdgeZone(step.Edge)); allowed.add(NodeZone(FarNode(track, step))); }
+    if (cart.Edge >= 0) allowed.add(NodeZone(FarNode(track, cart)));
+    for (const [held, holder] of track.Holder) {
+      if (holder === cart.Index && !allowed.has(held)) fail(`${name}: hoiab tsooni ${held}, mis pole tema teel`);
+    }
+  }
+}
+
 // =====================================================================
 // Statistika
 // =====================================================================
@@ -1764,6 +2656,14 @@ function CollectStats() {
     buffer.MaxFill = Math.max(buffer.MaxFill, buffer.Entries.length);
   }
   for (const track of Tracks) {
+    if (track.Discrete) {
+      for (const cart of track.Pallets) {
+        const state = CartState(cart);
+        cart.StateTime[state] = (cart.StateTime[state] || 0) + 1;
+        if (cart.Waiting !== null) track.MaxWait = Math.max(track.MaxWait, SYSTEM_TIME - cart.WaitSince);
+      }
+      continue;
+    }
     if (track.StopCount > 0) track.StoppedTime++; else track.MovingTime++;
   }
   Stats.WipIntegral += CountWorkpiecesInSystem();
@@ -1839,8 +2739,15 @@ export function SimReport() {
     }),
     Buffers: BufferArray.map(buffer => ({ Name: buffer.Name, Capacity: buffer.Capacity,
                                           AvgFill: buffer.FillIntegral / time, MaxFill: buffer.MaxFill })),
-    Tracks: Tracks.map(track => ({ Name: track.Name, Closed: track.Closed, MovingShare: track.MovingTime / time,
-                                   StoppedShare: track.StoppedTime / time, Stops: track.Stops })),
+    Tracks: Tracks.map(track => (track.Discrete
+      ? {
+        Name: track.Name, Discrete: true, Stops: track.Stops, Collisions: track.Collisions, Detours: track.Detours, Asides: track.Asides,
+        MaxWait: track.MaxWait,
+        Carts: track.Pallets.map(cart => Object.fromEntries(['IDLE', 'EMPTY', 'LOADED', 'LOADING', 'WAIT_ZONE']
+          .map(state => [state, (cart.StateTime[state] || 0) / time]))),
+      }
+      : { Name: track.Name, Closed: track.Closed, MovingShare: track.MovingTime / time,
+          StoppedShare: track.StoppedTime / time, Stops: track.Stops })),
     Connectors: ConnectorArray.map(connector => ({ Name: connector.Name, Transfers: connector.Transfers })),
     StorageCount: Storage !== null ? Storage.Count : null,
     StorageMaxParked: Storage !== null ? Storage.MaxParked : null,
@@ -1854,6 +2761,41 @@ export function SimReport() {
 // =====================================================================
 // Käivitamine
 // =====================================================================
+
+// [U] InitCarts – diskreetse raja kärud: igaüks oma sõlmes (enne jaamata raja otsad, siis muud
+//     sõlmed, siis hargnemised; igas grupis ülevalt alla, vasakult paremale), sõlm on tema tsoon.
+//     Kutsub: SimInit.
+function InitCarts(track, trackIndex) {
+  const stationNodes = new Set(Model.Stations.filter(station => station.Track === trackIndex).map(station => station.Node));
+  const score = nodeIndex => {
+    const node = track.Nodes[nodeIndex];
+    return [node.Junction ? 2 : node.Degree <= 1 && !stationNodes.has(nodeIndex) ? 0 : 1, node.Y, node.X];
+  };
+  const order = track.Nodes.map((node, nodeIndex) => nodeIndex)
+    .sort((first, second) => CompareScores(score(first), score(second)));
+  const result = {
+    ...track, Index: trackIndex, Discrete: true, Closed: null, Offset: 0, StopCount: 0, MovingTime: 0, StoppedTime: 0,
+    Stops: 0, Stations: [], NodeStation: track.Nodes.map(() => -1), Holder: new Map(),
+    Collisions: 0, Detours: 0, Asides: 0, MaxWait: 0, CollisionPending: false,
+    LastCollision: { Carts: [], Time: -10, Count: 0 },
+  };
+  result.Pallets = Array.from({ length: track.Carts }, (unused, cartIndex) => ({
+    Index: cartIndex, Track: trackIndex, WP: null, ReservedWP: null, Stopped: false,
+    Node: order[cartIndex], Edge: -1, Dir: 0, Distance: 0, Route: null, RouteEnd: -1, Goal: -1,
+    Waiting: null, WaitSince: 0, AsideFailed: -1, StateTime: {},
+  }));
+  result.Pallets.forEach(cart => result.Holder.set(NodeZone(cart.Node), cart.Index));
+  return result;
+}
+
+// [U] CartState – käru olek statistika jaoks: LOADING (laadimine), WAIT_ZONE (ootab tsooni),
+//     LOADED / EMPTY (sõidab koormaga / tühjalt), IDLE (vaba).
+function CartState(cart) {
+  if (cart.Stopped) return 'LOADING';
+  if (cart.Waiting !== null) return 'WAIT_ZONE';
+  if (cart.Route !== null) return cart.WP !== null ? 'LOADED' : 'EMPTY';
+  return 'IDLE';
+}
 
 // [O] SimInit – loeb võrgu (Enumerate tulemus), eraldab andmestruktuurid, seab algväärtused ja
 //     töötleb hetke 0. Kutsub: SimRun, animaator (etapp 5).
@@ -1874,7 +2816,7 @@ export function SimInit(network, inputOptions = {}) {
             PlannerCalls: 0, LastProgressTime: 0, WipIntegral: 0, MaxWip: 0, Timeline: [], Finished: [] };
 
   Tracks = Model.Tracks.map((track, trackIndex) => {
-    if (track.Mode !== 'Continuous') throw new Error(`SimInit: rada ${track.Name} pole pidev`);
+    if (track.Mode === 'Discrete') return InitCarts(track, trackIndex);
     return {
       ...track, Closed: track.Closed !== false,
       Index: trackIndex, Offset: 0, StopCount: 0, MovingTime: 0, StoppedTime: 0, Stops: 0, Stations: [],
@@ -1882,7 +2824,10 @@ export function SimInit(network, inputOptions = {}) {
     };
   });
   StationArray = Model.Stations.map((station, stationIndex) => ({ ...station, Index: stationIndex }));
-  StationArray.forEach(station => Tracks[station.Track].Stations.push(station.Index));
+  StationArray.forEach(station => {
+    Tracks[station.Track].Stations.push(station.Index);
+    if (Tracks[station.Track].Discrete) Tracks[station.Track].NodeStation[station.Node] = station.Index;
+  });
   ConnectorArray = (Model.Connectors || []).map((connector, connectorIndex) => ({
     ...connector, Index: connectorIndex, WP: null, Reserved: 0, Transfers: 0,
   }));
@@ -1913,6 +2858,18 @@ export function SimInit(network, inputOptions = {}) {
   ProcAllEvents();
   if (Options.CheckInvariants) CheckInvariants();
   TimelinePoint();
+}
+
+// [U] DriveCart – testidele: käru sõidab sõlme node (ilma laadimiseta), nagu tööga käru (Goal):
+//     ootab, teeb ümbersõidu või läheb kõrvale. Tagastab, kas tee on olemas. Sündmusi ei lisa.
+export function DriveCart(trackIndex, cartIndex, node) {
+  const track = Tracks[trackIndex];
+  const cart = track.Pallets[cartIndex];
+  const plan = ProgTM(track, cart, node);
+  if (plan === null) return false;
+  cart.Goal = node;
+  SetRoute(track, cart, plan);
+  return true;
 }
 
 // [O] SimStep – üks sekund: kell edasi, MinuteMan, kõik selle hetke sündmused, ummiku kontroll.

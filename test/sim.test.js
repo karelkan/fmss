@@ -256,10 +256,7 @@ test('Kontrollid 3 ja 6 on hoiatused', () => {
   assert.ok(result.Warnings.some(warning => warning.Message.includes('rohkem kohti')));
 });
 
-test('Hilisemate etappide asjad annavad selge vea', () => {
-  const discrete = demo();
-  discrete.Tracks[0].Mode = 'Discrete';
-  assertEnumError(discrete, 'etapis 7');
+test('Hilisema etapi asjad annavad selge vea', () => {
   const places = demo();
   places.Tracks[0].PlacesPerCart = 2;
   assertEnumError(places, 'PlacesPerCart');

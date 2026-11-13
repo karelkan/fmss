@@ -222,6 +222,9 @@ export const Texts = {
   EnumBadJoin: 'ikoonid lahtrites ({X}, {Y}) ja ({X2}, {Y2}) ei sobi kokku',
   EnumBranch: 'pideval rajal {Track} on haru lahtris ({X}, {Y})',
   EnumCrossLoop: 'rada {Track} läbib lahtrit ({X}, {Y}) mitu korda',
+  EnumGraphSplit: 'diskreetne rada {Track} pole ühes tükis: lahter ({X}, {Y}) pole ülejäänud rajaga ühendatud',
+  EnumGraphNoNodes: 'diskreetsel rajal {Track} pole ühtegi jaama, hargnemist ega otsa',
+  EnumGraphTooManyCarts: 'diskreetsel rajal {Track} on rohkem kärusid ({Carts}) kui sõlmi ({Nodes})',
   EnumNotConnected: 'raja {Track} ikoon lahtris ({X}, {Y}) pole ülejäänud rajaga ühendatud',
   EnumDotDangling: 'punktiirühendus lahtrist ({X}, {Y}) ei vii puhvri, lao, väljundi ega konnektorini',
   EnumConnectorOpen: 'konnektor {Object} lahtris ({X}, {Y}) peab ühendama kaht rada (mõlemal küljel rada või punktiir)',
@@ -259,6 +262,7 @@ export const Texts = {
   // --- Simulaator ---
   SimDeadlockCycle: 'ringootamine: {List}',
   SimDeadlockOneWay: ' – ühesuunalisest puhvrist ei saa sissetulevat detaili tagasi saata',
+  SimDeadlockCarts: 'rajal {Track} ootavad kärud üksteist ({List}) – ümbersõitu ega kõrvalepõiget pole',
   SimDeadlockStall: 'midagi ei toimu {Seconds} s',
   SimTitle: 'Simulate',
   SimNoModel: 'Mudelit pole laaditud. Vali File → Load.',
