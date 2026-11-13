@@ -92,7 +92,7 @@ export const Texts = {
   HintTheme: 'Välimus: EGA või kaasaegne (F2)',
   HintColors: 'Kaasaegse välimuse värvid',
   HintColorsEgaOnly: 'Värve saab valida ainult kaasaegses välimuses',
-  HintNotYet: 'Tuleb etapis {Stage}',
+  HintNotYet: 'Tuleb versioonis {Version}',
   HintLayout: 'Ruudustik ja ikoonid: rada lohistades, objektid paletist',
   HintView: 'Kogu mudel korraga, ilma ruudustikuta',
   HintConfig: 'Objektide andmed: kõik järjest või valitud objekt',
@@ -131,7 +131,7 @@ export const Texts = {
   ButtonCancel: 'Loobu',
 
   NotYetTitle: 'Pole veel valmis',
-  NotYetText: '{What} tuleb etapis {Stage}.',
+  NotYetText: '{What} tuleb versioonis {Version}.',
 
   QuitTitle: 'Quit',
   QuitText: 'Kas lõpetad töö?',
@@ -185,7 +185,7 @@ export const Texts = {
   DesktopModelCounts: 'Koosseis',
   DesktopModelCountsValue: 'radu {Tracks}, tööpinke {Machines}, puhvreid {Buffers}, detailitüüpe {Workpieces}',
   DesktopModelGridValue: '{X} × {Y} ikooni',
-  DesktopVersion: 'versioon 2026',
+  DesktopVersion: 'versioon 1.0',
   DesktopUntitled: 'Nimetu',
   DesktopChanged: ' (muudetud)',
 
@@ -213,8 +213,6 @@ export const Texts = {
 
   // --- Rajavõrgu ja andmete kontroll (Enumerate, DetectOpenCons, FindConflicts) ---
   EnumNoTrack: 'joonisel pole rada',
-  EnumLater: '{What} pole veel toetatud (tuleb etapis {Stage})',
-  EnumLaterDiscrete: 'diskreetne rada',
   EnumNoDirection: 'pideval rajal {Track} pole liikumissuunda (nool ühel ikoonil)',
   EnumDirConflict: 'raja {Track} suunanool lahtris ({X}, {Y}) on teiste noolega vastuolus',
   EnumTracksTouch: 'rajad {Track} ja {Track2} puutuvad lahtris ({X}, {Y}) kokku ilma konnektorita',
@@ -449,8 +447,8 @@ export const Texts = {
     TeeW: 'Rada – klõps: hargnemine vasakult',
     Cruise: 'Rada – klõps: ristmik',
     Dot: 'Punktiir (pikkus 0) – lohista objektist rajani; klõps rajal: punktiir ↔ rada',
-    HorCon: 'Horisontaalne konnektor (radade ühendus, etapp 7)',
-    VertCon: 'Vertikaalne konnektor (radade ühendus, etapp 7)',
+    HorCon: 'Horisontaalne konnektor (radade ühendus)',
+    VertCon: 'Vertikaalne konnektor (radade ühendus)',
     InBuf: 'Puhver, detailid liiguvad üles (pingi poole)',
     OutBuf: 'Puhver, detailid liiguvad alla (raja poole)',
     InOutBuf: 'Puhver, detailid liiguvad üles ja alla',
@@ -505,7 +503,6 @@ export const Texts = {
   FormAccessTime: 'Pöördusaeg, s',
   FormSegment: 'Lõik: {Count} ikooni, mõõtkavast {Length} cm',
   FormEdgeLength: 'Lõigu pikkus, cm (tühi = mõõtkavast)',
-  FormTrackLater: 'Diskreetne rada tuleb etapis 7b, mitu kohta kärul etapis 7c.',
   FormDeleteTrack: 'Kustuta rada',
   FormDeleteTrackAsk: 'Kas kustutad raja „{Name}“ koos selle ikoonidega?',
   FormNoDataSysOut: 'Süsteemi väljundil andmeid pole.',

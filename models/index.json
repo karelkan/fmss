@@ -1,0 +1,5 @@
+[
+  { "File": "demo.fms.json", "Name": "Näidis-PTS (joon. 5.5)" },
+  { "File": "rike.fms.json", "Name": "Näidis-PTS riketega" },
+  { "File": "agv.fms.json", "Name": "Näidis-AGV (diskreetne rada)" }
+]

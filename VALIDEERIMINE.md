@@ -492,3 +492,57 @@ Näidis-PTS riketega (`fmss.recent`, File → Pick), no-store server:
 6. **Aegrea graafik**: esialgu näitas see detaile süsteemis, aga `Kl` hoiab selle peaaegu konstantsena (näidis-PTS: 12 terve päeva), nii et graafik oli kasutu. Nüüd näitab see valmis detaile kokku – läbilaskevõime kõver, mille alguses on soojenemine ja ummikus tasane osa.
 
 **Mida see EI kontrolli:** päris allalaadimist brauseris (`SaveText` on sama skeem mis `SaveModel`-il) ega väga pikki nimekirju (üle 100 objekti), kuigi kerimine töötab ridade arvust sõltumata. Ootel tööd etappidest 7b–8 jäävad samaks.
+
+---
+
+# Etapp 10: avaldamine (versioon 1.0)
+
+Disain: [DISAIN.md](DISAIN.md) osa 19. Sait: `/` – avaleht ja lühijuhend (`site/index.html`), `/v1/` – rakendus (kood tag'ist `v1.0`, näidismudelid `main`-ist). Kokku paneb `tools/site.sh`, veebis `.github/workflows/pages.yml`. Testid: [test/publish.test.js](test/publish.test.js) (L1–L6). Simulaator ei muutunud – kõik varasemad testid kehtivad (`npm test` 183 rohelist).
+
+## Testid
+
+| Test | Tulemus |
+|---|---|
+| **L1** `models/index.json` | 3 kirjet, kõik õiged; iga `models/*.fms.json` on nimekirjas; nimed erinevad; esimene on `demo.fms.json` (avaneb käivitamisel) ✔ |
+| **L2** varunimekiri koodis (`DemoModels`) | on `index.json`-i osa ✔ |
+| **L3** `ParseDemoList` | vigane JSON, objekt massiivi asemel, `../src/fms.js`, alamkaust, vale laiend, tühi nimi, `null` – jäetakse välja; nimi kärbitakse ✔ |
+| **L4** iga näidis (PTS, PTS riketega, AGV) | `ParseModelText` ja `CheckModel` ilma vigadeta, `Enumerate` ilma vigadeta, 8 h invariantidega igal sammul, ummikut pole, valmis > 0 ✔ |
+| **L5** riketega näidis | rikkeid ja praaki tekib ✔ |
+| **L6** suhtelised teed | `index.html` → `src/fms.js`; ükski `import` / `fetch` / `new URL` moodulites ei alga `/`-ga ega protokolliga ✔ |
+
+## Sait alamkaustas (nagu GitHub Pages)
+
+`tools/site.sh` kokku kausta `…/site/fmss/`, no-store server, brauser aadressil `http://127.0.0.1:8010/fmss/`:
+
+| Kontroll | Tulemus |
+|---|---|
+| Avaleht `/fmss/` | DOS-ekraan EGA fondiga (font laaditakse `v1/fonts/`-ist), nupp „Ava FMSS 1.0“, juhend; tume ja hele; telefoni laiusel (375 px) lehel horisontaalset kerimist pole (EGA kast kerib enda sees) ✔ |
+| `/fmss/v1/` EGA | avaekraan → töölaud, laaditud Näidis-PTS ✔ |
+| File → Load | 3 näidist + „Fail arvutist…“ – nimekiri tuleb `models/index.json`-ist ✔ |
+| Näidis-PTS riketega, Simulate → M | 8:00:00, sisse 99, valmis 76, rikkeid 11, praak 11, 9,5 tk/h ✔ |
+| Aruanne (nupp) | Static + Dynamic, 232 rida; F2 → kaasaegne, End – aegrida ja sündmused (Crash 11, Repair 11, kokku 2017) ✔ |
+| Advise → Layout Chooser | „Layout Chooser tuleb versioonis 2.0.“ ✔ |
+| Näidis-AGV, Simulate, N × 40 | kaasaegne: kärud, Event List; F2 → EGA: olekurida „AGV liigub 1/3“ ✔ |
+| Võrk ja konsool | kõik päringud `/fmss/v1/…` 200 (moodulid, font, `index.json`, 3 mudelit); konsoolis vigu pole ✔ |
+
+`tools/site.sh … HEAD` (kood viimasest commitist, kus nimekiri on veel koodis, mudelid tööpuust) paneb samuti kokku – nii töötab tag'i ja `main`-i segu.
+
+## Ajaloo puhastus (proov koopias)
+
+Skaneeringud ja `CLAUDE.md` jäävad ainult kohalikku koopiasse. Proov repo kloonis: `git filter-branch --index-filter 'git rm -r --cached --ignore-unmatch docs/skaneeringud CLAUDE.md' --prune-empty -- --all`, seejärel `reflog expire` ja `gc`:
+
+| Kontroll | Tulemus |
+|---|---|
+| commitid, mis puudutavad neid faile | 0 ✔ |
+| repo maht | 59 MB → 354 KB ✔ |
+| commiteid | 27 → 25 (kaks commitit sisaldasid ainult neid faile) |
+
+Päris repos tehakse see vahetult enne esimest pushi, autori käsul, varukoopiaga (`git bundle`).
+
+## Leiud
+
+1. **Näidiste nimekiri oli koodis** – etapi 11 mudelid poleks külmutatud `/v1/`-s näha. Nüüd `models/index.json` + `LoadDemoList` (varunimekiri jääb koodi).
+2. **Vananenud tekstid**: Transport-vormis oli rida „Diskreetne rada tuleb etapis 7b, mitu kohta kärul etapis 7c“ (ammu tehtud); `EnumLater` ei olnud kasutusel; konnektori vihjetes „etapp 7“. Eemaldatud. Advise: „tuleb versioonis 2.0“.
+3. **Avalehe juhendis** oli algul `T` = „raja andmed“; tegelikult valib `T` joonistatava raja. Parandatud.
+
+**Mida see EI kontrolli:** päris GitHub Pages'i (töövoog, `/fmss/` tee, Pages'i vahemälu ~10 min) – see selgub esimesel avaldamisel. Ootel tööd etappidest 7b–9 jäävad samaks (PLAAN, VALIDEERIMINE).

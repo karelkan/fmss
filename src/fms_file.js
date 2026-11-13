@@ -13,11 +13,42 @@ const MAX_RECENT = 10;            // [O] Pick – 10 viimast (joon. 6.1)
 const MAX_SHOWN_ERRORS = 8;
 const MODEL_EXTENSION = '.fms.json';
 
-// [U] DemoModels – programmiga kaasas olevad näidismudelid (kaust models/).
+// [U] DemoModels – programmiga kaasas olevad näidismudelid (kaust models/). Nimekiri tuleb
+//     failist models/index.json (LoadDemoList), et näidiseid saaks lisada koodi muutmata;
+//     siin on varunimekiri, kui faili ei saa lugeda. Massiivi sisu asendatakse, viide jääb samaks.
 export const DemoModels = [
   { File: 'demo.fms.json', Name: 'Näidis-PTS (joon. 5.5)' },
-  { File: 'agv.fms.json', Name: 'Näidis-AGV (diskreetne rada, 7b)' },
+  { File: 'agv.fms.json', Name: 'Näidis-AGV (diskreetne rada)' },
 ];
+
+const DEMO_LIST_FILE = 'index.json';
+const DEMO_FILE_PATTERN = /^[A-Za-z0-9_-]+\.fms\.json$/;
+
+// [U] ParseDemoList – näidiste nimekirja (models/index.json) sisust [{ File, Name }].
+//     Vigased kirjed jäetakse välja (failinimi ainult kujul nimi.fms.json – kaustast välja ei pääse).
+//     Kutsub: LoadDemoList, testid.
+export function ParseDemoList(text) {
+  let list;
+  try { list = JSON.parse(text); } catch { return []; }
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((entry) => entry && typeof entry.File === 'string' && DEMO_FILE_PATTERN.test(entry.File)
+      && typeof entry.Name === 'string' && entry.Name.trim() !== '')
+    .map((entry) => ({ File: entry.File, Name: entry.Name.trim() }));
+}
+
+// [U] LoadDemoList – loeb näidiste nimekirja serverist ja asendab DemoModels-i sisu.
+//     Kui faili pole või see on tühi, jääb varunimekiri. onDone() kutsutakse alati. Kutsub: Main.
+export function LoadDemoList(onDone) {
+  fetch(new URL(`../models/${DEMO_LIST_FILE}`, import.meta.url), { cache: 'no-cache' })
+    .then((response) => { if (!response.ok) throw new Error(response.statusText); return response.text(); })
+    .then((text) => {
+      const list = ParseDemoList(text);
+      if (list.length > 0) DemoModels.splice(0, DemoModels.length, ...list);
+    })
+    .catch(() => {})
+    .finally(() => onDone());
+}
 
 // [U] ParseModelText – teeb failisisust mudeli ja kontrollib seda (CheckModel).
 //     Tagastab { Model, Errors }: Errors on kasutajale näidatavad read; kui need on, Model = null.

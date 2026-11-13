@@ -213,7 +213,7 @@ export function EditTransportSystem(model, number, ctx = {}) {
     if (index !== 0) return Done(ctx, false);
     const errors = SubmitModelForm(model, form.Fields, apply, [path, 'EdgeLengths'], ctx.OnChange);
     return errors.length ? errors : Done(ctx, true);
-  }, { Position: ctx.Position ?? 'Center', Avoid: ctx.Avoid ?? null, Lines: [Texts.FormTrackLater] });
+  }, { Position: ctx.Position ?? 'Center', Avoid: ctx.Avoid ?? null });
 }
 
 // [U] ConfigAllCells – Config → All: objektid joonisel järjest (ülevalt alla, vasakult paremale):

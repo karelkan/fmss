@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -600,7 +600,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 |---|---|---|
 | `Texts`, `FormatText` | kõik kasutajale näidatavad tekstid (`fms_lng.js`); kohatäidete `{Nimi}` asendus | [O] / [U] |
 | `EnvironmentOptions`, `LoadOptions`, `SaveOptions` | keskkonna seaded (teema, värvid; aruande väljund ja teemad – etapp 9) brauseri mälus (`fms_opt.js`, originaalis `FMSS.CFG`) | [O] |
-| `DemoModels` | kaasas olevad näidismudelid (`models/`) | [U] |
+| `DemoModels` | kaasas olevad näidismudelid (`models/`); sisu tuleb failist `models/index.json`, koodis on varunimekiri (etapp 10) | [U] |
 | `ParseModelText`, `ModelFileName` | failisisust kontrollitud mudel; mudeli nimest failinimi | [U] |
 | `LoadDemoModel`, `ChooseLocalFile`, `SaveModel` | Load (näidis / fail arvutist), Save (allalaadimine) | [O] |
 | `SaveText` | tekstifaili allalaadimine (aruanne, etapp 9) | [U] |
@@ -619,7 +619,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `CurrentModel`, `CurrentFile` | laaditud mudel ja selle failinimi | [U] |
 | `SPLASH_ACTIVE`, `SplashStart`, `SplashTimer`, `ShowSplash` | avaekraan | [U] |
 | `EgaTheme`, `CurrentTheme`, `ChangeTheme`, `ChangeColorScheme` | välimuse valik (F2, Options) | [U] |
-| `BuildMainMenu`, `NotYet`, `DrawDesktop`, `AcceptLoadedModel`, `Main` | peamenüü; „tuleb etapis N“ punkt; töölaud; laaditud mudeli vastuvõtt; peaprogramm | [O] / [U] |
+| `BuildMainMenu`, `NotYet`, `DrawDesktop`, `AcceptLoadedModel`, `Main` | peamenüü; „tuleb versioonis N“ punkt (Advise – 2.0); töölaud; laaditud mudeli vastuvõtt; peaprogramm | [O] / [U] |
 | `MenuSimulate`, `SimSummaryLines` | Simulate: kontroll, animaator (osa 14), lõpus kokkuvõte dialoogis | [O] / [U] |
 | `SIM_SHOWN_ERRORS`, `SIM_SHOWN_OBJECTS`, `CheckLine`, `Percent`, `Decimal` | kokkuvõtte piirid ja vormindus (%, koma); `ClockText` (h:mm:ss) on `anima.js`-is | [U] |
 | `DesktopView`, `SetDesktopView`, `GetDesktopView`, `POINTER_CAPTURED`, `HandleWheel`, `InsideDesktop` | töölaua vaade (animaator, aruanne): joonistaja, klahvid, hiir; praegune vaade (aruanne taastab selle); lohistamine; hiire ratas | [U] |
@@ -699,6 +699,14 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `REPORT_WIDTH`, `BAR_WIDTH`, `SHARE_BAR_WIDTH`, `WHEEL_LINES` | rea suurim laius (74 märki – mahub EGA aknasse); tulpade pikkus; ratta samm | [U] |
 | `TableLines`, `WrapLines`, `LineText`, `Percent`, `Decimal` | püsilaiusega tabel; loetelu murdmine; rea tekst; vormindus (protsent, koma) | [U] |
 | abiprotseduurid | `StatusText`, `DeadlockLines`, `HeaderLines`, `TrackKind`, `StaticModel` … `StaticCrashes`, `DynamicCycle` … `DynamicEvents`, `ClampTop` – vt päisekommentaarid | [U] |
+
+**Avaldamine** (`src/fms_file.js`, etapp 10, osa 19)
+
+| Nimi | Roll | |
+|---|---|---|
+| `ParseDemoList` | näidiste nimekirja (`models/index.json`) sisust `[{ File, Name }]`; vigased kirjed (ka failinimi, mis pole kujul `nimi.fms.json`) jäetakse välja | [U] |
+| `LoadDemoList` | loeb näidiste nimekirja serverist ja asendab `DemoModels`-i sisu; kui ei õnnestu, jääb varunimekiri | [U] |
+| `DEMO_LIST_FILE`, `DEMO_FILE_PATTERN` | nimekirja fail (`index.json`); lubatud näidise failinimi | [U] |
 
 ---
 
@@ -853,3 +861,20 @@ Originaalis (originaal.md 8.3, ptk 6.5 lk 62): moodul `FMS_REP1.PAS`, menüü *R
 - **Faili** **[O]**: tekstifail (UTF-8), sama sisu mis ekraanil; pealkiri, koostamise aeg, teemade pealkirjad joonitud (`═`). Nimi küsitakse (vaikimisi `mudel-static.txt`, `-dynamic`, `-report`). CSV-d ei tehta (kasutaja otsus).
 - **Aegrida aruandes** **[U]**: samm on väikseim 1, 5, 10, 15, 30 min, 1, 2, 4 h hulgast, mis annab kuni 100 rida (8 h → 5 min); viimane punkt (lõpp) on alati kaasas. Graafik näitab valmis detaile kokku (läbilaskevõime kõver – ummik on tasane), sest detailide arv süsteemis on `Kl` tõttu peaaegu konstantne.
 - **Simulaator** ei muutunud; `PARKING_RESERVE` eksporditakse (Static näitab ummikuvaru).
+
+---
+
+## 19. Avaldamine (etapp 10) **[U]**
+
+Versioon 1.0 avaldatakse GitHub Pages'is staatiliste failidena, build-sammu pole. Teostus: `site/index.html`, `tools/site.sh`, `.github/workflows/pages.yml`, `models/index.json`; testid `test/publish.test.js`; valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 10.
+
+- **Saidi ülesehitus**: `/` – avaleht ja lühijuhend (`site/index.html`); `/v1/` – versioon 1.0. Hiljem `/v2/` (tag `v2.0`) ja vajadusel `/dev/` (`main`). Avaleht viitab alati olemasolevatele versioonidele.
+- **`/v1/` on külmutatud**: `index.html`, `src/`, `fonts/` võetakse tag'ist `v1.0` (`git archive`). `models/` tuleb `main` harust, et etapis 11 lisatud näidismudelid oleksid ka 1.0-s näha ilma koodi muutmata. Tingimus: mudelifaili vorming jääb ühilduvaks (`MODEL_VERSION` 1).
+- **Näidiste nimekiri** **[U]**: `models/index.json` (`[{ File, Name }]`, esimene avatakse käivitamisel). `LoadDemoList` loeb selle Main-is; vigased kirjed jäetakse välja (`ParseDemoList`), faili puudumisel jääb koodi varunimekiri. Test kontrollib, et iga `models/*.fms.json` on nimekirjas ja jookseb 8 h ilma ummikuta.
+- **Kokkupanek**: `tools/site.sh VÄLJUND [REF]` kopeerib failid; sama skripti kasutab töövoog (`tools/site.sh _site v1.0`) ja kohalik kontroll (ilma REF-ita – tööpuust). Töövoog käivitub `main`-i pushil ja käsitsi; Pages'i allikas on GitHub Actions.
+- **Suhtelised teed**: `index.html` → `src/fms.js`; moodulid laadivad fondi ja mudelid `new URL('../…', import.meta.url)` kaudu. Seega töötab rakendus igas alamkaustas (test L6 keelab absoluutsed teed).
+- **Brauseri mälu**: kõigil sama kasutaja Pages'i saitidel on üks origin, seega `fmss.recent` ja `fmss.options` on `/v1/`-l ja hilisemal 2.0-l ühised. 1.0 neid ei muuda; 2.0 kasutab oma võtmeid (või loeb 1.0 mudelid `fmss.recent`-ist ainult sisse).
+- **Advise** jääb menüüsse halliks: „… tuleb versioonis 2.0“ (`NotYet` võtab etapi asemel versiooni). Vananenud „tuleb etapis …“ tekstid (`EnumLater`, `FormTrackLater`, konnektori vihjed) on eemaldatud.
+- **Versioon**: töölaual „versioon 1.0“, `package.json` 1.0.0; git-tag `v1.0`.
+- **Avalikkus**: repo on avalik (Pages'i tingimus), õigused kaitstud (litsentsi ei anta). Skaneeringud (`docs/skaneeringud/`) ja `CLAUDE.md` jäävad ainult kohalikku koopiasse – `.gitignore` ja enne esimest pushi eemaldatakse need ka git'i ajaloost.
+

@@ -1,16 +1,44 @@
 # FMSS – paindtootmissüsteemide simulaator
 
-Diplomitöö (Turbo Pascal) taastamine uues versioonis.
+**Paindautomatiseeritud tootmise simulatsioonisüsteem.** Diplomiprojekt, Tallinna Tehnikaülikool, Arvutitehnika Instituut, 1993 (autor K. Kannel, juhendaja J. Riives, konsultant V. Leppikson). Kirjutati Turbo Pascalis ja jäi pooleli; versioon 1.0 valmis 2026 brauseris – *läks ainult 33 aastat, aga valmis sai*.
 
-## Originaal
+Veebis (GitHub Pages): avaleht ja lühijuhend `/fmss/`, versioon 1.0 `/fmss/v1/`.
 
-Kolm osa:
+Kolm osa nagu originaalis:
 
 1. **Editor** – tootmissüsteemi joonistamine: rajad, masinad, puhvrid, sisend, väljund; masinate ja toodete spetsifikatsioonid.
-2. **Simulaator** – diskreetsündmuste simulatsioon; sündmused ajaliselt järjestatud ahelloendis `event_list` (kirje: viide järgmisele, sündmuse aeg, parameetrid).
-3. **Visualiseerija** – 2D vaade lihtsate ikoonidega.
+2. **Simulaator** – diskreetsündmuste simulatsioon; sündmused ajaliselt järjestatud ahelloendis (`FirstAtMoment`, `PutEvent` / `GetEvent`).
+3. **Visualiseerija** – animaator ja aruanded.
 
-Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomitöö (TTÜ 1993, mittelõplik versioon, lisad puuduvad): [docs/skaneeringud/](docs/skaneeringud/).
+Kaks välimust: **EGA** (640 × 350, 16 värvi, nagu 1993) ja **kaasaegne** (hele / tume), vahetab `F2`. Ainult staatilised failid, ilma build-sammu ja sõltuvusteta (HTML, JavaScripti moodulid, Canvas).
+
+Originaali kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomitöö on autori juures, avalikus repos seda pole.
+
+## Käivitamine
+
+```bash
+python3 -m http.server 8000
+```
+
+Seejärel ava brauseris http://localhost:8000/. Testid (Node 20+): `npm test`.
+
+Veebisaidi kokkupanek (avaleht + `/v1/`, sama mis GitHub Pages'is – [DISAIN.md](DISAIN.md) osa 19):
+
+```bash
+tools/site.sh /tmp/fmss-site
+```
+
+## Kaustad
+
+| Kaust | Sisu |
+|---|---|
+| `index.html`, `src/` | rakendus; moodulid originaali nimedega (`fms.js`, `fms_sim.js`, `fms_ed.js`, `fms_rep.js`, `anima.js` …) |
+| `models/` | näidismudelid (`*.fms.json`) ja nende nimekiri `index.json` |
+| `fonts/` | EGA font |
+| `site/` | avaleht ja lühijuhend |
+| `tools/`, `.github/workflows/` | saidi kokkupanek ja GitHub Pages |
+| `test/`, `proto/` | testid; prototüüp (etapp 2, võrdluseks) |
+| [PLAAN.md](PLAAN.md), [DISAIN.md](DISAIN.md), [VALIDEERIMINE.md](VALIDEERIMINE.md) | teostusplaan, simulatsiooniloogika ja liidese disain, valideerimise tulemused |
 
 ## Seis
 
@@ -30,17 +58,13 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
   - [x] 7c. Mitu detaili alusel / kärul (`src/fms_sim.js`: kohad alusel, jaamas mitu peale- ja mahalaadimist, käru peatuste nimekiri ja kogumissõit odavaima lisamisega – [DISAIN.md](DISAIN.md) osa 16, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c); animaator (kohad alusel, EGA olekurida kahel real) ja kokkuvõte
 - [x] 8. Rikked ja juhuslikkus (`src/fms_sim.js`: tööpingi rike töötlemise ajal – `Crash`, remont `Repair`, praak SysOut-i; rikete vahe eksponentjaotusega, pingi oma juhuarvujada; kestuse jaotus ühtlane / kolmnurkne / normaalne – [DISAIN.md](DISAIN.md) osa 17, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8); animaator (rikkes pink R, praak ristiga), kokkuvõte, redaktori vormid
 - [x] 9. Aruanded (`src/fms_rep.js`: menüü Report – Static (algne seis ja lõppseis teemade kaupa), Dynamic (tsükliaeg ja osakaalud, tüüpide kaupa, aegrida graafikuga, sündmused), Output ekraanile (kerimisega aken mõlemas välimuses) või tekstifaili; Simulate kokkuvõttes nupp „Aruanne“; ka ummiku ja katkestuse korral – [DISAIN.md](DISAIN.md) osa 18, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9)
-- [ ] 10. Avaldamine (GitHub Pages) – versioon 1.0 valmis
+- [x] 10. Avaldamine – versioon 1.0 (avaleht ja lühijuhend `site/index.html`, `/v1/` tag'ist `v1.0`, `tools/site.sh`, GitHub Pages'i töövoog; näidiste nimekiri `models/index.json`, näidis riketega; Advise → „tuleb versioonis 2.0“ – [DISAIN.md](DISAIN.md) osa 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 10). GitHubi lükkamine, tag `v1.0` ja Pages'i seadistamine – autori käsul
+- [ ] 11. Näidismudelid: 2–3 suurt tootmissüsteemi (10+ tööpinki) avalike lugude põhjal – versioon ei muutu ([PLAAN.md](PLAAN.md))
+- [ ] 12. Dokumentatsioon: diplomitööga sarnane – teooria koos täiendustega, arhitektuur diagrammidega, andmeobjektid ja protseduurid ([PLAAN.md](PLAAN.md))
 - [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
 
-## Käivitamine
+## Autoriõigus ja litsentsid
 
-```bash
-python3 -m http.server 8000
-```
-
-Seejärel ava brauseris http://localhost:8000/. Testid (Node 20+): `npm test`.
-
-## Litsentsid
+© K. Kannel 1993, 2026. Kõik õigused kaitstud. Lähtekood on avalik tutvumiseks; selle kasutamiseks, muutmiseks või levitamiseks küsi autorilt luba.
 
 EGA font: **PxPlus IBM EGA 8x14** kogumikust [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/) (VileR), litsents [CC BY-SA 4.0](fonts/LICENSE-CC-BY-SA-4.0.txt). Fail `fonts/WebPlus_IBM_EGA_8x14.woff` on muutmata.

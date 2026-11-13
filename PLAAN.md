@@ -47,7 +47,12 @@ Versioon 1.0 on **omaaegne lahendus valmis kujul** (originaali menüüd, vormid 
 7. **Diskreetsed rajad** – AGV-d ja robotid, `ProgTM`, `Collision`, konfliktide lahendamine; rajavõrgu graaf, mis toob ka mitu rada, konnektorid ja avatud konveieri.
 8. **Rikked ja juhuslikkus** – `Crash`, remondiaeg, praak, kestuste kõrvalekalded.
 9. **Aruanded** – Static, Dynamic, tsükliaeg ja osakaalud, ekraanile või faili.
-10. **Avaldamine** – GitHub Pages, demomudel ja lühijuhend juhendajale näitamiseks. 1.0 lõpus git-tag `v1.0`; 1.0 jääb veebis eraldi aadressile (nt `/v1/`), et seda saaks alati näidata.
+10. **Avaldamine** – GitHub Pages, demomudel ja lühijuhend juhendajale näitamiseks. 1.0 lõpus git-tag `v1.0`; 1.0 jääb veebis eraldi aadressile (`/v1/`), et seda saaks alati näidata. Avaleht ja lühijuhend on saidi juures (`/`); kood tuleb tag'ist, näidismudelid `main`-ist ([DISAIN.md](DISAIN.md) osa 19).
+
+## Pärast 1.0 (versioon ei muutu)
+
+11. **Näidismudelid** – 2–3 suurt ja tõsiseltvõetavat tootmissüsteemi (10 või enam tööpinki), mille taust tuleb avalikest allikatest. Näiteks kruvide ja mutrite tootmine (külmpressimine, keermerullimine, termotöötlus, pinnakate, kontroll); Eestis toodetava toote detailid (metallitöötluse allhange, mitu tüüpi ja väikesed partiid); klassikaline FMS (reduktori võllid, hammasrattad, korpus) AGV-de ja riketega. Simulaatoris pole koostamist, seega sobivad mehaanilise töötlemise süsteemid. Mudelid lähevad kausta `models/` ja nimekirja `models/index.json`, nii et need ilmuvad ka `/v1/`-s ilma koodi muutmata. Tööaegade ja muude andmete allikad kirjutatakse VALIDEERIMINE.md-sse; iga mudel jookseb testis 8 h ilma ummikuta.
+12. **Dokumentatsioon** – diplomitööga sarnane dokument: **teooria** (diskreetne simulatsioon, PTS-i kontseptsioon, tsükliaeg) koos täiendustega, mis on märgitud [O]/[T]/[U] järgi (rajavõrgu graaf, ummikute vältimine, AGV-d ja `Collision`, mitu kohta alusel, rikked ja jaotused); **tarkvara arhitektuur** diagrammide ja skeemidega (moodulid, sündmuste ahelloend, olekumasinad, Planner, andmevoog mudel → `Enumerate` → simulaator → animaator ja aruanne); **loetelud** – olulised andmeobjektid (kirjed), protseduurid ja EventHandlerid (DISAIN.md sõnastiku põhjal); valideerimine ja näidismudelid. Vorming ja diagrammide tööriist otsustatakse etapi alguses.
 
 Kui etapp 3 on valmis, saab etappe 4 ja 6 teha paralleelselt.
 
@@ -56,6 +61,7 @@ Kui etapp 3 on valmis, saab etappe 4 ja 6 teha paralleelselt.
 Pärast 1.0 valmimist. Eesmärk: **kaasaegne ja mugav kasutajaliides**; EGA välimusest ja selle piirangutest (640 × 350, originaali menüüd ja vormid) loobutakse.
 
 - **Simulaator jääb**: `fms_sim.js` ei sõltu joonistamisest ja mudelifail (JSON) jääb ühilduvaks – 1.0 mudelid avanevad 2.0-s. 1.0 testid kehtivad edasi, nii et 2.0 tulemused peavad klappima 1.0-ga.
+- **Veebis** aadressil `/v2/` (tag `v2.0`), 1.0 jääb `/v1/`-le. Brauseri mälu on samal originil ühine: 2.0 kasutab oma `localStorage` võtmeid (1.0-l `fmss.recent`, `fmss.options`) – vt [DISAIN.md](DISAIN.md) osa 19.
 - **Algab diskussiooniga** – enne teostust:
   1. arutelu: mis on 1.0 liideses ebamugav (menüüstruktuur, tööpinkide, detailide ja marsruutide sisestamine jm) ja kuidas seda tänapäeval tehakse;
   2. näidised ja ideed (sarnased tööriistad, maketid, prototüübid), nende ülevaatus;

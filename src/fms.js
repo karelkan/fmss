@@ -16,7 +16,7 @@ import {
 } from './fms_ed_data.js';
 import { EnvironmentOptions, LoadOptions, SaveOptions } from './fms_opt.js';
 import {
-  DemoModels, LoadDemoModel, ChooseLocalFile, SaveModel, RecentModels, RememberModel,
+  DemoModels, LoadDemoList, LoadDemoModel,ChooseLocalFile, SaveModel, RecentModels, RememberModel,
   ParseModelText, ModelFileName, SaveText,
 } from './fms_file.js';
 import { ROW_HEIGHT, CreateEgaTheme, CreateModernTheme, LoadEgaFont } from './fms_theme.js';
@@ -577,14 +577,14 @@ function MenuView() {
 // Menüü
 // =====================================================================
 
-// [U] NotYet – menüüpunkt, mis tuleb hilisemas etapis: hall, valimisel teade.
-function NotYet(label, stage, extra = {}) {
+// [U] NotYet – menüüpunkt, mis tuleb hilisemas versioonis: hall, valimisel teade.
+function NotYet(label, version, extra = {}) {
   const what = label.replace('&', '');
   return {
     Label: label,
-    Hint: FormatText(Texts.HintNotYet, { Stage: stage }),
+    Hint: FormatText(Texts.HintNotYet, { Version: version }),
     Dim: true,
-    Action: () => MessageBox(Texts.NotYetTitle, [FormatText(Texts.NotYetText, { What: what, Stage: stage })]),
+    Action: () => MessageBox(Texts.NotYetTitle, [FormatText(Texts.NotYetText, { What: what, Version: version })]),
     ...extra,
   };
 }
@@ -663,8 +663,8 @@ function BuildMainMenu() {
     },
     {
       Label: Texts.MenuAdvise, Hint: Texts.HintAdvise, Items: [
-        NotYet(Texts.MenuLayoutChooser, 11),
-        NotYet(Texts.MenuLayoutFinder, 11),
+        NotYet(Texts.MenuLayoutChooser, '2.0'),
+        NotYet(Texts.MenuLayoutFinder, '2.0'),
       ],
     },
     { Label: Texts.MenuSimulate, Hint: Texts.HintSimulate, Action: MenuSimulate },
@@ -737,9 +737,11 @@ async function Main() {
     if (EnvironmentOptions.Theme === 'Modern' && EnvironmentOptions.ColorScheme === 'Auto') SetTheme(CurrentTheme());
   });
   ShowSplash();
-  const demo = DemoModels[0].File;
-  LoadDemoModel(demo, (result) => {
-    if (result.Model) { CurrentModel = result.Model; CurrentFile = demo; RequestRedraw(); }
+  LoadDemoList(() => {
+    const demo = DemoModels[0].File;
+    LoadDemoModel(demo, (result) => {
+      if (result.Model && !CurrentModel) { CurrentModel = result.Model; CurrentFile = demo; RequestRedraw(); }
+    });
   });
 }
 

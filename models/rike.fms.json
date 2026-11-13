@@ -1,0 +1,72 @@
+{
+  "Meta": { "Name": "Näidis-PTS riketega", "Version": 1 },
+  "Scale": 100,
+  "Layout": {
+    "Dim": { "X": 13, "Y": 7 },
+    "Cells": [
+      { "X": 3, "Y": 0, "T": "MachToolDown", "N": 1 },
+      { "X": 7, "Y": 0, "T": "MachToolDown", "N": 2 },
+      { "X": 3, "Y": 1, "T": "InOutBuf", "N": 1 },
+      { "X": 7, "Y": 1, "T": "TurnBuf", "N": 2 },
+      { "X": 3, "Y": 2, "T": "VertTr", "Dot": true },
+      { "X": 7, "Y": 2, "T": "VertTr", "Dot": true },
+
+      { "X": 1, "Y": 3, "T": "ArcSE", "N": 1 },
+      { "X": 2, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 3, "Y": 3, "T": "TeeN", "N": 1 },
+      { "X": 4, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 5, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 6, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 7, "Y": 3, "T": "TeeN", "N": 1 },
+      { "X": 8, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 9, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 10, "Y": 3, "T": "HorTr", "N": 1 },
+      { "X": 11, "Y": 3, "T": "ArcSW", "N": 1 },
+
+      { "X": 1, "Y": 4, "T": "ArcNE", "N": 1 },
+      { "X": 2, "Y": 4, "T": "TeeS", "N": 1 },
+      { "X": 3, "Y": 4, "T": "HorTr", "N": 1 },
+      { "X": 4, "Y": 4, "T": "HorTr", "N": 1 },
+      { "X": 5, "Y": 4, "T": "HorTr", "N": 1, "Dir": "E" },
+      { "X": 6, "Y": 4, "T": "HorTr", "N": 1 },
+      { "X": 7, "Y": 4, "T": "HorTr", "N": 1 },
+      { "X": 8, "Y": 4, "T": "HorTr", "N": 1 },
+      { "X": 9, "Y": 4, "T": "TeeS", "N": 1 },
+      { "X": 10, "Y": 4, "T": "TeeS", "N": 1 },
+      { "X": 11, "Y": 4, "T": "ArcNW", "N": 1 },
+
+      { "X": 2, "Y": 5, "T": "VertTr", "Dot": true },
+      { "X": 9, "Y": 5, "T": "VertTr", "Dot": true },
+      { "X": 10, "Y": 5, "T": "VertTr", "Dot": true },
+      { "X": 2, "Y": 6, "T": "FromCS" },
+      { "X": 9, "Y": 6, "T": "ToCS" },
+      { "X": 10, "Y": 6, "T": "SysOut" }
+    ]
+  },
+  "EdgeLengths": [],
+  "Tracks": [
+    { "Name": "Konveier", "Mode": "Continuous", "Carts": 6, "PlacesPerCart": 1,
+      "Speed": 20, "LoadTime": 15, "AccessTime": 0 }
+  ],
+  "Machines": [
+    { "Name": "MT1", "Model": "", "LoadTime": 20, "SetupTime": 120, "Ops": ["treimine", "puurimine"],
+      "CrashMean": 3000, "RepairMean": 300, "RepairDev": 60 },
+    { "Name": "MT2", "Model": "", "LoadTime": 20, "SetupTime": 90, "Ops": ["freesimine", "puurimine"],
+      "CrashMean": 3000, "RepairMean": 300, "RepairDev": 60 }
+  ],
+  "Buffers": [
+    { "Capacity": 3, "Discipline": "FIFO", "LoadTime": 5 },
+    { "Capacity": 3, "Discipline": "FIFO", "LoadTime": 5 }
+  ],
+  "Storage": { "Capacity": 30, "LoadTime": 20 },
+  "Workpieces": [
+    { "Name": "Võll", "Priority": 1, "Batch": 10, "Routes": [
+      { "Priority": 1, "Ops": [ { "Op": "treimine", "Mean": 240, "Dev": 30 }, { "Op": "freesimine", "Mean": 180, "Dev": 20 } ] },
+      { "Priority": 2, "Ops": [ { "Op": "treimine", "Mean": 240, "Dev": 30 }, { "Op": "puurimine", "Mean": 150, "Dev": 15 } ] }
+    ] },
+    { "Name": "Äärik", "Priority": 1, "Batch": 10, "Routes": [
+      { "Priority": 1, "Ops": [ { "Op": "freesimine", "Mean": 200, "Dev": 30 }, { "Op": "puurimine", "Mean": 120, "Dev": 10 } ] }
+    ] }
+  ],
+  "Sim": { "Seed": 1, "Duration": 28800, "Kl": 0.85, "StallTime": 600 }
+}

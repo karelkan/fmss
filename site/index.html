@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="et">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FMSS – paindtootmise simulaator</title>
+  <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Diplomiprojekt, TTÜ 1993, valmis 2026.">
+  <!-- FMSS avaleht ja lühijuhend (etapp 10). Saidi ülesehitus: / – see leht, /v1/ – versioon 1.0
+       (tag v1.0). Kokku paneb tools/site.sh; veebis .github/workflows/pages.yml. -->
+  <style>
+    @font-face {
+      font-family: 'FMSS EGA';
+      src: url('v1/fonts/WebPlus_IBM_EGA_8x14.woff') format('woff');
+      font-display: swap;
+    }
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1d2330;
+      --dim: #5b6475;
+      --line: #dfe3ea;
+      --accent: #1f5fbf;
+      --accent-text: #ffffff;
+      --dos-bg: #0000aa;
+      --dos-text: #aaaaaa;
+      --dos-bright: #ffffff;
+      --dos-yellow: #ffff55;
+      --code-bg: #eef1f5;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14171d;
+        --panel: #1c2028;
+        --text: #e4e7ec;
+        --dim: #9aa3b2;
+        --line: #2e3440;
+        --accent: #5b9bff;
+        --accent-text: #0b1220;
+        --code-bg: #262b35;
+        color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.55 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    main { max-width: 860px; margin: 0 auto; padding: 32px 16px 48px; }
+    h1, h2 { line-height: 1.25; }
+    h2 { margin: 40px 0 12px; font-size: 1.3rem; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+    p { margin: 0 0 12px; }
+    a { color: var(--accent); }
+    kbd, code {
+      font: 0.9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: var(--code-bg);
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 0 5px;
+      white-space: nowrap;
+    }
+    .dos {
+      background: var(--dos-bg);
+      color: var(--dos-text);
+      font-family: 'FMSS EGA', ui-monospace, Menlo, Consolas, monospace;
+      font-size: 18px;
+      line-height: 1.35;
+      padding: 20px 24px;
+      border-radius: 6px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .dos .title { color: var(--dos-yellow); font-size: 36px; line-height: 1.2; }
+    .dos .bright { color: var(--dos-bright); }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 24px 0 8px; }
+    .button {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--accent-text);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 22px;
+      border-radius: 8px;
+    }
+    .note { color: var(--dim); font-size: 0.95rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+    .card h3 { margin: 0 0 6px; font-size: 1rem; }
+    .card p { margin: 0; color: var(--dim); font-size: 0.95rem; }
+    ol, ul { padding-left: 1.4em; margin: 0 0 12px; }
+    li { margin-bottom: 6px; }
+    table { border-collapse: collapse; width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 7px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-weight: 600; background: var(--code-bg); }
+    tr:last-child td { border-bottom: 0; }
+    .table-wrap { overflow-x: auto; }
+    footer { margin-top: 48px; color: var(--dim); font-size: 0.9rem; border-top: 1px solid var(--line); padding-top: 16px; }
+    @media (max-width: 560px) {
+      .dos { font-size: 14px; padding: 14px 16px; }
+      .dos .title { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <div class="dos" role="img" aria-label="FMSS avaekraan: diplomiprojekt, Tallinna Tehnikaülikool 1993, valmis 2026"><span class="bright">C:\FMSS&gt;FMS</span>
+
+<span class="title">FMSS</span>
+<span class="bright">Paindautomatiseeritud tootmise simulatsioonisüsteem</span>
+
+Diplomiprojekt
+Tallinna Tehnikaülikool, Arvutitehnika Instituut, 1993
+
+Autor        K. Kannel
+Juhendaja    J. Riives
+Konsultant   V. Leppikson
+
+Alustatud 1993 … valmis 2026
+<span class="bright">(läks ainult 33 aastat, aga valmis sai)</span></div>
+
+  <div class="actions">
+    <a class="button" href="v1/">Ava FMSS 1.0</a>
+    <span class="note">Töötab brauseris, paigaldada pole vaja. Mõeldud arvutile klaviatuuri ja hiirega.</span>
+  </div>
+
+  <h2>Mis see on</h2>
+  <p>
+    FMSS simuleerib paindtootmissüsteemi: tööpingid, puhvrid, konveierid ja transpordikärud,
+    keskladu ning detailid, millel on oma marsruudid. Diplomitöö kirjutati 1993. aastal Turbo Pascalis,
+    aga programm jäi siis pooleli. Versioon 1.0 on sama lahendus valmis kujul: originaali menüüd,
+    vormid ja EGA ekraan (640 × 350, 16 värvi). Lisaks on kaasaegne välimus, mida saab vahetada klahviga <kbd>F2</kbd>.
+  </p>
+  <div class="cards">
+    <div class="card"><h3>Editor</h3><p>Tootmissüsteemi joonistamine: rajad, tööpingid, puhvrid, keskladu; masinate, detailide ja marsruutide andmed.</p></div>
+    <div class="card"><h3>Simulaator</h3><p>Diskreetsündmuste simulatsioon. Sündmused on ajaliselt järjestatud ahelloendis, nagu originaalis.</p></div>
+    <div class="card"><h3>Animaator</h3><p>Kärud liiguvad radadel, pinkide ja puhvrite olek on näha. Saab liikuda sammu ja sündmuse kaupa.</p></div>
+    <div class="card"><h3>Aruanded</h3><p>Static ja Dynamic: tsükliaeg ja selle osakaalud, rakendatus, aegrida. Ekraanile või faili.</p></div>
+  </div>
+
+  <h2>Viis minutit: esimene simulatsioon</h2>
+  <ol>
+    <li>Ava <a href="v1/">FMSS 1.0</a>. Avaekraanil vajuta mõnda klahvi kaks korda.</li>
+    <li><kbd>F2</kbd> vahetab välimust (EGA või kaasaegne). Seda saab teha igal ajal.</li>
+    <li>Kõige alguses on laaditud <b>Näidis-PTS</b> (diplomitöö joonis 5.5). Teise näidise saad valida menüüst <b>File → Load</b>.</li>
+    <li><b>Edit → Layout</b> näitab ja muudab joonist. <b>Edit → Check</b> kontrollib andmeid.</li>
+    <li>Menüüs <b>Simulate</b> käivitab <kbd>Space</kbd> animatsiooni, <kbd>+</kbd> ja <kbd>−</kbd> muudavad kiirust,
+      <kbd>N</kbd> viib järgmise sündmuseni ja <kbd>M</kbd> jookseb ilma animatsioonita lõpuni.</li>
+    <li>Lõpus näed kokkuvõtet. Nupp <b>Aruanne</b> või menüü <b>Report</b> näitab täielikku aruannet.</li>
+  </ol>
+
+  <h2>Näidismudelid</h2>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Näidis</th><th>Mida näitab</th></tr>
+    <tr><td>Näidis-PTS (joon. 5.5)</td><td>Diplomitöö näide: kaks tööpinki, suletud konveier, keskladu, kaks detailitüüpi koos alternatiivse marsruudiga.</td></tr>
+    <tr><td>Näidis-PTS riketega</td><td>Sama süsteem, aga tööpingid lähevad rikki ja neid remonditakse. Rikke ajal pooleli olnud detail läheb praaki.</td></tr>
+    <tr><td>Näidis-AGV</td><td>Diskreetne rada: transpordikärud (AGV-d) ristmike ja tsoonidega, mis väldivad kokkupõrkeid.</td></tr>
+  </table>
+  </div>
+  <p class="note">
+    Oma mudeli salvestamisel laaditakse see alla (<b>File → Save</b>). Avada saad selle menüüst <b>File → Load → fail arvutist</b>.
+    Kümme viimati kasutatud mudelit jäävad brauseri mällu (<b>File → Pick</b>).
+  </p>
+
+  <h2>Klahvid</h2>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Kus</th><th>Klahvid</th></tr>
+    <tr><td>Kõikjal</td><td><kbd>F10</kbd> või <kbd>Alt</kbd> + täht avab menüü. Nooltega liigud, <kbd>Enter</kbd> valib, <kbd>Esc</kbd> sulgeb. <kbd>F1</kbd> on abi, <kbd>F2</kbd> vahetab välimust, <kbd>Alt-X</kbd> lõpetab töö. Kõike saab teha ka hiirega.</td></tr>
+    <tr><td>Simulate</td><td><kbd>Space</kbd> start ja paus, <kbd>+</kbd> / <kbd>−</kbd> kiirus ×1…×1000, <kbd>.</kbd> üks sekund, <kbd>N</kbd> järgmine sündmus, <kbd>M</kbd> maksimumkiirus, <kbd>L</kbd> Event List ahelloendina (kaasaegne välimus), <kbd>Esc</kbd> lõpetab ja näitab kokkuvõtet.</td></tr>
+    <tr><td>Edit → Layout</td><td>Rada joonistad hiirega lohistades, ikoon valitakse ise. <kbd>Tab</kbd> valib paletist ikooni, <kbd>Del</kbd> kustutab, <kbd>T</kbd> valib, millist rada joonistad, <kbd>G</kbd> muudab ruudustiku suurust,<kbd>K</kbd> kontrollib mudelit, <kbd>Ctrl-Z</kbd> võtab tagasi.</td></tr>
+    <tr><td>Aruanne</td><td>Kerimiseks on nooled, <kbd>PgUp</kbd> / <kbd>PgDn</kbd>, <kbd>Home</kbd> / <kbd>End</kbd> ja hiire ratas. <kbd>F</kbd> salvestab aruande faili, <kbd>Esc</kbd> sulgeb.</td></tr>
+  </table>
+  </div>
+
+  <h2>Mis on originaalist ja mis on uut</h2>
+  <p>
+    Originaalist on pärit ülesehitus: moodulid, protseduurid ja kirjed, sündmuste ahelloend, menüüd, vormid ja ikoonid.
+    Kõik, mida diplomitöös polnud või mis jäi pooleli, mõeldi välja üldtuntud diskreetse simulatsiooni võtete põhjal
+    ja kontrolliti enne teostust testidega. Nii tekkisid rajavõrgu graaf, ummikute vältimine, AGV-de kokkupõrgete
+    vältimine, mitu detaili alusel, rikked ja kestuste jaotused.
+  </p>
+  <p><b>Versioonis 1.0 puudub:</b></p>
+  <ul>
+    <li><b>Advise</b> (struktuuri soovitamine, LayoutChooser ja LayoutFinder). See tuleb versioonis 2.0 koos uue kasutajaliidesega.</li>
+    <li>Parkimine, tsooni pikkus ja dispetšerireeglid.</li>
+    <li>Transpordi- ja puhvririkked ning kvaliteedipraak.</li>
+    <li>Kahesuunalisel ringil, kus on kolm või rohkem käru, pole mitme sammu planeerimist. Konnektor on broneeritud kogu tee ajaks.</li>
+  </ul>
+
+  <footer>
+    <p>© K. Kannel 1993, 2026. Kõik õigused kaitstud. Lähtekood on avalik tutvumiseks. Selle kasutamiseks küsi autorilt luba.</p>
+    <p>EGA font: PxPlus IBM EGA 8x14, <a href="https://int10h.org/oldschool-pc-fonts/">The Ultimate Oldschool PC Font Pack</a> (VileR), litsents CC BY-SA 4.0.</p>
+  </footer>
+</main>
+</body>
+</html>
