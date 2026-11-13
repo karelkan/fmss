@@ -347,7 +347,11 @@ function SimSummaryLines(report, warnings) {
       Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,
     })),
     ...report.Tracks.flatMap((track) => {
-      if (!track.Discrete) return [FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops })];
+      // mitu kohta alusel (7c): täituvus ja kogumissõidud
+      const places = track.Places > 1
+        ? [FormatText(Texts.SimPlaces, { Places: track.Places, Avg: Decimal(track.AvgLoad), Max: track.MaxLoad, Pooled: track.Pooled })]
+        : [];
+      if (!track.Discrete) return [FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops }), ...places];
       const average = (state) => track.Carts.reduce((sum, cart) => sum + cart[state], 0) / track.Carts.length;
       return [
         FormatText(Texts.SimCarts, { Name: track.Name, Count: track.Carts.length, Collisions: track.Collisions }),
@@ -355,6 +359,7 @@ function SimSummaryLines(report, warnings) {
           Loaded: Percent(average('LOADED')), Empty: Percent(average('EMPTY')),
           Loading: Percent(average('LOADING')), Waiting: Percent(average('WAIT_ZONE')),
         }),
+        ...places,
       ];
     }),
     ...report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector)),

@@ -9,7 +9,7 @@ import { Enumerate, SimInit, SimStep, SimState, SimReport, SimRun } from '../src
 import {
   TrackGeometry, TrackPoint, CellPathPoint, PalletPosition, InterpolateOffset, WorkpiecePlaces,
   EventListArray, DiffEventList, EventCardLayout, EventAxisX, SpeedFromSlider, SliderFromSpeed,
-  NextSpeed, SpeedText, SPEED_STEPS,
+  NextSpeed, SpeedText, SPEED_STEPS, PalletGrid, PalletPlacePoint, PLACES_SHOWN,
 } from '../src/anima.js';
 import { IconTypes } from '../src/fms_glb.js';
 
@@ -172,4 +172,54 @@ test('kiiruse skaala: ×1 … ×1000, liugur ja klahvid', () => {
   assert.equal(NextSpeed(37, 1), 50);    // liugurilt saadud kiirus → järgmine samm
   assert.equal(SpeedText(2.5), '×2,5');
   assert.equal(SpeedText(316.2), '×316');
+});
+
+// ---------------------------------------------------------------------
+// Mitu detaili alusel (7c)
+// ---------------------------------------------------------------------
+test('7c: aluse kohad – 1, 2, 3 reas, 4 kahes reas; kohad ei kattu ja on aluse sees', () => {
+  assert.deepEqual([1, 2, 3, 4, 6].map(places => [PalletGrid(places).Columns, PalletGrid(places).Rows]),
+    [[1, 1], [2, 1], [3, 1], [2, 2], [2, 2]]);
+  const center = { X: 5.5, Y: 3.5 };
+  assert.deepEqual(PalletPlacePoint(center, 1, 0), center);   // üks koht: aluse keskel nagu enne
+  for (const places of [2, 3, 4]) {
+    const grid = PalletGrid(places);
+    const points = Array.from({ length: places }, (unused, place) => PalletPlacePoint(center, places, place));
+    assert.equal(new Set(points.map(point => `${point.X.toFixed(3)},${point.Y.toFixed(3)}`)).size, places);
+    for (const point of points) {
+      assert.ok(Math.abs(point.X - center.X) < grid.Width / 2 && Math.abs(point.Y - center.Y) < grid.Height / 2);
+    }
+  }
+  // üle PLACES_SHOWN kohta: viimase nähtava koha peal
+  assert.deepEqual(PalletPlacePoint(center, 6, 5), PalletPlacePoint(center, 6, PLACES_SHOWN - 1));
+});
+
+test('7c: kahe kohaga alusel – detail oma kohas, pealelaadimine vabasse kohta, animaator ei mõjuta simulatsiooni', () => {
+  const model = demo();
+  model.Tracks[0].PlacesPerCart = 2;
+  const network = NetworkOf(model);
+  network.Sim.Duration = 2 * 3600;
+  const expected = SimRun(network);
+  SimInit(network);
+  let shared = 0;
+  while (!SimState().SIMULATION_DONE) {
+    SimStep();
+    const state = SimState();
+    for (const place of WorkpiecePlaces(state)) {
+      if (place.Kind === 'Pallet') {
+        assert.equal(state.Tracks[place.Track].Pallets[place.Pal].Places[place.Place], place.WP.Id);
+      }
+      if (place.Kind === 'Moving') {
+        const onPallet = [place.From, place.To].find(item => item.Kind === 'Pallet');
+        if (!onPallet) continue;
+        const pallet = state.Tracks[onPallet.Track].Pallets[onPallet.Pal];
+        // mahalaadimine: detaili koht; pealelaadimine: vaba koht
+        if (place.From.Kind === 'Pallet') assert.equal(pallet.Places[onPallet.Place], place.WP.Id);
+        else assert.equal(pallet.Places[onPallet.Place], null);
+      }
+    }
+    if (state.Tracks[0].Pallets.some(pallet => pallet.Places.every(id => id !== null))) shared++;
+  }
+  assert.ok(shared > 0, 'alusel polnud kunagi kahte detaili');
+  assert.deepEqual(SimReport(), expected);
 });

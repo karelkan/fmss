@@ -215,7 +215,6 @@ export const Texts = {
   EnumNoTrack: 'joonisel pole rada',
   EnumLater: '{What} pole veel toetatud (tuleb etapis {Stage})',
   EnumLaterDiscrete: 'diskreetne rada',
-  EnumLaterPlaces: 'mitu detaili alusel (PlacesPerCart > 1)',
   EnumNoDirection: 'pideval rajal {Track} pole liikumissuunda (nool ühel ikoonil)',
   EnumDirConflict: 'raja {Track} suunanool lahtris ({X}, {Y}) on teiste noolega vastuolus',
   EnumTracksTouch: 'rajad {Track} ja {Track2} puutuvad lahtris ({X}, {Y}) kokku ilma konnektorita',
@@ -280,6 +279,7 @@ export const Texts = {
   SimCarts: '  {Name}: {Count} käru, Collision {Collisions}',
   SimCartsShares: '    koormaga {Loaded}, tühjalt {Empty}, laadib {Loading}, ootab {Waiting}',
   SimConnector: '  {Name}: ülekandeid {Transfers}',
+  SimPlaces: '    kohti {Places}: keskmiselt {Avg} detaili, kuni {Max}, kogumissõite {Pooled}',
   SimStorage: 'Kesklaos valmis detaile {Count}; ummiku tõttu pargitud {Parked}',
   SimMore: '  … ja veel {Count}',
   SimLater: 'Täielikud aruanded tulevad etapis 9.',
@@ -410,7 +410,7 @@ export const Texts = {
   CheckWarningLine: 'Hoiatus: {Message}',
 
   // --- Animaator (anima.js) ---
-  AnimStatus: '{Time}/{Duration} {Speed} {Mode}  süsteemis {InSystem} valmis {Completed} {Throughput} tk/h  {Track}',
+  AnimStatus: '{Time}/{Duration} {Speed} {Mode}  süsteemis {InSystem} valmis {Completed} {Throughput} tk/h',
   AnimModeRun: 'käib',
   AnimModePause: 'paus',
   AnimModeDone: 'läbi',

@@ -133,6 +133,28 @@ export function TrackPoint(geometry, position) {
   return CellPathPoint(cell, fraction);
 }
 
+// [U] PalletGrid – aluse kohtade paigutus (etapp 7c): veerud × read, näha kuni PLACES_SHOWN kohta
+//     (1, 2, 3 reas; 4 – 2 × 2). Rohkem kohtade korral on alusel detailide arv.
+export const PLACES_SHOWN = 4;
+const PLACE_PITCH = 0.26;   // [U] kohtade vahe alusel, ikooni murdosades
+export function PalletGrid(places) {
+  const shown = Math.min(Math.max(1, places), PLACES_SHOWN);
+  const columns = shown === 4 ? 2 : shown;
+  return { Shown: shown, Columns: columns, Rows: Math.ceil(shown / columns),
+           Width: 0.32 + (columns - 1) * PLACE_PITCH, Height: 0.32 + (Math.ceil(shown / columns) - 1) * PLACE_PITCH };
+}
+
+// [U] PalletPlacePoint – koha place keskpunkt alusel, mille keskpunkt on point (ruudustikus).
+//     Kohad üle PLACES_SHOWN joonistatakse viimase nähtava koha peale.
+export function PalletPlacePoint(point, places, place) {
+  const grid = PalletGrid(places);
+  const slot = Math.min(Math.max(0, place ?? 0), grid.Shown - 1);
+  const column = slot % grid.Columns;
+  const row = Math.floor(slot / grid.Columns);
+  return { X: point.X + (column - (grid.Columns - 1) / 2) * PLACE_PITCH,
+           Y: point.Y + (row - (grid.Rows - 1) / 2) * PLACE_PITCH };
+}
+
 // [T] PalletPosition – aluse asukoht konveieril (DISAIN.md 3.1, sama valem mis MinuteMan-is).
 export function PalletPosition(track, palletIndex, offset) {
   return Modulo(offset + palletIndex * track.Length / track.Carts, track.Length);
@@ -223,10 +245,16 @@ export function DiffEventList(previous, current) {
   };
 }
 
-// Sündmuse kirje lähte- või sihtobjekt joonistamise kohaks.
-function EventPlace(state, event, type, code) {
+// Sündmuse kirje lähte- või sihtobjekt joonistamise kohaks. Alusel: detaili koht (mahalaadimine)
+// või esimene vaba koht, kuhu ta laaditakse (pealelaadimine).
+function EventPlace(state, event, type, code, workpiece) {
   switch (type) {
-    case 'Pallette': return { Kind: 'Pallet', Track: event.Track, Pal: code };
+    case 'Pallette': {
+      const location = workpiece.Location;
+      const place = location.Kind === 'Pallet' ? location.Place
+        : Math.max(0, state.Tracks[event.Track].Pallets[code].Places.indexOf(null));
+      return { Kind: 'Pallet', Track: event.Track, Pal: code, Place: place };
+    }
     case 'Buffer': return { Kind: 'Buffer', Index: code };
     case 'Machine': return { Kind: 'Machine', Index: code };
     case 'SysInput': return { Kind: 'FromCS' };
@@ -271,8 +299,8 @@ export function WorkpiecePlaces(state) {
     if (load) {
       places.push({
         WP: workpiece, Kind: 'Moving', Parking: parking, Since: workpiece.StateSince, Until: load.Time,
-        From: EventPlace(state, load, load.SrcType, load.SrcCode) ?? place,
-        To: EventPlace(state, load, load.ObjType, load.ObjCode) ?? place,
+        From: EventPlace(state, load, load.SrcType, load.SrcCode, workpiece) ?? place,
+        To: EventPlace(state, load, load.ObjType, load.ObjCode, workpiece) ?? place,
       });
     } else {
       places.push({ WP: workpiece, ...place, Parking: parking });
@@ -594,7 +622,8 @@ function HighlightPoint(theme, view, point) {
 function PlacePoint(anim, state, scene, place) {
   const network = anim.Network;
   switch (place.Kind) {
-    case 'Pallet': return scene.PalletPoints[place.Track][place.Pal];
+    case 'Pallet': return PalletPlacePoint(scene.PalletPoints[place.Track][place.Pal],
+      state.Tracks[place.Track].PlacesPerCart, place.Place);
     case 'Buffer': {
       const buffer = network.Buffers[place.Index];
       const slot = place.Slot !== undefined && place.Slot >= 0
@@ -634,23 +663,50 @@ function BuildScene(anim, state) {
   return { Time: time, PalletPoints: palletPoints, Places: WorkpiecePlaces(state) };
 }
 
-// [O] Transport – kärud (alused) konveieril ja nende detailid.
+// [O] Transport – kärud (alused) konveieril. Mitme kohaga alusel (7c) on kohad lahtritena:
+//     vaba (hall kontuur), broneeritud (kontuur – detail tuleb peale); rohkem kui PLACES_SHOWN
+//     kohta – alusel on detailide arv. Detailid joonistab Animator.
 function Transport(theme, view, anim, state, scene) {
-  const widthX = view.CW * 0.32;
-  const widthY = widthX * view.CH / view.CW;
   state.Tracks.forEach((track, trackIndex) => {
+    const grid = PalletGrid(track.PlacesPerCart);
+    const widthX = view.CW * grid.Width;
+    const height = view.CH * grid.Height;
     track.Pallets.forEach((pallet, palletIndex) => {
-      const point = ToScreen(view, scene.PalletPoints[trackIndex][palletIndex]);
+      const center = scene.PalletPoints[trackIndex][palletIndex];
+      const point = ToScreen(view, center);
       const x = Math.round(point.X - widthX / 2);
-      const y = Math.round(point.Y - widthY / 2);
-      theme.RoundRect(x, y, Math.round(widthX), Math.round(widthY), view.Ega ? 0 : 2, 'Pallet');
+      const y = Math.round(point.Y - height / 2);
+      theme.RoundRect(x, y, Math.round(widthX), Math.round(height), view.Ega ? 0 : 2, 'Pallet');
       const reserved = pallet.ReservedWPs.length > 0;
       const waiting = track.Discrete && pallet.Waiting !== null;   // käru ootab tsooni (7b)
       const role = waiting ? 'TrackStopped' : reserved ? 'PalletReserved' : 'PalletFrame';
-      theme.StrokeRect(x, y, Math.round(widthX), Math.round(widthY), role,
+      theme.StrokeRect(x, y, Math.round(widthX), Math.round(height), role,
         { Width: (reserved || waiting) && !view.Ega ? 1.5 : 1, Radius: view.Ega ? 0 : 2 });
+      if (track.PlacesPerCart > 1) DrawPalletPlaces(theme, view, track, pallet, center);
     });
   });
+}
+
+// [U] DrawPalletPlaces – mitme kohaga aluse lahtrid: vaba (PalletPlace) või broneeritud (esimesed vabad kohad,
+//     nii mitu kui broneeringuid); üle PLACES_SHOWN kohta – detailide arv / kohti.
+function DrawPalletPlaces(theme, view, track, pallet, center) {
+  const grid = PalletGrid(track.PlacesPerCart);
+  let reserved = pallet.ReservedWPs.length;
+  const size = Math.max(3, Math.round(view.CW * 0.22));
+  const sizeY = Math.max(3, Math.round(size * view.CH / view.CW));
+  for (let place = 0; place < grid.Shown; place++) {
+    if (pallet.Places[place] !== null) continue;
+    const point = ToScreen(view, PalletPlacePoint(center, track.PlacesPerCart, place));
+    const booked = reserved > 0;
+    if (booked) reserved--;
+    theme.StrokeRect(Math.round(point.X - size / 2), Math.round(point.Y - sizeY / 2), size, sizeY,
+      booked ? 'SlotReserved' : 'PalletPlace', { Width: 1, Dash: booked && !view.Ega ? [2, 1.5] : null, Radius: view.Ega ? 0 : 1 });
+  }
+  if (track.PlacesPerCart > PLACES_SHOWN) {
+    const count = pallet.Places.filter(id => id !== null).length;
+    const point = ToScreen(view, { X: center.X, Y: center.Y - grid.Height / 2 - 0.12 });
+    CenterText(theme, view, point.X, point.Y, `${count}/${track.PlacesPerCart}`, 'LayoutLabel', { Size: LabelSize(view) });
+  }
 }
 
 // Puhvri kohad: detail (sees), broneeritud (kontuur), vaba. Sissetulev detail – nool pingi poole.
@@ -862,7 +918,8 @@ function Animator(theme, view, anim, state, scene) {
 // Joonistamine: SimStatus, juhtriba, Event List
 // =====================================================================
 
-// [O] SimStatus – üldseis ühe reana: aeg, kiirus, detailid, läbilaskevõime, konveier.
+// [O] SimStatus – üldseis: aeg, kiirus, detailid, läbilaskevõime (General) ja radade seis (Tracks).
+//     Worst – radade tekst kõige pikemal kujul (EGA olekurea kõrguse valikuks, et see ei hüppaks).
 function SimStatus(anim, state) {
   let mode = Texts.AnimModePause;
   if (state.DEADLOCK) mode = Texts.AnimModeDeadlock;
@@ -870,6 +927,9 @@ function SimStatus(anim, state) {
   else if (anim.Running && anim.Max) mode = Texts.AnimModeMax;
   else if (anim.Running) mode = Texts.AnimModeRun;
   const time = Math.max(1, state.SYSTEM_TIME);
+  const worst = state.Tracks.map(track => (track.Discrete
+    ? FormatText(Texts.AnimTrackCartsWaiting, { Name: track.Name, Moving: track.Carts, Count: track.Carts, Waiting: track.Carts })
+    : FormatText(Texts.AnimTrackStopped, { Name: track.Name, Count: track.Carts })));
   const tracks = state.Tracks.map(track => {
     if (track.Discrete) {
       const moving = track.Pallets.filter(cart => cart.Route !== null && cart.Waiting === null && !cart.Stopped).length;
@@ -881,13 +941,29 @@ function SimStatus(anim, state) {
       ? FormatText(Texts.AnimTrackStopped, { Name: track.Name, Count: track.StopCount })
       : FormatText(Texts.AnimTrackMoving, { Name: track.Name });
   });
-  return FormatText(Texts.AnimStatus, {
+  const general = FormatText(Texts.AnimStatus, {
     Time: ClockText(state.SYSTEM_TIME), Duration: ClockText(anim.Network.Sim.Duration),
     Speed: anim.Max ? Texts.AnimModeMax : SpeedText(anim.Speed), Mode: mode,
     InSystem: state.Stats.Created - state.Stats.Completed, Completed: state.Stats.Completed,
     Throughput: (state.Stats.Completed / (time / 3600)).toFixed(1).replace('.', ','),
-    Track: tracks.join(', '),
   });
+  return { General: general, Tracks: tracks.join(', '), Worst: worst.join(', '),
+           Text: `${general}  ${tracks.join(', ')}` };
+}
+
+// [U] FitText – tekst lühendatud nii, et mahub laiusesse width (lõpus „..“).
+function FitText(theme, text, width) {
+  if (theme.TextWidth(text) <= width) return text;
+  let cut = text;
+  while (cut.length > 0 && theme.TextWidth(`${cut}..`) > width) cut = cut.slice(0, -1);
+  return `${cut}..`;
+}
+
+// [U] EgaStatusRows – EGA olekurida: üks rida, kui see mahub ka radade kõige pikema tekstiga, muidu
+//     kaks (teisel real rajad, vajadusel lühendatud). Tagastab read. Kutsub: AnimatorPainter.
+function EgaStatusRows(theme, status, width) {
+  if (theme.TextWidth(`${status.General}  ${status.Worst}`) <= width) return [status.Text];
+  return [FitText(theme, status.General, width), FitText(theme, status.Tracks, width)];
 }
 
 // [U] ControlLayout – juhtriba nupud ja liugur (kaasaegne): asukohad joonistamiseks ja hiireks.
@@ -958,7 +1034,7 @@ function DrawControlBar(theme, desktop, anim, state) {
   }
   theme.Text(layout.LabelX, layout.Y, Texts.AnimSpeed, 'WindowLabel');
   theme.Text(layout.ValueX + 2, layout.Y, anim.Max ? '—' : SpeedText(anim.Speed), 'WindowText', { Bold: true });
-  theme.Text(layout.StatusX, layout.Y, SimStatus(anim, state), 'WindowText');
+  theme.Text(layout.StatusX, layout.Y, FitText(theme, SimStatus(anim, state).Text, desktop.X + desktop.Width - layout.StatusX - 8), 'WindowText');
 }
 
 // Sündmuse kaardi tekst: „Load WP12“.
@@ -1111,9 +1187,11 @@ function AnimatorPainter(theme, desktop) {
     layoutRect = { X: panel.X + 12, Y: panel.Y + 10, Width: panel.Width - 24, Height: panel.Height - 20 };
     DrawEventStrip(theme, stripRect, anim, state, scene);
   } else {
-    theme.FillRect(desktop.X, desktop.Y, desktop.Width, ROW_HEIGHT, 'SimStatusBar');
-    theme.Text(desktop.X + 8, desktop.Y, SimStatus(anim, state), 'SimStatusText');
-    layoutRect = { X: desktop.X, Y: desktop.Y + ROW_HEIGHT, Width: desktop.Width, Height: desktop.Height - ROW_HEIGHT };
+    const rows = EgaStatusRows(theme, SimStatus(anim, state), desktop.Width - 16);
+    const statusHeight = rows.length * ROW_HEIGHT;
+    theme.FillRect(desktop.X, desktop.Y, desktop.Width, statusHeight, 'SimStatusBar');
+    rows.forEach((row, index) => theme.Text(desktop.X + 8, desktop.Y + index * ROW_HEIGHT, row, 'SimStatusText'));
+    layoutRect = { X: desktop.X, Y: desktop.Y + statusHeight, Width: desktop.Width, Height: desktop.Height - statusHeight };
     theme.FillRect(layoutRect.X, layoutRect.Y, layoutRect.Width, layoutRect.Height, 'LayoutBack');
   }
   const view = LayoutView(theme, layoutRect, anim.Model.Layout.Dim);
