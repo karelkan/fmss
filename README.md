@@ -30,8 +30,8 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
   - [x] 7c. Mitu detaili alusel / kärul (`src/fms_sim.js`: kohad alusel, jaamas mitu peale- ja mahalaadimist, käru peatuste nimekiri ja kogumissõit odavaima lisamisega – [DISAIN.md](DISAIN.md) osa 16, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c); animaator (kohad alusel, EGA olekurida kahel real) ja kokkuvõte
 - [ ] 8. Rikked ja juhuslikkus
 - [ ] 9. Aruanded
-- [ ] 10. Avaldamine (GitHub Pages)
-- [ ] 11. Adviser
+- [ ] 10. Avaldamine (GitHub Pages) – versioon 1.0 valmis
+- [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
 
 ## Käivitamine
 
