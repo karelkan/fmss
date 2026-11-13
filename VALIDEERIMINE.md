@@ -592,3 +592,24 @@ Etapi 11 suured mudelid ei mahu EGA ekraanile 48 × 35 ikoonidega. Animaator vä
 2. **Brauseri tööriista lohistamine** ei kerinud esimesel katsel (pärast `0`); JS-iga saadetud pointer-sündmused ja teine lohistamiskatse kerisid. Viga koodis ei leitud – arvatavasti tööriista sündmuste ajastus. Päris hiirega tasub üle vaadata.
 
 **Mida see EI kontrolli:** puuteplaadi näpistust päris seadmel (brauser annab selle `ctrlKey`-ga rattasündmusena – kontrollitud sünteetilise sündmusega). Avaldamine: töövoog võtab koodi tag'ist `v1.1`, mis tuleb teha enne pushi (koos commitiga).
+
+# Etapp 11b: teede ümardusviga (versioon 1.2)
+
+Etapi 11 esimene suur mudel (kinnitustehas: üks suletud konveier, 21 jaama, `Scale` 200, `Speed` 25) katkes kell 4363 s erindiga `Depart`-is: „Cannot read properties of undefined (reading 'Reserved')“.
+
+**Põhjus.** `ShortestPaths` (Dijkstra) liidab sõiduajad ja ümardab summa igal sammul (`RoundPosition`, 0,001). Tee BUF10 → BUF12 samal suletud konveieril:
+
+| Tee | Pikkus (cm) | Aeg (s) |
+|---|---|---|
+| otse | 7828,319 | 313,13276 → **313,133** |
+| BUF1 kaudu | 914,160 + 6914,159 = 7828,319 | 36,5664 → 36,566; + 276,56636 = 313,13236 → **313,132** |
+
+Pikkus on sama, aga ümardamise tõttu oli vahejaama kaudu tee 0,001 s „kiirem“ ja valiti see. Siis oli teel kaks sõitu samal rajal; `PathConnectors` arvab, et sõitude vahel on konnektor – seda polnud. Väikestes mudelites ja testides selliseid arve polnud (kaared π/4, `Scale` 200 ja `Speed` 25 andsid just sellise kombinatsiooni), aga viga võis tekkida igas mudelis.
+
+**Parandus** (`src/fms_sim.js`, DISAIN.md osa 2.3): uus tee on parem ainult siis, kui ta on vähemalt `PATH_TIME_EPSILON` = 0,01 s kiirem või sama kiire vähemate vahejaamadega. Konnektorite kaudu teede valik ei muutu (sealsed ajavahed on sekundites).
+
+| Kontroll | Tulemus |
+|---|---|
+| test `11b: ShortestPaths – ümardus …` (`test/network.test.js`) – sama arvudega võrk | ilma paranduseta kukub (kaks sõitu), parandusega üks sõit ✔ |
+| kõik varasemad testid (sh prototüübiga võrdlus, näidismudelid) | tulemused samad, 189/189 ✔ |
+| kinnitustehase mudel (simulaatori koopias) | 3 seemet × 8 h ilma ummikuta ✔ |

@@ -614,3 +614,23 @@ test('Puhvri suund: ühesuunalisest puhvrist ei pargita sissetulevat detaili', (
   assert.ok(twoWay.Parked > 0);
   assert.ok(twoWay.Completed > 20);
 });
+
+// ---------------------------------------------------------------------
+// 11b – ümardusviga: suletud konveieril on otse sõit ja vahejaama kaudu sõit sama pikad, aga
+// aja ümardamine igal sammul tegi vahejaama kaudu tee 0,001 s „kiiremaks“ (mudel A, VALIDEERIMINE.md
+// etapp 11b). Siis oli teel kaks sõitu samal rajal ilma konnektorita ja Depart kukkus.
+// ---------------------------------------------------------------------
+test('11b: ShortestPaths – ümardus ei too vahejaama kaudu teed (üks sõit samal rajal)', () => {
+  const network = {
+    Tracks: [{ Mode: 'Continuous', Closed: true, Length: 8628.319, Speed: 25 }],
+    Stations: [
+      { Name: 'A', Kind: 'Buffer', Track: 0, Position: 8071.239 },
+      { Name: 'VAHE', Kind: 'Buffer', Track: 0, Position: 357.08 },
+      { Name: 'B', Kind: 'Buffer', Track: 0, Position: 7271.239 },
+    ],
+    Connectors: [],
+  };
+  const path = ShortestPaths(network, 0)[2];
+  assert.deepEqual(path.Legs, [{ Track: 0, From: 0, To: 2 }]);
+  assert.ok(Math.abs(path.Time - 7828.319 / 25) < 0.001);
+});

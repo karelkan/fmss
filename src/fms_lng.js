@@ -185,7 +185,7 @@ export const Texts = {
   DesktopModelCounts: 'Koosseis',
   DesktopModelCountsValue: 'radu {Tracks}, tööpinke {Machines}, puhvreid {Buffers}, detailitüüpe {Workpieces}',
   DesktopModelGridValue: '{X} × {Y} ikooni',
-  DesktopVersion: 'versioon 1.1',
+  DesktopVersion: 'versioon 1.2',
   DesktopUntitled: 'Nimetu',
   DesktopChanged: ' (muudetud)',
 

@@ -2,7 +2,7 @@
 
 **Paindautomatiseeritud tootmise simulatsioonisüsteem.** Diplomiprojekt, Tallinna Tehnikaülikool, Arvutitehnika Instituut, 1993 (autor K. Kannel, juhendaja J. Riives, konsultant V. Leppikson). Kirjutati Turbo Pascalis ja jäi pooleli; versioon 1.0 valmis 2026 brauseris – *läks ainult 33 aastat, aga valmis sai*.
 
-**Veebis:** [karelkan.github.io/fmss](https://karelkan.github.io/fmss/) – avaleht ja lühijuhend; versioon 1 (praegu 1.1): [karelkan.github.io/fmss/v1](https://karelkan.github.io/fmss/v1/).
+**Veebis:** [karelkan.github.io/fmss](https://karelkan.github.io/fmss/) – avaleht ja lühijuhend; versioon 1 (praegu 1.2): [karelkan.github.io/fmss/v1](https://karelkan.github.io/fmss/v1/).
 
 Kolm osa nagu originaalis:
 
@@ -61,7 +61,8 @@ tools/site.sh /tmp/fmss-site
 - [x] 10. Avaldamine – versioon 1.0 (avaleht ja lühijuhend `site/index.html`, `/v1/` tag'ist `v1.0`, `tools/site.sh`, GitHub Pages'i töövoog; näidiste nimekiri `models/index.json`, näidis riketega; Advise → „tuleb versioonis 2.0“ – [DISAIN.md](DISAIN.md) osa 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 10). Avaldatud: https://karelkan.github.io/fmss/ (tag `v1.0`)
 - [ ] 11. Näidismudelid: 2–3 suurt tootmissüsteemi (10+ tööpinki) avalike lugude põhjal ([PLAAN.md](PLAAN.md))
   - [x] 11a. Versioon 1.1 – kerimine ja suum: suur mudel animaatoris (EGA kerib, ikoon jääb 48 × 35; kaasaegne kahandab kuni 36 px, siis kerib; suum hiire rattaga, lohistamine, `0`), redaktoris kaasaegne suum (Ctrl + ratas); `/v1/` tag'ist `v1.1` – [DISAIN.md](DISAIN.md) osa 14, 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11a
-  - [ ] 11b. Mudelid
+  - [x] 11b. Versioon 1.2 – parandus: `ShortestPaths` ümardas aega igal sammul ja suletud konveieril võis tee tulla vahejaama kaudu (0,001 s „kiirem“) – simulatsioon katkes erindiga (leiti mudeliga A); `PATH_TIME_EPSILON` – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11b
+  - [ ] 11c. Mudelid
 - [ ] 12. Dokumentatsioon: diplomitööga sarnane – teooria koos täiendustega, arhitektuur diagrammidega, andmeobjektid ja protseduurid ([PLAAN.md](PLAAN.md))
 - [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
 

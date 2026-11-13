@@ -1,6 +1,6 @@
 {
   "name": "fmss",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "FMSS – paindtootmissüsteemide simulaator (diplomitöö 1993, uus versioon)",
   "type": "module",
   "private": true,

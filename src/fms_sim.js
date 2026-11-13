@@ -94,6 +94,9 @@ function RoleFlow(role, dy) {
 const CellKey = (x, y) => `${x},${y}`;
 const CellPath = cell => `Layout (${cell.X}, ${cell.Y})`;
 const RoundPosition = value => Math.round(value * POSITION_DECIMALS) / POSITION_DECIMALS;
+// [U] PATH_TIME_EPSILON – ShortestPaths: nii väike ajavahe (s) on ümardusviga, mitte kiirem tee
+//     (etapp 11b, VALIDEERIMINE.md – vahejaama kaudu tee võis tulla 0,001 s „kiirem“).
+const PATH_TIME_EPSILON = 0.01;
 
 // [U] ObjectName – objekti nimi kasutajale: BUF1, MT1 (pingi nimi), FromCS …
 function ObjectName(context, cell) {
@@ -1078,7 +1081,12 @@ export function ShortestPaths(network, source, connectorOpen = () => true) {
         Length: RoundPosition(best[current].Length + step.Length), Time: RoundPosition(best[current].Time + step.Time),
         Hops: best[current].Hops + 1, Previous: current, Cross: cross,
       };
-      if (best[next] === null || CompareScores(key(candidate), key(best[next])) < 0) best[next] = candidate;
+      if (best[next] === null || CompareScores(key(candidate), key(best[next])) < 0) {
+        // aeg ümardatakse igal sammul (RoundPosition): vähem kui PATH_TIME_EPSILON kiirem tee, millel pole
+        // vähem vahejaamu, ei ole parem – muidu tuleks samal rajal kaks sõitu ilma konnektorita (etapp 11b)
+        if (best[next] !== null && best[next].Time - candidate.Time < PATH_TIME_EPSILON && candidate.Hops >= best[next].Hops) return;
+        best[next] = candidate;
+      }
     };
     for (let next = 0; next < count; next++) {
       if (done[next]) continue;
