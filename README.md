@@ -63,6 +63,7 @@ tools/site.sh /tmp/fmss-site
   - [x] 11a. Versioon 1.1 – kerimine ja suum: suur mudel animaatoris (EGA kerib, ikoon jääb 48 × 35; kaasaegne kahandab kuni 36 px, siis kerib; suum hiire rattaga, lohistamine, `0`), redaktoris kaasaegne suum (Ctrl + ratas); `/v1/` tag'ist `v1.1` – [DISAIN.md](DISAIN.md) osa 14, 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11a
   - [x] 11b. Versioon 1.2 – parandus: `ShortestPaths` ümardas aega igal sammul ja suletud konveieril võis tee tulla vahejaama kaudu (0,001 s „kiirem“) – simulatsioon katkes erindiga (leiti mudeliga A); `PATH_TIME_EPSILON` – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11b
   - [x] 11c. Mudelid: Kinnitustehas (16 pinki, 8 tüüpi, konveier), Allhanketehas (15 pinki, 12 tüüpi, 3 konveierit konnektoritega), Reduktori FMS (12 pinki, 7 tüüpi, 4 AGV-d, rikked) – `models/`, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11c. Versioon 1.3: Simulate kokkuvõte mahub EGA-s ekraanile (`SimSummaryLines`, `MessageBoxMaxLines`)
+- [ ] 11d. Versioon 1.4 – simulatsiooni lõpp: partiide režiim (originaali reegel „partiidena“) ja/või tühjendusega lõpp ([PLAAN.md](PLAAN.md) 11d)
 - [ ] 12. Dokumentatsioon: diplomitööga sarnane – teooria koos täiendustega, arhitektuur diagrammidega, andmeobjektid ja protseduurid ([PLAAN.md](PLAAN.md))
 - [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
 
