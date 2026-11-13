@@ -186,3 +186,23 @@ Puhvri mahu ja konnektori mõju stsenaariumis S (seeme 1):
 4. **Kättesaadavus tuleb kontrollida kõigist võimalikest kohtadest**, mitte ainult FromCS-ist: kui operatsiooni teeb mitu pinki, võib detail jõuda pinki, kust järgmise operatsiooni pinki ei saa. `CheckReachability` käib marsruudi läbi kõigi võimalike kohtadega (ja kesklao korral ka FromCS-iga, sest pargitud detail tuleb sealt tagasi).
 
 **Mida see EI kontrolli:** diskreetseid radu (etapp 7b), mitut detaili alusel (7c), konnektori mahutavust üle 1.
+
+## Parandus: puhvri suund
+
+**Leid** (kasutaja tähelepanek katses): suunaga puhvri kaudu liikusid detailid kahes suunas. Põhjuseid oli kaks:
+
+1. Originaalis on puhvri liik **liikumissuund joonisel** (joon. 5.4: `InBuf` üles ▲, `OutBuf` alla ▼) ja redaktor joonistab nii, aga `LinkMachines` luges seda rolliks pingi suhtes („sissetulev“ / „väljaminev“). Tavalises paigutuses (pink raja kohal) need kattuvad, läbival pingil mitte: `MachToolThruDown` nõudis pingi kohale `InBuf`-i ▲, kuigi detailid liiguvad sealt alla, ja keelas õige `OutBuf`-i ▼.
+2. Ummiku lahendus pargis ka sissetuleva detaili – see saadeti ühesuunalisest puhvrist tagasi rajale.
+
+**Parandus**: suund tuleb puhvri kohast pingi suhtes (`BUFFER_FLOW`, `RoleFlow`, DISAIN.md 2.1); ühesuunalisest puhvrist pargitakse ainult väljaminevaid detaile; invariant „ühesuunalisest puhvrist saadetakse sissetulev detail tagasi“. Testid ([test/network.test.js](test/network.test.js), „Puhvri suund“):
+
+| Test | Tulemus |
+|---|---|
+| `ThruDown`: ▼ + ▼ lubatud, ka kahesuunalised; ▲ pingi kohal või all → viga „siin liiguvad detailid alla“ | ✔ |
+| `ThruUp`: ▲ + ▲ lubatud, ▼ → viga „siin liiguvad detailid üles“ | ✔ |
+| Läbivad pingid, 8 h: ülemistes puhvrites ainult sissetulevad, alumistes ainult väljaminevad detailid | ✔ |
+| Ristmarsruudid ühekohaliste ühesuunaliste puhvritega: ummik on lahendamatu (0 parkimist), teade „ühesuunalisest puhvrist ei saa sissetulevat detaili tagasi saata“; kahesuunaliste puhvritega lahendatakse parkimisega | ✔ |
+| Varasemad testid (näidismudel, A, C, G, H, S) – tulemused samad (kasutavad `InOutBuf`-i / `TurnBuf`-i või pinki raja kohal) | ✔ |
+
+**Järeldus struktuuri kohta**: ristmarsruutide ja ühekohaliste **eraldi** sisse- ja väljaminevate puhvritega (läbiv pink) ei piisa ummiku vältimisest (`ReserveNextBeforeStart`): kumbki sissetulev detail ootab teise pingi sissetulevat kohta. Kahesuunaliste puhvritega pargiti seetõttu palju (5 seemet: 14–36 parkimist 19–49 valmis detaili kohta, kahel seemnel lõpuks ummik); ühesuunalistega peatub simulatsioon kohe. Tugevam vältimine (nt sissetuleva koha broneerimine alles siis, kui detaili järgmise pingi koht on samuti saadaval) on võimalik hilisem täiendus.
+

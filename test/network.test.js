@@ -455,3 +455,82 @@ test('Sild: ristmik (Cruise) pideval rajal on endiselt viga, sild mitte', () => 
   delete cell.N2;
   assertEnumError(model, 'on haru');
 });
+
+// ---------------------------------------------------------------------
+// Puhvri suund (originaal joon. 5.4: InBuf – detailid liiguvad üles, OutBuf – alla)
+// ---------------------------------------------------------------------
+
+// Silmus: ülemine rida y = 0, alumine y = 6. Läbivad pingid (x = 2, 4) ülemise ja alumise raja
+// vahel: sissetulev puhver pingi kohal, väljaminev all (ThruDown) või vastupidi (ThruUp).
+// FromCS, ToCS ja SysOut on alumise raja all.
+function LayoutThrough({ Machine: machineIcon = 'MachToolThruDown', Upper = 'OutBuf', Lower = 'OutBuf', Seed = 1 } = {}) {
+  const cells = [[0, 0, 'ArcSE', 1], [6, 0, 'ArcSW', 1], [0, 6, 'ArcNE', 1], [6, 6, 'ArcNW', 1]];
+  for (let x = 1; x <= 5; x++) cells.push([x, 0, x === 2 || x === 4 ? 'TeeS' : 'HorTr', 1, x === 1 ? { Dir: 'E' } : undefined]);
+  for (let x = 1; x <= 5; x++) cells.push([x, 6, x === 2 || x === 4 ? 'TeeN' : (x % 2 === 1 ? 'TeeS' : 'HorTr'), 1]);
+  for (let y = 1; y <= 5; y++) cells.push([0, y, 'VertTr', 1], [6, y, 'VertTr', 1]);
+  for (const [x, number] of [[2, 1], [4, 2]]) {
+    cells.push([x, 1, 'VertTr', null, DOT], [x, 2, Upper, 2 * number - 1], [x, 3, machineIcon, number],
+      [x, 4, Lower, 2 * number], [x, 5, 'VertTr', null, DOT]);
+  }
+  cells.push([1, 7, 'VertTr', null, DOT], [1, 8, 'FromCS'], [3, 7, 'VertTr', null, DOT], [3, 8, 'ToCS'],
+    [5, 7, 'VertTr', null, DOT], [5, 8, 'SysOut']);
+  return {
+    Meta: { Name: 'Läbivad pingid', Version: 1 },
+    Scale: 100,
+    Layout: { Dim: { X: 7, Y: 9 }, Cells: Cells(cells) },
+    EdgeLengths: [],
+    Tracks: [Track('Konveier', { Carts: 3 })],
+    Machines: [Machine('MT1', ['a1', 'b2'], { SetupTime: 30 }), Machine('MT2', ['a2', 'b1'], { SetupTime: 30 })],
+    Buffers: [1, 2, 3, 4].map(() => Buffer(1)),
+    Storage: { Capacity: 20, LoadTime: 10 },
+    Workpieces: [
+      { Name: 'A', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: 'a1', Mean: 200, Dev: 50 }, { Op: 'a2', Mean: 200, Dev: 50 }] }] },
+      { Name: 'B', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: 'b1', Mean: 200, Dev: 50 }, { Op: 'b2', Mean: 200, Dev: 50 }] }] },
+    ],
+    Sim: { Seed, Duration: 28800, Kl: 0.95, StallTime: 600 },
+  };
+}
+// Ainult tüüp A (MT1 -> MT2): ristmarsruute pole, ummikut ei teki.
+function OneWayFlow(options) {
+  const model = LayoutThrough(options);
+  model.Workpieces = [model.Workpieces[0]];
+  return model;
+}
+
+test('Puhvri suund: ThruDown – mõlemad puhvrid ▼ (OutBuf), ▲ (InBuf) pingi kohal on viga', () => {
+  NetworkOf(OneWayFlow());
+  NetworkOf(OneWayFlow({ Upper: 'InOutBuf', Lower: 'TurnBuf' }));
+  assertEnumError(OneWayFlow({ Upper: 'InBuf' }), 'BUF1 (InBuf) ei sobi tööpingi MT1 sissetulevaks puhvriks: siin liiguvad detailid alla');
+  assertEnumError(OneWayFlow({ Lower: 'InBuf' }), 'BUF2 (InBuf) ei sobi tööpingi MT1 väljaminevaks puhvriks: siin liiguvad detailid alla');
+});
+
+test('Puhvri suund: ThruUp – mõlemad puhvrid ▲ (InBuf), ▼ on viga', () => {
+  NetworkOf(OneWayFlow({ Machine: 'MachToolThruUp', Upper: 'InBuf', Lower: 'InBuf' }));
+  assertEnumError(OneWayFlow({ Machine: 'MachToolThruUp', Upper: 'OutBuf', Lower: 'InBuf' }), 'siin liiguvad detailid üles');
+});
+
+test('Puhvri suund: ühesuunalises puhvris liiguvad detailid ainult ühes suunas', () => {
+  const network = NetworkOf(OneWayFlow());
+  SimInit(network, CHECKED);
+  const seen = network.Buffers.map(() => new Set());
+  while (!SimState().SIMULATION_DONE) {
+    SimStep();
+    SimState().BufferArray.forEach((buffer, i) => buffer.Entries.forEach(entry => seen[i].add(entry.Dir)));
+  }
+  // ülemised (BUF1, BUF3) ainult sissetulevad, alumised (BUF2, BUF4) ainult väljaminevad
+  assert.deepEqual(seen.map(set => [...set].sort()), [['In'], ['Out'], ['In'], ['Out']]);
+  assert.ok(SimState().Stats.Completed > 20);
+});
+
+// Ristmarsruudid ühekohaliste ühesuunaliste puhvritega: kumbki sissetulev detail ootab teise pingi
+// sissetulevat kohta. Detaili ei saa ühesuunalisest puhvrist tagasi saata (invariant) – ummik on
+// lahendamatu ja teade ütleb põhjuse. Kahesuunaliste puhvritega lahendatakse sama ummik parkimisega.
+test('Puhvri suund: ühesuunalisest puhvrist ei pargita sissetulevat detaili', () => {
+  const oneWay = SimRun(NetworkOf(LayoutThrough()), CHECKED);
+  assert.equal(oneWay.Deadlock, true);
+  assert.match(oneWay.DeadlockReason, /ühesuunalisest puhvrist/);
+  assert.equal(oneWay.Parked, 0);
+  const twoWay = SimRun(NetworkOf(LayoutThrough({ Upper: 'InOutBuf', Lower: 'InOutBuf' })), CHECKED);
+  assert.ok(twoWay.Parked > 0);
+  assert.ok(twoWay.Completed > 20);
+});

@@ -237,7 +237,9 @@ export const Texts = {
   EnumMachineNoBuffer: 'tööpingil {Machine} puudub puhver ({Side})',
   EnumSideAbove: 'pingi kohal',
   EnumSideBelow: 'pingi all',
-  EnumBufferKind: 'puhver {Buffer} ({Kind}) ei sobi tööpingi {Machine} {Role} puhvriks',
+  EnumBufferKind: 'puhver {Buffer} ({Kind}) ei sobi tööpingi {Machine} {Role} puhvriks: siin liiguvad detailid {Flow}',
+  EnumFlowUp: 'üles',
+  EnumFlowDown: 'alla',
   EnumRoleIn: 'sissetulevaks',
   EnumRoleOut: 'väljaminevaks',
   EnumBufferNoMachine: 'puhver {Buffer} pole tööpingiga seotud (pink peab olema kohal või all)',
@@ -256,6 +258,7 @@ export const Texts = {
 
   // --- Simulaator ---
   SimDeadlockCycle: 'ringootamine: {List}',
+  SimDeadlockOneWay: ' – ühesuunalisest puhvrist ei saa sissetulevat detaili tagasi saata',
   SimDeadlockStall: 'midagi ei toimu {Seconds} s',
   SimTitle: 'Simulate',
   SimNoModel: 'Mudelit pole laaditud. Vali File → Load.',

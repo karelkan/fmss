@@ -77,8 +77,16 @@ const MACHINE_BUFFER_SIDES = {
   MachToolThruDown: { In: -1, Out: 1 },
   MachToolThruUp:   { In: 1, Out: -1 },
 };
-const IN_BUFFER_KINDS = ['InBuf', 'InOutBuf', 'TurnBuf'];    // [T] sobivad sissetulevaks puhvriks
-const OUT_BUFFER_KINDS = ['OutBuf', 'InOutBuf', 'TurnBuf'];  // [T] sobivad väljaminevaks puhvriks
+// [O] BUFFER_FLOW – puhvri liik → suunad joonisel, kuhu detailid temast läbi liiguvad (joon. 5.4):
+//     InBuf üles, OutBuf alla, InOutBuf ja TurnBuf mõlemat pidi. N – üles, S – alla.
+const BUFFER_FLOW = { InBuf: ['N'], OutBuf: ['S'], InOutBuf: ['N', 'S'], TurnBuf: ['N', 'S'] };
+
+// [T] RoleFlow – kuhu detail joonisel liigub, kui puhver on pingi suhtes dy (-1 kohal, +1 all):
+//     sissetulev liigub rajalt pingi poole, väljaminev pingilt raja poole.
+function RoleFlow(role, dy) {
+  const towardMachine = dy > 0 ? 'N' : 'S';
+  return role === 'In' ? towardMachine : DIRECTIONS[towardMachine].Opposite;
+}
 
 // [U] CellKey, CellPath, RoundPosition – lahtri võti; lahter veateate jaoks; asukoha ümardus.
 const CellKey = (x, y) => `${x},${y}`;
@@ -433,8 +441,8 @@ function LinkMachines(context, cells) {
     seenMachines.add(cell.N);
     const sides = MACHINE_BUFFER_SIDES[cell.T];
     const roles = [
-      { Name: 'In', Dy: sides.In, Kinds: IN_BUFFER_KINDS, Text: Texts.EnumRoleIn },
-      { Name: 'Out', Dy: sides.Out, Kinds: OUT_BUFFER_KINDS, Text: Texts.EnumRoleOut },
+      { Name: 'In', Dy: sides.In, Text: Texts.EnumRoleIn },
+      { Name: 'Out', Dy: sides.Out, Text: Texts.EnumRoleOut },
     ];
     const link = { Cell: cell, InCell: null, OutCell: null };
     for (const role of roles) {
@@ -444,9 +452,11 @@ function LinkMachines(context, cells) {
           { Machine: machineName, Side: role.Dy < 0 ? Texts.EnumSideAbove : Texts.EnumSideBelow });
         continue;
       }
-      if (!role.Kinds.includes(buffer.T)) {
+      const flow = RoleFlow(role.Name, role.Dy);   // [O] puhvri liik = liikumissuund joonisel
+      if (!BUFFER_FLOW[buffer.T].includes(flow)) {
         EnumError(context, CellPath(buffer), Texts.EnumBufferKind,
-          { Buffer: `BUF${buffer.N}`, Kind: buffer.T, Machine: machineName, Role: role.Text });
+          { Buffer: `BUF${buffer.N}`, Kind: buffer.T, Machine: machineName, Role: role.Text,
+            Flow: flow === 'N' ? Texts.EnumFlowUp : Texts.EnumFlowDown });
       }
       const key = CellKey(buffer.X, buffer.Y);
       if (owner.has(key) && owner.get(key) !== cell) {
@@ -613,6 +623,7 @@ function BuildNetwork(context, traces, geometries, links, objects, machineLinks)
   const machineCells = machineLinks.map(link => link.Cell).sort((first, second) => first.N - second.N);
   const buffers = bufferCells.map(cell => ({
     ...model.Buffers[cell.N - 1], Name: `BUF${cell.N}`, Kind: cell.T, ModelIndex: cell.N - 1,
+    OneWay: BUFFER_FLOW[cell.T].length === 1,
     Cell: { X: cell.X, Y: cell.Y },
     Station: stations.findIndex(station => station.Buffer === bufferIndexOf(cell)),
     Machine: -1,
@@ -1589,15 +1600,19 @@ function FindDeadlockedWorkpieces() {
 }
 
 // [U] DetectDeadlock – kui leidub ummikus detaile, saadetakse kauem oodanu ajutiselt kesklattu
-//     (pargitakse). Kui kesklattu ei saa, on ummik lahendamatu -> simulatsioon peatub. Kui tee
-//     kesklattu on hetkel kinni (konnektor), proovitakse järgmisel sekundil uuesti.
+//     (pargitakse). Ühesuunalisest puhvrist (InBuf, OutBuf) ei saa sissetulevat detaili tagasi
+//     rajale saata – pargitakse ainult väljaminevaid või kahesuunalise puhvri detaile. Kui
+//     kesklattu ei saa, on ummik lahendamatu -> simulatsioon peatub. Kui tee kesklattu on hetkel
+//     kinni (konnektor), proovitakse järgmisel sekundil uuesti.
 //     Varukontroll: kui midagi ei toimu üle StallTime ja süsteemis on detaile -> peatub.
 //     Kutsub: SimStep.
 function DetectDeadlock() {
   const deadlocked = FindDeadlockedWorkpieces();
+  const movable = deadlocked.filter(workpiece => workpiece.Location.Dir === 'Out'
+    || !BufferArray[workpiece.Location.Index].OneWay);
   if (deadlocked.length > 0) {
-    if (StorageFree()) {
-      const workpiece = deadlocked[0];
+    if (StorageFree() && movable.length > 0) {
+      const workpiece = movable[0];
       if (PathFree(CurrentStationOf(workpiece), Storage.Station)) {
         Storage.Reserved++;
         workpiece.Destination = { Kind: 'ToCS', Station: Storage.Station, Park: true };
@@ -1607,7 +1622,8 @@ function DetectDeadlock() {
     } else {
       DEADLOCK = true;
       Stats.DeadlockReason = FormatText(Texts.SimDeadlockCycle,
-        { List: deadlocked.map(workpiece => `WP${workpiece.Id}`).join(', ') });
+        { List: deadlocked.map(workpiece => `WP${workpiece.Id}`).join(', ') })
+        + (StorageFree() && movable.length === 0 ? Texts.SimDeadlockOneWay : '');
       SIMULATION_DONE = true;
       return;
     }
@@ -1677,6 +1693,10 @@ function CheckInvariants() {
   // tagurpidi: struktuuris olev detail viitab samale kohale; mahutavused
   for (const buffer of BufferArray) {
     if (buffer.Entries.length + buffer.Reserved > buffer.Capacity) fail(`puhver ${buffer.Name} ületäis`);
+    // ühesuunaline puhver: sissetulev detail ei lähe tagasi rajale
+    if (buffer.OneWay && buffer.Entries.some(entry => entry.Dir === 'In' && SysWPArray[entry.WP].State === 'WAIT_PICKUP')) {
+      fail(`ühesuunalisest puhvrist ${buffer.Name} saadetakse sissetulev detail tagasi`);
+    }
     if (buffer.Reserved < 0) fail(`puhver ${buffer.Name} Reserved < 0`);
     for (const entry of buffer.Entries) {
       const location = SysWPArray[entry.WP].Location;
