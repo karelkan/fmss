@@ -416,7 +416,6 @@ export const Texts = {
   AnimEventCount: 'ootel {Count}, töödeldud {Processed}   L – ahelloend',
   AnimEventsHidden: 'Suurel kiirusel sündmusi kaartidena ei näidata – ainult arv.',
   AnimEventHint: '{Label} – aeg {Time} (+{Delta} s)',
-  AnimTicks: [['nüüd', 0], ['10 s', 10], ['1 min', 60], ['10 min', 600], ['1 h', 3600]],
   AnimFirstAtMoment: 'FirstAtMoment',
   AnimNil: 'nil',
   AnimListMore: '… veel {Count}',

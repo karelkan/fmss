@@ -606,7 +606,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `TrackGeometry`, `TrackPoint`, `CellPathPoint`, `ArcCorner` | raja ikoonid asukohtadega; asukoht rajal → punkt ruudustikus; punkt ikooni sees; kaare keskpunkt | [U] |
 | `PalletPosition`, `InterpolateOffset` | aluse asukoht (sama valem mis `MinuteMan`-is); nihe kahe sekundi vahel | [T] / [U] |
 | `WorkpiecePlaces`, `PlacePoint`, `BuildScene` | kus iga detail joonistatakse (ka laadimisel liikumas); koha punkt; kaadri andmed | [U] |
-| `EventListArray`, `DiffEventList`, `EventAxisX`, `EventCardLayout`, `RelatedObjects` | Event List massiivina; lisandunud ja töödeldud kirjed; ajatelg; kaartide veerud; kaardiga seotud objektid | [U] |
+| `EventListArray`, `DiffEventList`, `EventAxisX`, `EVENT_TICKS`, `EventCardLayout`, `RelatedObjects` | Event List massiivina; lisandunud ja töödeldud kirjed; ajatelg ja selle märgid (kellaajana); kaartide veerud; kaardiga seotud objektid | [U] |
 | `SPEED_STEPS`, `MAX_SPEED`, `SpeedFromSlider`, `SliderFromSpeed`, `NextSpeed`, `SpeedText`, `ClockText` | kiiruse skaala (×1 … ×1000) ja vormindus; aeg h:mm:ss | [U] |
 | `LayoutView`, `DrawLayout`, `DrawIcon`, `ObjectLabel` | ruudustiku vaade ekraanil; ikoonid (kasutab ka redaktor) | [U] |
 | `AnimatorPainter`, `DrawControlBar`, `ControlLayout`, `DrawEventStrip`, `DrawLinkedList` | töölaua joonistaja; juhtriba; Event List riba ja ahelloend | [U] |
@@ -689,7 +689,7 @@ Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinki
 EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 värviga (Bresenham, ilma silumiseta).
 
 **Ainult kaasaegses välimuses** **[U]**:
-- **Event List riba**: ajatelg (logaritmiline, nüüd … 1 h) alates nähtavast ajast; sündmused kaartidena (värv tüübi järgi, nt `Load WP12`), sama aja sündmused ühes veerus FIFO järjekorras (3 rida, ülejäänu „+n“). Lisandunud kaart libiseb kohale, töödeldud kaob vasakule (`DiffEventList` – kirjeid võrreldakse viite järgi). Kaardile osutades tõstetakse esile seotud pink / puhver / jaam / alus / detail ja olekureale tuleb sündmuse aeg. `L` – ahelloendi vaade (kastid `Event`, `WP`, `Time` ja `Next`-nooled, `FirstAtMoment` … `nil`). Kiirusel üle ×50 ja max-režiimis ainult arvud.
+- **Event List riba**: ajatelg (logaritmiline, nüüd … +1 h) alates nähtavast ajast, märgid kellaajana h:mm:ss nagu üleval (nüüd, +10 s, +1 min, +10 min, +1 h; arvutus jääb sekundites); sündmused kaartidena (värv tüübi järgi, nt `Load WP12`), sama aja sündmused ühes veerus FIFO järjekorras (3 rida, ülejäänu „+n“). Lisandunud kaart libiseb kohale, töödeldud kaob vasakule (`DiffEventList` – kirjeid võrreldakse viite järgi). Kaardile osutades tõstetakse esile seotud pink / puhver / jaam / alus / detail ja olekureale tuleb sündmuse aeg. `L` – ahelloendi vaade (kastid `Event`, `WP`, `Time` (h:mm:ss) ja `Next`-nooled, `FirstAtMoment` … `nil`). Kiirusel üle ×50 ja max-režiimis ainult arvud.
 - Pingi spindel pöörleb töötlemisel, häälestusel pöörleb aeglaselt hammasratas.
 
 ---

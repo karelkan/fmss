@@ -39,6 +39,7 @@ const NEXT_EVENT_LIMIT = 36000;         // „järgmine sündmus“: kõige rohk
 const CATCH_UP_RATE = 4;                // sammu järel jõuab pilt järele 1/4 s jooksul
 const CARDS_MAX_SPEED = 50;             // suuremal kiirusel näitab Event List ainult arvu
 const EVENT_HORIZON = 3600;             // Event Listi ajatelje parem serv (s)
+const EVENT_TICKS = [0, 10, 60, 600, 3600];   // [U] ajatelje märgid: nüüd, +10 s, +1 min, +10 min, +1 h
 const EGA_CELL = { Width: 48, Height: 35 };   // EGA ikoon: 48 × 35 pikslit on 4:3 ekraanil ruut
 const MODERN_MAX_CELL = 72;             // kaasaegne: ikooni suurim külg loogilistes pikslites
 const STRIP_HEIGHT = 5 * ROW_HEIGHT + 4; // Event List riba kõrgus (kaasaegne)
@@ -834,10 +835,11 @@ function DrawEventStrip(theme, rect, anim, state, scene) {
 
   const axis = { X0: area.X + 2, X1: area.X + area.Width, CardWidth: CARD_WIDTH, Gap: CARD_GAP, Rows: CARD_ROWS, Horizon: EVENT_HORIZON };
   const axisY = area.Y + 1;
-  for (const [label, delta] of Texts.AnimTicks) {
+  const shownTime = Math.floor(scene.Time + 0.5);   // märgid kellaajana nagu üleval (h:mm:ss)
+  for (const delta of EVENT_TICKS) {
     const x = EventAxisX(delta, axis);
     theme.FillRect(x, axisY + 10, 0.5, area.Height - 10, 'StripTick');
-    theme.Text(x + 2, axisY - 4, label, 'WindowLabel', { Size: 7 });
+    theme.Text(x + 2, axisY - 4, ClockText(shownTime + delta), 'WindowLabel', { Size: 7, Bold: delta === 0 });
   }
   const cardsTop = axisY + 12;
   const rowHeight = (area.Height - 12) / CARD_ROWS;
@@ -921,7 +923,7 @@ function DrawLinkedList(theme, area, events) {
     theme.RoundRect(x, y, boxWidth, boxHeight, 2, 'Window');
     theme.StrokeRect(x, y, boxWidth, boxHeight, EventRole(event), { Width: 1.5, Radius: 2 });
     theme.FillRect(x, y, 3, boxHeight, EventRole(event));
-    const lines = [event.Event, event.WP !== null ? `WP ${event.WP}` : 'WP –', `Time ${event.Time}`];
+    const lines = [event.Event, event.WP !== null ? `WP ${event.WP}` : 'WP –', `Time ${ClockText(event.Time)}`];
     lines.forEach((line, i) => theme.Text(x + 7, y + 2 + i * 11 - 1.5, line, i === 0 ? 'WindowText' : 'WindowLabel', { Mono: true, Size: 8, Bold: i === 0 }));
     x += boxWidth;
     arrow(x);
