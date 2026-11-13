@@ -185,7 +185,7 @@ export const Texts = {
   DesktopModelCounts: 'Koosseis',
   DesktopModelCountsValue: 'radu {Tracks}, tööpinke {Machines}, puhvreid {Buffers}, detailitüüpe {Workpieces}',
   DesktopModelGridValue: '{X} × {Y} ikooni',
-  DesktopVersion: 'versioon 1.0',
+  DesktopVersion: 'versioon 1.1',
   DesktopUntitled: 'Nimetu',
   DesktopChanged: ' (muudetud)',
 
@@ -596,6 +596,17 @@ export const Texts = {
     { Key: 'Esc', Name: 'Escape', Label: 'Lõpp' },
     { Key: 'F10', Label: 'Menüü' },
   ],
+  // EGA, kui mudel ei mahu ekraanile: kerimine nooltega (etapp 11a)
+  AnimStatusKeysEgaScroll: [
+    { Key: 'Space', Name: ' ', Label: 'Start/Paus' },
+    { Key: '+/-', Name: '+', Label: 'Kiirus' },
+    { Key: '.', Label: 'Samm' },
+    { Key: 'N', Label: 'Sündmus' },
+    { Key: '←→↑↓', Name: 'ArrowRight', Label: 'Keri' },
+    { Key: 'Esc', Name: 'Escape', Label: 'Lõpp' },
+    { Key: 'F10', Label: 'Menüü' },
+  ],
+  AnimHintLayout: 'Hiire ratas – suum, lohista – keri, nooled – keri, 0 – kogu mudel',
 };
 
 // [U] FormatText – asendab tekstis kohatäited {Nimi} väärtustega.

@@ -93,7 +93,7 @@ export function SetDesktop(painter, menu) {
 
 // [U] SetDesktopView – töölaua vaade, mis asendab töölaua joonistaja (animaator); null = tagasi.
 //     view: Painter(theme, desktop); Input({ Kind: 'key' | 'down' | 'move' | 'up' | 'wheel', Name, Shift,
-//     Point, Delta }) → true / 'capture' / false; StatusKeys(theme) – olekurea klahvid; StatusHint() – vihje.
+//     Point, Delta, Ctrl }) → true / 'capture' / false; StatusKeys(theme) – olekurea klahvid; StatusHint() – vihje.
 //     Kutsub: anima.js, fms_ed.js.
 export function SetDesktopView(view) {
   DesktopView = view;
@@ -898,5 +898,6 @@ function HandleWheel(event) {
   const bounds = ScreenCanvas.getBoundingClientRect();
   const point = ActiveTheme.DeviceToLogical((event.clientX - bounds.left) * ratio, (event.clientY - bounds.top) * ratio);
   if (!InsideDesktop(point)) return;
-  if (DesktopView.Input({ Kind: 'wheel', Point: point, Delta: event.deltaY })) event.preventDefault();
+  // Ctrl: Ctrl + ratas või puuteplaadi näpistus (brauser annab selle ctrlKey-ga) – suum
+  if (DesktopView.Input({ Kind: 'wheel', Point: point, Delta: event.deltaY, Ctrl: event.ctrlKey || event.metaKey })) event.preventDefault();
 }

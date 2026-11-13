@@ -10,6 +10,7 @@ import {
   TrackGeometry, TrackPoint, CellPathPoint, PalletPosition, InterpolateOffset, WorkpiecePlaces,
   EventListArray, DiffEventList, EventCardLayout, EventAxisX, SpeedFromSlider, SliderFromSpeed,
   NextSpeed, SpeedText, SPEED_STEPS, PalletGrid, PalletPlacePoint, PLACES_SHOWN,
+  LayoutView, ScrollArrows, ScrollStep, ZoomAt, ModernCellSize, WheelZoomFactor, MODERN_ZOOM,
 } from '../src/anima.js';
 import { IconTypes } from '../src/fms_glb.js';
 
@@ -251,4 +252,92 @@ test('8: rikked – praak on rikkes pingis remondi lõpuni, animaator ei mõjuta
   }
   assert.ok(downSeconds > 0);
   assert.deepEqual(SimReport(), expected);
+});
+
+// ---------------------------------------------------------------------
+// 11a: kerimine ja suum (LayoutView kaameraga)
+// ---------------------------------------------------------------------
+
+const EGA = { Name: 'EGA' };
+const MODERN = { Name: 'Modern' };
+const EGA_RECT = { X: 0, Y: 42, Width: 640, Height: 280 };      // animaatori ala EGA-s (umbes)
+const MODERN_RECT = { X: 20, Y: 60, Width: 1200, Height: 500 };
+
+test('11a: ilma kaamerata (View) mahub kogu mudel nagu enne', () => {
+  const view = LayoutView(EGA, EGA_RECT, { X: 26, Y: 12 });
+  assert.ok(view.CW * 26 <= EGA_RECT.Width && view.CH * 12 <= EGA_RECT.Height);
+  assert.ok(view.CW < 48);
+  assert.deepEqual(view.Scrollable, { X: false, Y: false });
+});
+
+test('11a: EGA – väike mudel keskel, ikoon 48 × 35, kerimist pole', () => {
+  const view = LayoutView(EGA, EGA_RECT, { X: 13, Y: 7 }, { Zoom: null, Scroll: { X: 5, Y: 5 } });
+  assert.equal(view.CW, 48);
+  assert.equal(view.CH, 35);
+  assert.deepEqual(view.Scrollable, { X: false, Y: false });
+  assert.deepEqual(view.Scroll, { X: 0, Y: 0 });
+  assert.equal(view.X, Math.round((640 - 13 * 48) / 2));
+  assert.deepEqual(ScrollArrows(view), []);
+});
+
+test('11a: EGA – suur mudel: ikoon jääb 48 × 35, kerimine terve ikooni kaupa ja piirides', () => {
+  const dim = { X: 26, Y: 12 };
+  const view = LayoutView(EGA, EGA_RECT, dim, { Zoom: null, Scroll: { X: 3.4, Y: 1 } });
+  assert.equal(view.CW, 48);
+  assert.equal(view.CH, 35);
+  assert.deepEqual(view.Scrollable, { X: true, Y: true });
+  assert.equal(view.Visible.X, 13);     // (640 − 2 · 7) / 48
+  assert.equal(view.Visible.Y, 7);      // (280 − 2 · 7) / 35
+  assert.deepEqual(view.Scroll, { X: 3, Y: 1 });
+  assert.equal(view.X, view.Clip.X - 3 * 48);
+  assert.equal(view.Clip.Width, 13 * 48);
+  assert.ok(view.Clip.X >= EGA_RECT.X + 7 && view.Clip.X + view.Clip.Width <= EGA_RECT.X + EGA_RECT.Width - 7);
+  assert.deepEqual(ScrollArrows(view).map(arrow => arrow.Id).sort(), ['E', 'N', 'S', 'W']);
+  assert.equal(ScrollStep(view, 'X'), 1);
+  // üle piiri kerimine viiakse piiridesse; lõpus pole E ja S noolt
+  const end = LayoutView(EGA, EGA_RECT, dim, { Zoom: null, Scroll: { X: 100, Y: 100 } });
+  assert.deepEqual(end.Scroll, { X: 26 - 13, Y: 12 - 7 });
+  assert.deepEqual(ScrollArrows(end).map(arrow => arrow.Id).sort(), ['N', 'W']);
+  const start = LayoutView(EGA, EGA_RECT, dim, { Zoom: null, Scroll: { X: -4, Y: -1 } });
+  assert.deepEqual(start.Scroll, { X: 0, Y: 0 });
+  assert.deepEqual(ScrollArrows(start).map(arrow => arrow.Id).sort(), ['E', 'S']);
+});
+
+test('11a: kaasaegne – automaatne suurus kahandab kuni 36 px-ni, edasi kerib', () => {
+  assert.equal(ModernCellSize(100, null), 72);
+  assert.equal(ModernCellSize(50, null), 50);
+  assert.equal(ModernCellSize(20, null), 36);
+  const fits = LayoutView(MODERN, MODERN_RECT, { X: 24, Y: 12 }, { Zoom: null, Scroll: { X: 0, Y: 0 } });
+  assert.equal(fits.CW, 41.666666666666664);   // 500 / 12 – kogu mudel mahub
+  assert.deepEqual(fits.Scrollable, { X: false, Y: false });
+  const big = LayoutView(MODERN, MODERN_RECT, { X: 41, Y: 23 }, { Zoom: null, Scroll: { X: 0, Y: 0 } });
+  assert.equal(big.CW, 36);
+  assert.deepEqual(big.Scrollable, { X: true, Y: true });
+});
+
+test('11a: kaasaegne – suum piirides; punkt hiire all jääb paigale', () => {
+  const dim = { X: 24, Y: 12 };
+  assert.equal(ModernCellSize(41, 500), MODERN_ZOOM.Max);
+  assert.equal(ModernCellSize(41, 5), MODERN_ZOOM.Min);
+  assert.equal(ModernCellSize(20, 5), 20);            // kogu mudel peab saama mahtuda
+  assert.ok(WheelZoomFactor(-100) > 1 && WheelZoomFactor(100) < 1);
+  assert.equal(WheelZoomFactor(100) * WheelZoomFactor(-100), 1);
+  const camera = { Zoom: null, Scroll: { X: 0, Y: 0 } };
+  const point = { X: 700, Y: 300 };
+  let view = LayoutView(MODERN, MODERN_RECT, dim, camera);
+  const cellBefore = { X: (point.X - view.X) / view.CW, Y: (point.Y - view.Y) / view.CH };
+  assert.ok(ZoomAt(camera, view, point, 2));
+  view = LayoutView(MODERN, MODERN_RECT, dim, camera);
+  assert.ok(Math.abs(view.CW - 2 * 41.666666666666664) < EPSILON);
+  assert.deepEqual(view.Scrollable, { X: true, Y: true });
+  const cellAfter = { X: (point.X - view.X) / view.CW, Y: (point.Y - view.Y) / view.CH };
+  assert.ok(Math.abs(cellAfter.X - cellBefore.X) < EPSILON);
+  assert.ok(Math.abs(cellAfter.Y - cellBefore.Y) < EPSILON);
+  assert.ok(ScrollStep(view, 'X') > 1);
+  // suurima suumi juures enam ei suurene; EGA-s suumi pole
+  camera.Zoom = MODERN_ZOOM.Max;
+  view = LayoutView(MODERN, MODERN_RECT, dim, camera);
+  assert.equal(ZoomAt(camera, view, point, 2), false);
+  const ega = LayoutView(EGA, EGA_RECT, dim, { Zoom: null, Scroll: { X: 0, Y: 0 } });
+  assert.equal(ZoomAt({ Zoom: null, Scroll: { X: 0, Y: 0 } }, ega, point, 2), false);
 });

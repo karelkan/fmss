@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FMSS – paindtootmise simulaator</title>
   <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Diplomiprojekt, TTÜ 1993, valmis 2026.">
-  <!-- FMSS avaleht ja lühijuhend (etapp 10). Saidi ülesehitus: / – see leht, /v1/ – versioon 1.0
-       (tag v1.0). Kokku paneb tools/site.sh; veebis .github/workflows/pages.yml. -->
+  <!-- FMSS avaleht ja lühijuhend (etapp 10). Saidi ülesehitus: / – see leht, /v1/ – versioon 1
+       (tag v1.1). Kokku paneb tools/site.sh; veebis .github/workflows/pages.yml. -->
   <style>
     @font-face {
       font-family: 'FMSS EGA';
@@ -121,7 +121,7 @@ Alustatud 1993 … valmis 2026
 <span class="bright">(läks ainult 33 aastat, aga valmis sai)</span></div>
 
   <div class="actions">
-    <a class="button" href="v1/">Ava FMSS 1.0</a>
+    <a class="button" href="v1/">Ava FMSS 1.1</a>
     <span class="note">Töötab brauseris, paigaldada pole vaja. Mõeldud arvutile klaviatuuri ja hiirega.</span>
   </div>
 
@@ -131,6 +131,7 @@ Alustatud 1993 … valmis 2026
     keskladu ning detailid, millel on oma marsruudid. Diplomitöö kirjutati 1993. aastal Turbo Pascalis,
     aga programm jäi siis pooleli. Versioon 1.0 on sama lahendus valmis kujul: originaali menüüd,
     vormid ja EGA ekraan (640 × 350, 16 värvi). Lisaks on kaasaegne välimus, mida saab vahetada klahviga <kbd>F2</kbd>.
+    Versioonis 1.1 saab ekraanist suuremat mudelit animatsioonis kerida ja kaasaegses välimuses suumida.
   </p>
   <div class="cards">
     <div class="card"><h3>Editor</h3><p>Tootmissüsteemi joonistamine: rajad, tööpingid, puhvrid, keskladu; masinate, detailide ja marsruutide andmed.</p></div>
@@ -141,7 +142,7 @@ Alustatud 1993 … valmis 2026
 
   <h2>Viis minutit: esimene simulatsioon</h2>
   <ol>
-    <li>Ava <a href="v1/">FMSS 1.0</a>. Avaekraanil vajuta mõnda klahvi kaks korda.</li>
+    <li>Ava <a href="v1/">FMSS 1.1</a>. Avaekraanil vajuta mõnda klahvi kaks korda.</li>
     <li><kbd>F2</kbd> vahetab välimust (EGA või kaasaegne). Seda saab teha igal ajal.</li>
     <li>Kõige alguses on laaditud <b>Näidis-PTS</b> (diplomitöö joonis 5.5). Teise näidise saad valida menüüst <b>File → Load</b>.</li>
     <li><b>Edit → Layout</b> näitab ja muudab joonist. <b>Edit → Check</b> kontrollib andmeid.</li>
@@ -169,8 +170,8 @@ Alustatud 1993 … valmis 2026
   <table>
     <tr><th>Kus</th><th>Klahvid</th></tr>
     <tr><td>Kõikjal</td><td><kbd>F10</kbd> või <kbd>Alt</kbd> + täht avab menüü. Nooltega liigud, <kbd>Enter</kbd> valib, <kbd>Esc</kbd> sulgeb. <kbd>F1</kbd> on abi, <kbd>F2</kbd> vahetab välimust, <kbd>Alt-X</kbd> lõpetab töö. Kõike saab teha ka hiirega.</td></tr>
-    <tr><td>Simulate</td><td><kbd>Space</kbd> start ja paus, <kbd>+</kbd> / <kbd>−</kbd> kiirus ×1…×1000, <kbd>.</kbd> üks sekund, <kbd>N</kbd> järgmine sündmus, <kbd>M</kbd> maksimumkiirus, <kbd>L</kbd> Event List ahelloendina (kaasaegne välimus), <kbd>Esc</kbd> lõpetab ja näitab kokkuvõtet.</td></tr>
-    <tr><td>Edit → Layout</td><td>Rada joonistad hiirega lohistades, ikoon valitakse ise. <kbd>Tab</kbd> valib paletist ikooni, <kbd>Del</kbd> kustutab, <kbd>T</kbd> valib, millist rada joonistad, <kbd>G</kbd> muudab ruudustiku suurust,<kbd>K</kbd> kontrollib mudelit, <kbd>Ctrl-Z</kbd> võtab tagasi.</td></tr>
+    <tr><td>Simulate</td><td><kbd>Space</kbd> start ja paus, <kbd>+</kbd> / <kbd>−</kbd> kiirus ×1…×1000, <kbd>.</kbd> üks sekund, <kbd>N</kbd> järgmine sündmus, <kbd>M</kbd> maksimumkiirus, <kbd>L</kbd> Event List ahelloendina (kaasaegne välimus), <kbd>Esc</kbd> lõpetab ja näitab kokkuvõtet. Kui mudel ei mahu ekraanile, kerivad nooled (ka hiirega servade kerimisnooltest). Kaasaegses välimuses suumib hiire ratas, lohistamine kerib ja <kbd>0</kbd> näitab jälle kogu mudelit.</td></tr>
+    <tr><td>Edit → Layout</td><td>Rada joonistad hiirega lohistades, ikoon valitakse ise. <kbd>Tab</kbd> valib paletist ikooni, <kbd>Del</kbd> kustutab, <kbd>T</kbd> valib, millist rada joonistad, <kbd>G</kbd> muudab ruudustiku suurust, <kbd>K</kbd> kontrollib mudelit, <kbd>Ctrl-Z</kbd> võtab tagasi. Kaasaegses välimuses suumib <kbd>Ctrl</kbd> + hiire ratas (või näpistus puuteplaadil), <kbd>0</kbd> taastab suuruse.</td></tr>
     <tr><td>Aruanne</td><td>Kerimiseks on nooled, <kbd>PgUp</kbd> / <kbd>PgDn</kbd>, <kbd>Home</kbd> / <kbd>End</kbd> ja hiire ratas. <kbd>F</kbd> salvestab aruande faili, <kbd>Esc</kbd> sulgeb.</td></tr>
   </table>
   </div>
@@ -182,7 +183,7 @@ Alustatud 1993 … valmis 2026
     ja kontrolliti enne teostust testidega. Nii tekkisid rajavõrgu graaf, ummikute vältimine, AGV-de kokkupõrgete
     vältimine, mitu detaili alusel, rikked ja kestuste jaotused.
   </p>
-  <p><b>Versioonis 1.0 puudub:</b></p>
+  <p><b>Versioonis 1 puudub:</b></p>
   <ul>
     <li><b>Advise</b> (struktuuri soovitamine, LayoutChooser ja LayoutFinder). See tuleb versioonis 2.0 koos uue kasutajaliidesega.</li>
     <li>Parkimine, tsooni pikkus ja dispetšerireeglid.</li>

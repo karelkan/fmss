@@ -41,7 +41,11 @@ const CARDS_MAX_SPEED = 50;             // suuremal kiirusel näitab Event List 
 const EVENT_HORIZON = 3600;             // Event Listi ajatelje parem serv (s)
 const EVENT_TICKS = [0, 10, 60, 600, 3600];   // [U] ajatelje märgid: nüüd, +10 s, +1 min, +10 min, +1 h
 const EGA_CELL = { Width: 48, Height: 35 };   // EGA ikoon: 48 × 35 pikslit on 4:3 ekraanil ruut
-const MODERN_MAX_CELL = 72;             // kaasaegne: ikooni suurim külg loogilistes pikslites
+const MODERN_MAX_CELL = 72;             // kaasaegne: ikooni suurim külg loogilistes pikslites (automaatne)
+const MODERN_MIN_CELL = 36;             // kaasaegne: automaatne vähendamine kuni selleni, edasi kerimine
+export const MODERN_ZOOM = { Min: 24, Max: 144 };   // [U] kaasaegse suumi piirid: ikooni külg pikslites
+const SCROLL_MARGIN = { Ega: 7, Modern: 10 };       // kerimisnoolte riba laius vaate servas
+const CLIP_PAD = 8;                     // kaasaegne: kerimata teljel lõikeala varu
 const STRIP_HEIGHT = 5 * ROW_HEIGHT + 4; // Event List riba kõrgus (kaasaegne)
 const BAR_HEIGHT = ROW_HEIGHT + 12;     // juhtriba kõrgus (kaasaegne)
 const CARD_WIDTH = 66;
@@ -374,25 +378,144 @@ export function ClockText(seconds) {
 // Joonistamine: vaade ja ikoonid
 // =====================================================================
 
-// [U] LayoutView – kuhu ja kui suurelt ruudustik joonistatakse: ala rect, mõõdud dim (ikoonides).
-export function LayoutView(theme, rect, dim) {
+// [U] ModernCellSize – kaasaegse ikooni külg: fit – suurus, millega kogu mudel mahub alasse;
+//     zoom – kasutaja suum pikslites (null = automaatne: mahutab, aga mitte alla MODERN_MIN_CELL-i ega
+//     üle MODERN_MAX_CELL-i). Suum on piirides MODERN_ZOOM (väiksem piir kuni fit, et kogu mudel mahuks).
+//     Kutsub: LayoutView, redaktor (EditorLayout).
+export function ModernCellSize(fit, zoom = null) {
+  if (zoom === null || zoom === undefined) return Math.min(MODERN_MAX_CELL, Math.max(MODERN_MIN_CELL, fit));
+  return Math.min(MODERN_ZOOM.Max, Math.max(ZoomMin(fit), zoom));
+}
+
+// [U] ZoomMin – väikseim suum: MODERN_ZOOM.Min või väiksem, kui kogu mudel muidu ei mahuks.
+export const ZoomMin = fit => Math.min(MODERN_ZOOM.Min, fit);
+
+// [U] WheelZoomFactor – hiire ratta (ja puuteplaadi näpistuse) samm → suumi tegur (üks samm ≈ 14 %).
+export function WheelZoomFactor(delta) {
+  return Math.exp(-Math.max(-100, Math.min(100, delta)) * 0.0015);
+}
+
+// [O + U] LayoutView – kuhu ja kui suurelt ruudustik joonistatakse: ala rect, mõõdud dim (ikoonides).
+//     Ilma kaamerata (redaktori View): kogu mudel mahub alasse. Kaameraga (animaator, etapp 11a):
+//     EGA – ikoon alati 48 × 35 ja mis ei mahu, seda keritakse terve ikooni kaupa [O, autori mälestus];
+//     kaasaegne – ikoon ModernCellSize(fit, camera.Zoom) ja kerimine murdosades [U]. Kerimise teljel
+//     jääb ala servadesse kerimisnoolte jaoks riba (SCROLL_MARGIN). camera.Scroll – esimene nähtav
+//     ikoon (X, Y); tulemuses viidud piiridesse. Clip – ala, kuhu ruudustik joonistatakse.
+export function LayoutView(theme, rect, dim, camera = null) {
+  const ega = theme.Name === 'EGA';
+  const fit = Math.min(rect.Width / dim.X, rect.Height / dim.Y);
   let cellWidth;
   let cellHeight;
-  if (theme.Name === 'EGA') {
-    cellWidth = Math.min(EGA_CELL.Width, Math.floor(rect.Width / dim.X));
-    cellHeight = Math.round(cellWidth * EGA_CELL.Height / EGA_CELL.Width);
-    if (cellHeight * dim.Y > rect.Height) {
-      cellHeight = Math.floor(rect.Height / dim.Y);
-      cellWidth = Math.floor(cellHeight * EGA_CELL.Width / EGA_CELL.Height);
+  if (!camera) {
+    if (ega) {
+      cellWidth = Math.min(EGA_CELL.Width, Math.floor(rect.Width / dim.X));
+      cellHeight = Math.round(cellWidth * EGA_CELL.Height / EGA_CELL.Width);
+      if (cellHeight * dim.Y > rect.Height) {
+        cellHeight = Math.floor(rect.Height / dim.Y);
+        cellWidth = Math.floor(cellHeight * EGA_CELL.Width / EGA_CELL.Height);
+      }
+    } else {
+      cellWidth = cellHeight = Math.min(MODERN_MAX_CELL, fit);
     }
-  } else {
-    cellWidth = cellHeight = Math.min(MODERN_MAX_CELL, rect.Width / dim.X, rect.Height / dim.Y);
+    return {
+      X: Math.round(rect.X + (rect.Width - cellWidth * dim.X) / 2),
+      Y: Math.round(rect.Y + (rect.Height - cellHeight * dim.Y) / 2),
+      CW: cellWidth, CH: cellHeight, Dim: dim, Ega: ega,
+      Clip: { ...rect }, Scroll: { X: 0, Y: 0 }, MaxScroll: { X: 0, Y: 0 }, Scrollable: { X: false, Y: false },
+      Visible: { X: dim.X, Y: dim.Y }, ZoomMin: ZoomMin(fit),
+    };
   }
-  return {
-    X: Math.round(rect.X + (rect.Width - cellWidth * dim.X) / 2),
-    Y: Math.round(rect.Y + (rect.Height - cellHeight * dim.Y) / 2),
-    CW: cellWidth, CH: cellHeight, Dim: dim, Ega: theme.Name === 'EGA',
+  if (ega) {
+    cellWidth = EGA_CELL.Width;
+    cellHeight = EGA_CELL.Height;
+  } else {
+    cellWidth = cellHeight = ModernCellSize(fit, camera.Zoom);
+  }
+  const margin = ega ? SCROLL_MARGIN.Ega : SCROLL_MARGIN.Modern;
+  const pad = ega ? 0 : CLIP_PAD;   // kaasaegne: kerimata teljel võib joonis ulatuda veidi ala servast välja
+  const view = {
+    CW: cellWidth, CH: cellHeight, Dim: dim, Ega: ega, Clip: {}, Scroll: {}, MaxScroll: {}, Scrollable: {},
+    Visible: {}, ZoomMin: ZoomMin(fit), Rect: { ...rect }, Margin: margin,
   };
+  const axes = [
+    { Axis: 'X', Pos: 'X', Size: 'Width', Cell: cellWidth },
+    { Axis: 'Y', Pos: 'Y', Size: 'Height', Cell: cellHeight },
+  ];
+  for (const { Axis: axis, Pos: pos, Size: size, Cell: cell } of axes) {
+    const extent = rect[size];
+    if (dim[axis] * cell <= extent) {
+      view[pos] = Math.round(rect[pos] + (extent - dim[axis] * cell) / 2);
+      view.Clip[pos] = rect[pos] - pad;
+      view.Clip[size] = extent + 2 * pad;
+      view.Scroll[axis] = 0;
+      view.MaxScroll[axis] = 0;
+      view.Scrollable[axis] = false;
+      view.Visible[axis] = dim[axis];
+      continue;
+    }
+    const area = extent - 2 * margin;
+    const visible = ega ? Math.max(1, Math.floor(area / cell)) : area / cell;   // EGA: terve ikooni kaupa
+    const maxScroll = dim[axis] - visible;
+    let scroll = Math.max(0, Math.min(maxScroll, camera.Scroll?.[axis] ?? 0));
+    if (ega) scroll = Math.round(scroll);
+    const used = ega ? visible * cell : area;
+    const start = Math.round(rect[pos] + margin + (area - used) / 2);
+    view[pos] = start - scroll * cell;
+    view.Clip[pos] = start;
+    view.Clip[size] = used;
+    view.Scroll[axis] = scroll;
+    view.MaxScroll[axis] = maxScroll;
+    view.Scrollable[axis] = true;
+    view.Visible[axis] = visible;
+  }
+  return view;
+}
+
+// [U] ScrollStep – kerimise samm ikoonides (nooleklahv, kerimisnool): EGA 1, kaasaegne veerand vaatest.
+export function ScrollStep(view, axis) {
+  return view.Ega ? 1 : Math.max(1, view.Visible[axis] / 4);
+}
+
+// [U] ScrollArrows – kerimisnooled vaate servadel (ainult sinna, kus on veel ikoone).
+//     Kutsub: AnimatorPainter. Redaktoril on oma (fms_ed.js), sama joonistusega (DrawScrollArrow).
+export function ScrollArrows(view) {
+  const margin = view.Ega ? SCROLL_MARGIN.Ega : SCROLL_MARGIN.Modern;
+  const clip = view.Clip;
+  const arrows = [];
+  const more = axis => view.Scroll[axis] < view.MaxScroll[axis] - 0.001;
+  if (view.Scrollable.X && view.Scroll.X > 0.001) arrows.push({ Id: 'W', X: clip.X - margin, Y: clip.Y, Width: margin, Height: clip.Height });
+  if (view.Scrollable.X && more('X')) arrows.push({ Id: 'E', X: clip.X + clip.Width, Y: clip.Y, Width: margin, Height: clip.Height });
+  if (view.Scrollable.Y && view.Scroll.Y > 0.001) arrows.push({ Id: 'N', X: clip.X, Y: clip.Y - margin, Width: clip.Width, Height: margin });
+  if (view.Scrollable.Y && more('Y')) arrows.push({ Id: 'S', X: clip.X, Y: clip.Y + clip.Height, Width: clip.Width, Height: margin });
+  return arrows;
+}
+
+// [U] DrawScrollArrow – kerimisnool (kolmnurk) oma riba keskel. Kutsub: AnimatorPainter, redaktor.
+export function DrawScrollArrow(theme, arrow) {
+  const cx = arrow.X + arrow.Width / 2;
+  const cy = arrow.Y + arrow.Height / 2;
+  const s = Math.min(arrow.Width, arrow.Height) * 0.4;
+  const points = {
+    W: [{ X: cx - s, Y: cy }, { X: cx + s, Y: cy - 2 * s }, { X: cx + s, Y: cy + 2 * s }],
+    E: [{ X: cx + s, Y: cy }, { X: cx - s, Y: cy - 2 * s }, { X: cx - s, Y: cy + 2 * s }],
+    N: [{ X: cx, Y: cy - s }, { X: cx - 2 * s, Y: cy + s }, { X: cx + 2 * s, Y: cy + s }],
+    S: [{ X: cx, Y: cy + s }, { X: cx - 2 * s, Y: cy - s }, { X: cx + 2 * s, Y: cy - s }],
+  }[arrow.Id];
+  theme.Polygon(points, 'Arrow');
+}
+
+// [U] ZoomAt – kaasaegne suum teguriga factor nii, et punkt point (ekraanil) jääb sama ikooni kohale.
+//     Muudab camera.Zoom ja camera.Scroll (piiridesse viib LayoutView). Tagastab, kas suum muutus.
+export function ZoomAt(camera, view, point, factor) {
+  if (view.Ega) return false;
+  const zoom = Math.min(MODERN_ZOOM.Max, Math.max(view.ZoomMin, view.CW * factor));
+  if (Math.abs(zoom - view.CW) < 0.01) return false;
+  // kerimisega teljel algab ruudustik pärast suumi kohast Rect + Margin (LayoutView); kerimata teljel Scroll ei loe
+  const start = axis => view.Rect[axis] + view.Margin;
+  const cell = { X: (point.X - view.X) / view.CW, Y: (point.Y - view.Y) / view.CH };
+  camera.Zoom = zoom;
+  camera.Scroll = { X: cell.X - (point.X - start('X')) / zoom, Y: cell.Y - (point.Y - start('Y')) / zoom };
+  return true;
 }
 
 const ToScreen = (view, point) => ({ X: view.X + point.X * view.CW, Y: view.Y + point.Y * view.CH });
@@ -1203,14 +1326,29 @@ function AnimatorPainter(theme, desktop) {
     layoutRect = { X: desktop.X, Y: desktop.Y + statusHeight, Width: desktop.Width, Height: desktop.Height - statusHeight };
     theme.FillRect(layoutRect.X, layoutRect.Y, layoutRect.Width, layoutRect.Height, 'LayoutBack');
   }
-  const view = LayoutView(theme, layoutRect, anim.Model.Layout.Dim);
+  const view = LayoutView(theme, layoutRect, anim.Model.Layout.Dim, anim.Camera);
+  anim.Camera.Scroll = { ...view.Scroll };
   anim.View = view;
+  anim.Arrows = [];
   if (anim.Max && anim.Running && !state.SIMULATION_DONE) {
     CenterText(theme, view, layoutRect.X + layoutRect.Width / 2, layoutRect.Y + layoutRect.Height / 2,
       Texts.AnimMaxRunning, 'LayoutLabel', { Size: 10 });
     return;
   }
-  Animator(theme, view, anim, state, scene);
+  theme.Clip(view.Clip.X, view.Clip.Y, view.Clip.Width, view.Clip.Height, () => Animator(theme, view, anim, state, scene));
+  anim.Arrows = ScrollArrows(view);
+  anim.Arrows.forEach(arrow => DrawScrollArrow(theme, arrow));
+}
+
+// [U] ScrollLayout – kerib vaadet dx, dy sammu (ScrollStep) võrra; piiridesse viib LayoutView.
+function ScrollLayout(anim, dx, dy) {
+  const view = anim.View;
+  if (!view) return;
+  anim.Camera.Scroll = {
+    X: view.Scroll.X + dx * ScrollStep(view, 'X'),
+    Y: view.Scroll.Y + dy * ScrollStep(view, 'Y'),
+  };
+  RequestRedraw();
 }
 
 // =====================================================================
@@ -1356,6 +1494,16 @@ function AnimatorKey(anim, name) {
     case 'm': case 'M': ToggleMax(anim); return true;
     case 'l': case 'L': anim.ListView = !anim.ListView; anim.HoverEvent = null; WakeAnimator(anim); return true;
     case 'Escape': StopRun(anim); return true;
+    case 'ArrowLeft': ScrollLayout(anim, -1, 0); return true;
+    case 'ArrowRight': ScrollLayout(anim, 1, 0); return true;
+    case 'ArrowUp': ScrollLayout(anim, 0, -1); return true;
+    case 'ArrowDown': ScrollLayout(anim, 0, 1); return true;
+    case 'Home': anim.Camera.Scroll = { X: 0, Y: 0 }; RequestRedraw(); return true;
+    case '0':   // kaasaegne: automaatne suurus (kogu mudel, kui mahub)
+      if (anim.Theme?.Name === 'EGA') return false;
+      anim.Camera = { Zoom: null, Scroll: { X: 0, Y: 0 } };
+      RequestRedraw();
+      return true;
     default: return false;
   }
 }
@@ -1372,10 +1520,42 @@ function AnimatorInput(input) {
   const anim = AnimState;
   if (!anim) return false;
   if (input.Kind === 'key') return AnimatorKey(anim, input.Name);
-  if (!anim.Theme || anim.Theme.Name === 'EGA') return false;
+  if (!anim.Theme) return false;
+  // Kerimine ja suum (mõlemas välimuses): kerimisnooled, ratas, kaasaegses lohistamine
+  const view = anim.View;
+  if (input.Kind === 'down') {
+    const arrow = anim.Arrows.find(candidate => Inside(candidate, input.Point));
+    if (arrow) { ScrollLayout(anim, DIRECTIONS[arrow.Id].DX, DIRECTIONS[arrow.Id].DY); return true; }
+  }
+  if (anim.Pan) {
+    if (input.Kind === 'move') {
+      anim.Camera.Scroll = {
+        X: anim.Pan.Scroll.X - (input.Point.X - anim.Pan.Start.X) / view.CW,
+        Y: anim.Pan.Scroll.Y - (input.Point.Y - anim.Pan.Start.Y) / view.CH,
+      };
+      RequestRedraw();
+      return true;
+    }
+    if (input.Kind === 'up') { anim.Pan = null; RequestRedraw(); return true; }
+  }
+  const overLayout = view !== null && Inside(view.Clip, input.Point);
+  if (input.Kind === 'wheel' && overLayout) {
+    if (view.Ega) {
+      if (view.Scrollable.Y) ScrollLayout(anim, 0, Math.sign(input.Delta));
+      else if (view.Scrollable.X) ScrollLayout(anim, Math.sign(input.Delta), 0);
+    } else if (ZoomAt(anim.Camera, view, input.Point, WheelZoomFactor(input.Delta))) {
+      RequestRedraw();
+    }
+    return true;
+  }
+  if (anim.Theme.Name === 'EGA') return false;
   const control = anim.Controls.find(candidate => Inside(candidate, input.Point)) ?? null;
   switch (input.Kind) {
     case 'down':
+      if (!control && overLayout && (view.Scrollable.X || view.Scrollable.Y)) {
+        anim.Pan = { Start: { ...input.Point }, Scroll: { ...view.Scroll } };
+        return 'capture';
+      }
       if (!control) return false;
       switch (control.Id) {
         case 'Run': ToggleRun(anim); break;
@@ -1398,7 +1578,7 @@ function AnimatorInput(input) {
       }
       const card = anim.CardRects.find(candidate => Inside(candidate, input.Point));
       const hoverEvent = card ? card.Event : null;
-      const hoverControl = control ? control.Id : null;
+      const hoverControl = control ? control.Id : (overLayout ? 'Layout' : null);
       if (hoverEvent !== anim.HoverEvent || hoverControl !== anim.HoverControl) {
         anim.HoverEvent = hoverEvent;
         anim.HoverControl = hoverControl;
@@ -1429,12 +1609,17 @@ function AnimatorHint() {
       Label: CardLabel(event), Time: ClockText(event.Time), Delta: Math.max(0, event.Time - SimState().SYSTEM_TIME),
     });
   }
+  if (anim.HoverControl === 'Layout') return anim.Theme?.Name === 'EGA' ? '' : Texts.AnimHintLayout;
   const control = anim.Controls.find(candidate => candidate.Id === anim.HoverControl);
   return control ? control.Hint : '';
 }
 
+// EGA: kui mudel ei mahu ekraanile, on olekureal ka kerimine (nooled).
 function AnimatorStatusKeys(theme) {
-  return theme.Name === 'EGA' ? Texts.AnimStatusKeysEga : Texts.AnimStatusKeys;
+  if (theme.Name !== 'EGA') return Texts.AnimStatusKeys;
+  const view = AnimState?.View;
+  const scrollable = view && view.Ega && (view.Scrollable.X || view.Scrollable.Y);
+  return scrollable ? Texts.AnimStatusKeysEgaScroll : Texts.AnimStatusKeysEga;
 }
 
 // [U] StartAnimator – avab animaatori: SimInit, töölaual animaatori vaade (pausil).
@@ -1454,6 +1639,7 @@ export function StartAnimator({ Model: model, Network: network, OnSummary: onSum
     Accumulator: 0, Fraction: 1, PrevOffsets: SimState().Tracks.map(track => track.Offset), PrevCarts: CartPositions(),
     FrameRequest: 0, LastFrame: 0,
     Theme: null, View: null, Controls: [], DragSlider: false, HoverControl: null, HoverEvent: null,
+    Camera: { Zoom: null, Scroll: { X: 0, Y: 0 } }, Arrows: [], Pan: null,   // kerimine ja suum (etapp 11a)
     Cards: new Map(), Leaving: [], LastEvents: [], CardRects: [], CardsMoving: false, CardsPainted: null, ListView: false,
   };
   SetDesktopView({ Painter: AnimatorPainter, Input: AnimatorInput, StatusKeys: AnimatorStatusKeys, StatusHint: AnimatorHint });

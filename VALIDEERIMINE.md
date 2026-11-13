@@ -558,3 +558,37 @@ Repo `karelkan/fmss` (avalik), tag `v1.0`, Pages'i allikas GitHub Actions. Esime
 | Avalik repo | ühtegi faili `docs/skaneeringud/` ega `CLAUDE.md` pole ✔ |
 
 **Mida see EI kontrolli:** Pages'i vahemälu (~10 min) uuendamisel – `/v1/` kood on külmutatud, muutuvad ainult avaleht ja näidismudelid. Ootel tööd etappidest 7b–9 jäävad samaks (PLAAN, VALIDEERIMINE).
+
+# Etapp 11a: kerimine ja suum (versioon 1.1)
+
+Etapi 11 suured mudelid ei mahu EGA ekraanile 48 × 35 ikoonidega. Animaator vähendas ikoone, et kogu mudel mahuks, mistõttu olid suured mudelid EGA-s väga väikeste ikoonidega. Autori mälestuse järgi sai originaali hilisemas versioonis suurt mudelit kerida (väljatrükis seda pole – originaal.md 8.2). Lahendus (DISAIN.md osa 14): EGA kerib terve ikooni kaupa ja ikoon jääb 48 × 35; kaasaegne vähendab kuni 36 pikslini, edasi kerib; lisaks suum (hiire ratas / näpistus, 24 … 144 px) ja lohistamine. Redaktori kaasaegses vaates Ctrl + ratas suumib. Simulaator ei muutunud.
+
+## Testid (`test/anima.test.js`, 5 uut, kokku 188)
+
+| Test | Kontroll |
+|---|---|
+| ilma kaamerata | View (redaktor) – kogu mudel mahub nagu enne, kerimist pole ✔ |
+| EGA väike mudel | 13 × 7: ikoon 48 × 35, keskel, kerimist ega noolt pole; vale `Scroll` → 0 ✔ |
+| EGA suur mudel | 26 × 12: nähtav 13 × 7 ikooni, kerimine ümardatakse terveks ikooniks, viiakse piiridesse (0 … 13, 0 … 5); nooled ainult sinna, kus on veel ikoone ✔ |
+| kaasaegne automaatne | 72 / 50 / 36 px; 24 × 12 mahub (41,7 px); 41 × 23 → 36 px ja kerimine ✔ |
+| kaasaegne suum | piirid 24 … 144 (alla 24, kui muidu ei mahuks); ratta samm sisse × välja = 1; hiire all olev punkt jääb pärast suumi samale ikooni kohale (± 10⁻⁶); suurimast edasi ei suurene; EGA-s suumi pole ✔ |
+
+## Brauseris (no-store server, testmudel 30 × 16 – Näidis-AGV nihutatud suure ruudustiku keskele, `fmss.recent`)
+
+| Kontroll | Tulemus |
+|---|---|
+| kaasaegne, Simulate | ikoon 36 px, kerimisnooled paremal ja all; nooleklahvid kerivad, nooled ilmuvad ka vasakule ja üles ✔ |
+| kaasaegne, ratas | vähendab hiire ümber; suurimal vähendusel mahub kogu mudel, nooled kaovad; suurendab tagasi ✔ |
+| kaasaegne, lohistamine ja `0` | lohistamine kerib; `0` – automaatne suurus algusest; simulatsioon jookseb, kärud liiguvad, joonis lõigatakse vaate servas ✔ |
+| EGA (F2) | ikoon 48 × 35, kerimine terve ikooni kaupa, nooled servades; olekureal „←→↑↓ Keri“ ✔ |
+| redaktor (kaasaegne), Ctrl + ratas | ikoonid väiksemaks, nähtav osa suurem ✔ |
+| Näidis-AGV (13 × 8) mõlemas välimuses | nagu enne: mahub, nooli pole, EGA olekurida tavaline ✔ |
+| konsool | vigu pole ✔ |
+| `tools/site.sh` | paneb kokku, `/v1/` – „versioon 1.1“ ✔ |
+
+## Leiud
+
+1. **F2 järel jäi EGA olekureale kaasaegse välimuse vihje** („Hiire ratas – suum …“), sest hiire all olev ala jäi meelde. Parandatud: EGA-s seda vihjet pole.
+2. **Brauseri tööriista lohistamine** ei kerinud esimesel katsel (pärast `0`); JS-iga saadetud pointer-sündmused ja teine lohistamiskatse kerisid. Viga koodis ei leitud – arvatavasti tööriista sündmuste ajastus. Päris hiirega tasub üle vaadata.
+
+**Mida see EI kontrolli:** puuteplaadi näpistust päris seadmel (brauser annab selle `ctrlKey`-ga rattasündmusena – kontrollitud sünteetilise sündmusega). Avaldamine: töövoog võtab koodi tag'ist `v1.1`, mis tuleb teha enne pushi (koos commitiga).

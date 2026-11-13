@@ -20,7 +20,7 @@ import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS, CheckModel, CellTrac
 import { Enumerate } from './fms_sim.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
-import { DrawLayout, DrawIcon, LayoutView } from './anima.js';
+import { DrawLayout, DrawIcon, LayoutView, DrawScrollArrow, ModernCellSize, WheelZoomFactor } from './anima.js';
 import { SetDesktopView, RequestRedraw, InputBox, MessageBox } from './windows.js';
 
 // =====================================================================
@@ -32,8 +32,6 @@ export const MAX_LAYOUT_DIM = { X: 41, Y: 23 };
 const UNDO_LIMIT = 100;                       // [U] mitu sammu saab tagasi võtta
 const EGA_CELL = { Width: 48, Height: 35 };   // EGA ikoon ruudustikus (nagu animaatoris)
 const EGA_PALETTE_CELL = { Width: 44, Height: 32 };
-const MODERN_MAX_CELL = 72;
-const MODERN_MIN_CELL = 36;
 const MODERN_PALETTE_CELL = 34;
 const PALETTE_ROWS = 2;
 
@@ -614,7 +612,8 @@ function EditorLayout(theme, desktop, edit) {
     cellWidth = EGA_CELL.Width;
     cellHeight = EGA_CELL.Height;
   } else {
-    cellWidth = cellHeight = Math.max(MODERN_MIN_CELL, Math.min(MODERN_MAX_CELL, area.Width / dim.X, area.Height / dim.Y));
+    // automaatne (36…72 px) või kasutaja suum (Ctrl + ratas, etapp 11a) – sama mis animaatoris
+    cellWidth = cellHeight = ModernCellSize(Math.min(area.Width / dim.X, area.Height / dim.Y), edit.Zoom);
   }
   const visible = {
     X: Math.max(1, Math.min(dim.X, Math.floor(area.Width / cellWidth))),
@@ -631,7 +630,8 @@ function EditorLayout(theme, desktop, edit) {
     Y: palette.Y + Math.floor(index / columns) * paletteCell.Height,
     Width: paletteCell.Width, Height: paletteCell.Height,
   }));
-  return { Info: info, Area: area, Grid: grid, Visible: visible, CW: cellWidth, CH: cellHeight, Palette: palette, Items: items, Ega: ega };
+  const fit = Math.min(area.Width / dim.X, area.Height / dim.Y);
+  return { Info: info, Area: area, Grid: grid, Visible: visible, CW: cellWidth, CH: cellHeight, Fit: fit, Palette: palette, Items: items, Ega: ega };
 }
 
 // Kerimine nii, et kursor oleks nähtav, ja piiridesse.
@@ -730,19 +730,6 @@ function ScrollArrows(edit, layout) {
   if (edit.Scroll.Y > 0) arrows.push({ Id: 'N', X: grid.X, Y: grid.Y - margin, Width: grid.Width, Height: margin });
   if (edit.Scroll.Y + layout.Visible.Y < dim.Y) arrows.push({ Id: 'S', X: grid.X, Y: grid.Y + grid.Height, Width: grid.Width, Height: margin });
   return arrows;
-}
-
-function DrawScrollArrow(theme, arrow) {
-  const cx = arrow.X + arrow.Width / 2;
-  const cy = arrow.Y + arrow.Height / 2;
-  const s = Math.min(arrow.Width, arrow.Height) * 0.4;
-  const points = {
-    W: [{ X: cx - s, Y: cy }, { X: cx + s, Y: cy - 2 * s }, { X: cx + s, Y: cy + 2 * s }],
-    E: [{ X: cx + s, Y: cy }, { X: cx - s, Y: cy - 2 * s }, { X: cx - s, Y: cy + 2 * s }],
-    N: [{ X: cx, Y: cy - s }, { X: cx - 2 * s, Y: cy + s }, { X: cx + 2 * s, Y: cy + s }],
-    S: [{ X: cx, Y: cy + s }, { X: cx - 2 * s, Y: cy - s }, { X: cx + 2 * s, Y: cy - s }],
-  }[arrow.Id];
-  theme.Polygon(points, 'Arrow');
 }
 
 // Infurida: mudel, ruudustik, raja number, kursor, muudetud.
@@ -968,6 +955,11 @@ function LayoutKey(edit, name, shift) {
       RequestRedraw();
       return true;
     case 'g': case 'G': AskGridSize(edit); return true;
+    case '0':   // kaasaegne: automaatne suurus
+      if (!edit.Layout || edit.Layout.Ega) return false;
+      edit.Zoom = null;
+      RequestRedraw();
+      return true;
     case 'k': case 'K': if (edit.OnCheck) edit.OnCheck(); return true;
     case 'Ctrl-Z': if (shift) RedoEdit(edit); else UndoEdit(edit); RequestRedraw(); return true;
     case 'Ctrl-Y': RedoEdit(edit); RequestRedraw(); return true;
@@ -1080,6 +1072,11 @@ function LayoutInput(input) {
       if (edit.Drag) FinishDrag(edit);
       return true;
     case 'wheel': {
+      if (input.Ctrl && !edit.Layout.Ega) {   // kaasaegne: Ctrl + ratas / näpistus – suum (kursor jääb nähtavale)
+        edit.Zoom = ModernCellSize(edit.Layout.Fit, edit.Layout.CW * WheelZoomFactor(input.Delta));
+        RequestRedraw();
+        return true;
+      }
       const dim = edit.Model.Layout.Dim;
       const axis = edit.Layout.Visible.Y < dim.Y ? 'Y' : 'X';
       edit.Scroll[axis] += Math.sign(input.Delta);
@@ -1131,6 +1128,7 @@ export function EditLayout({ Model: model, OnChange: onChange = null, OnExit: on
     Tool: tool ? PALETTE.findIndex(item => item.Id === tool) : (previous ? previous.Tool : PALETTE.findIndex(item => item.Id === 'HorTr')),
     HoverItem: null,
     Cursor: previous ? previous.Cursor : { X: 0, Y: 0 }, Scroll: previous ? previous.Scroll : { X: 0, Y: 0 },
+    Zoom: previous ? previous.Zoom : null,   // kaasaegne suum (ikooni külg, px); null = automaatne
     Track: previous ? previous.Track : 1, Undo: previous ? previous.Undo : [], Redo: previous ? previous.Redo : [],
     Drag: null, Message: message, Theme: null, Layout: null, Arrows: [], Problems: ModelProblems(model),
   };

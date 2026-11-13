@@ -1,6 +1,6 @@
 # FMSS – GitHub Pages (etapp 10). Build-sammu pole: tools/site.sh kopeerib failid.
 #   /      avaleht ja lühijuhend (site/index.html, main)
-#   /v1/   versioon 1.0 – kood tag'ist v1.0, näidismudelid main-ist
+#   /v1/   versioon 1 – kood tag'ist v1.1 (1.0 + kerimine ja suum, etapp 11a), näidismudelid main-ist
 # Pages'i seadetes: Source = GitHub Actions.
 name: Pages
 
@@ -29,7 +29,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Sait kokku
-        run: tools/site.sh _site v1.0
+        run: tools/site.sh _site v1.1
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

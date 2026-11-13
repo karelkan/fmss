@@ -4,10 +4,10 @@
 #   tools/site.sh VÄLJUND [VERSIOON1_REF]
 #
 #   VÄLJUND/index.html  avaleht ja lühijuhend (site/index.html, praegusest harust)
-#   VÄLJUND/v1/         versioon 1.0: index.html, src/, fonts/ – git-ref'ist (vaikimisi tööpuu);
+#   VÄLJUND/v1/         versioon 1 (1.0, 1.1 …): index.html, src/, fonts/ – git-ref'ist (vaikimisi tööpuu);
 #                       models/ alati praegusest harust (näidiseid saab lisada koodi muutmata, etapp 11)
 #
-# Veebis kutsub seda .github/workflows/pages.yml ref'iga v1.0. Kohalik kontroll:
+# Veebis kutsub seda .github/workflows/pages.yml viimase 1.x tag'iga (praegu v1.1). Kohalik kontroll:
 #   tools/site.sh /tmp/fmss-site && (cd /tmp/fmss-site && python3 -m http.server 8000)
 set -eu
 

@@ -366,6 +366,7 @@ Protseduurid: `EditLayout` (topoloogia), `EditConfig` (`EditMachTool`, `EditBuff
 
 - **Layout** – kaks akent: üleval redigeeritav mudel (korraga nähtav **13 × 4** ikooni, ruudustik), all ikoonipalett. Vali paletist ikoon hiirega, siis klõpsa mudelis ruutu. Aknal kerimisnooled servades.
 - **View** – sama suuremas mastaabis: **41 × 23** ikooni, ilma ruudustikuta.
+- *Autori mälestus (2026):* väljatrükk on varane; programm arenes edasi. Hilisemas versioonis võis mudel olla ekraanist palju suurem ja visualiseerimisel sai seda kerida (näha osa), nii et suurus ekraani järgi ei piiranud. Valmis said ka `ProcEvent` ja lihtne Planner. Uues versioonis: kerimine animaatoris – etapp 11a (DISAIN.md osa 14).
 - **Config** – kas kõik struktuuris leiduvad objektid järjest või valitud objekt. Objekt tõstetakse esile teise värviga; ekraani alla avaneb aken objekti tüübile vastavate väljadega.
 
 ### 8.3 Aruanded (`FMS_REP1.PAS`, ptk 6.5)
