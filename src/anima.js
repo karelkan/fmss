@@ -330,8 +330,8 @@ function CellBox(view, cell, insetX, insetTop, insetBottom = insetTop) {
   };
 }
 
-// Raja ikooni joon (sirge, kaar, hargnemine, ristmik, punktiir).
-function DrawTrackIcon(theme, view, cell, role) {
+// Raja ikooni joon (sirge, kaar, hargnemine, ristmik, sild, punktiir). role2 – sillal N–S raja värv.
+function DrawTrackIcon(theme, view, cell, role, role2 = role) {
   const icon = IconTypes[cell.T];
   const dotted = Boolean(cell.Dot) || icon.Kind === 'Connector';
   const lineRole = cell.Dot ? 'DotLink' : role;
@@ -342,6 +342,21 @@ function DrawTrackIcon(theme, view, cell, role) {
     const b = to === 'C' ? ToScreen(view, { X: cell.X + 0.5, Y: cell.Y + 0.5 }) : port(to);
     theme.Line(a.X, a.Y, b.X, b.Y, lineColor, lineOptions);
   };
+  if (icon.CrossOver) {
+    // sild nagu elektriskeemil: N–S sirge, W–E läheb keskel väikese poolringiga üle
+    const hop = 0.16;
+    line('N', 'S', options, role2);
+    const left = ToScreen(view, { X: cell.X + 0.5 - hop, Y: cell.Y + 0.5 });
+    const right = ToScreen(view, { X: cell.X + 0.5 + hop, Y: cell.Y + 0.5 });
+    const west = port('W');
+    const east = port('E');
+    theme.Line(west.X, west.Y, left.X, left.Y, lineRole, options);
+    theme.Line(right.X, right.Y, east.X, east.Y, lineRole, options);
+    const center = ToScreen(view, { X: cell.X + 0.5, Y: cell.Y + 0.5 });
+    theme.Ellipse(center.X, center.Y, view.CW * hop, view.CH * hop, lineRole,
+      { Fill: false, Width: options.Width, Start: Math.PI, End: 2 * Math.PI });
+    return;
+  }
   if (icon.Arc) {
     const arc = ArcCorner(cell.X, cell.Y, icon.Ports[0], icon.Ports[1]);
     const center = ToScreen(view, arc.Center);
@@ -391,7 +406,7 @@ export function DrawIcon(theme, view, cell, label = '', style = {}) {
   switch (icon.Kind) {
     case 'Track':
     case 'Connector':
-      DrawTrackIcon(theme, view, cell, style.TrackRole ?? 'Track');
+      DrawTrackIcon(theme, view, cell, style.TrackRole ?? 'Track', style.TrackRole2 ?? style.TrackRole ?? 'Track');
       if (cell.Dir) DrawDirectionArrow(theme, view, cell);
       break;
     case 'Machine': {
@@ -442,7 +457,7 @@ function ObjectLabel(model, cell) {
 
 // [U] DrawLayout – kogu ruudustik: taust, ruudustiku punktid, ikoonid.
 //     style.MachineRole(cell) – pingi värv olekust; style.TrackRole – raja värv (roll või
-//     funktsioon lahtrist, iga raja jaoks oma); style.Grid: false – ilma ruudustiku punktideta
+//     funktsioon raja numbrist, iga raja jaoks oma; sillal kaks rada); style.Grid: false – ilma ruudustiku punktideta
 //     (View). Kutsub: Animator, redaktor (fms_ed.js).
 export function DrawLayout(theme, view, model, style = {}) {
   const { Dim: dim } = view;
@@ -456,7 +471,8 @@ export function DrawLayout(theme, view, model, style = {}) {
     Number(IconTypes[first.T]?.Kind !== 'Track') - Number(IconTypes[second.T]?.Kind !== 'Track'));
   for (const cell of cells) {
     DrawIcon(theme, view, cell, ObjectLabel(model, cell), {
-      TrackRole: typeof style.TrackRole === 'function' ? style.TrackRole(cell) : style.TrackRole,
+      TrackRole: typeof style.TrackRole === 'function' ? style.TrackRole(cell.Dot ? undefined : cell.N) : style.TrackRole,
+      TrackRole2: typeof style.TrackRole === 'function' ? style.TrackRole(cell.N2 ?? (cell.Dot ? undefined : cell.N)) : style.TrackRole,
       MachineRole: style.MachineRole ? style.MachineRole(cell) : undefined,
     });
   }
@@ -678,8 +694,8 @@ function DrawConnectors(theme, view, anim, state) {
 //     esiletõstmine. Iga raja värv oma seisu järgi (seisab, kui mõni laadimine käib).
 function Animator(theme, view, anim, state, scene) {
   DrawLayout(theme, view, anim.Model, {
-    TrackRole: cell => {
-      const trackIndex = cell.N !== undefined && !cell.Dot ? anim.TrackIndex.get(cell.N - 1) : undefined;
+    TrackRole: number => {
+      const trackIndex = number !== undefined ? anim.TrackIndex.get(number - 1) : undefined;
       return trackIndex !== undefined && state.Tracks[trackIndex].StopCount > 0 ? 'TrackStopped' : 'Track';
     },
     MachineRole: cell => {

@@ -164,9 +164,11 @@ Enne täisteostust kontrolliti simulaatorit (stsenaariumid kirjutatud joonisena,
 | **S** (stress) kaks silmust, 3 pinki, ristmarsruudid, puhvrid 1 koht, `Kl` 0,95, 5 seemet | 8 h ilma lahendamatu ummikuta, parkimisi 1, 5,9–6,1 tk/h; korratav ✔ |
 | **Invariantide kontroll** – meelega viga: detaili sõidu lõpp viidi olematusse jaama | „koormaga alus läbis avatud konveieri lõpu“ tabati kohe ✔ |
 | **Andmekontroll** – konnektori üks külg vaba, konnektor ühendab raja iseendaga, kaks rada puutuvad ilma konnektorita, järgmise operatsiooni pink vastuvoolu, SysOut vastuvoolu, `EdgeLengths` ühelgi rajal | kõik annavad vea ✔ |
+| **Sild** (`CrossOver`) – kaheksakujuline silmus läbib silda kaks korda risti (pikkus 6 kaart + 4 sirget + 2 × sild), 2 h ilma ummikuta; teine rada ristub H-ga sillal – H1 tsükliaeg jääb **683 s**; sama koht ristmikuna (`Cruise`) on pideval rajal endiselt viga | ✔ |
 | **Animaator** – iga raja jaam ekraanil oma ikooni keskel (ka konnektori jaam raja otsas); avatud konveieril pidev joon algusest lõpuni | ✔ |
+| **Redaktor, sild** – teise raja sirgest risti üle → sild (`N` W–E, `N2` N–S); naabri kustutamine silda ei muuda; raja kustutamisel jääb teise raja sirge; ristmik ↔ sild paletist; `CheckModel` nõuab `N2` ainult sillal | ✔ |
 | **Redaktor** – G2 tühjast ruudustikust: rada otsast konnektorisse, konnektorist silmusele (tekib hargnemine), punktiir hargnemisest konnektorini; kontroll korras ja simulatsioon käib | ✔ |
-| **Brauseris** (käsitsi): S EGA-s (kaks silmust, konnektori broneering, rada värvub seistes eraldi, kokkuvõttes „CON1: ülekandeid“), G2 kaasaegses (avatud konveier, alus seisab otsaikooni keskel konnektori ees, Event List), Layout-is „kontroll korras“; konsoolis vigu pole | ✔ |
+| **Brauseris** (käsitsi): S EGA-s (kaks silmust, konnektori broneering, rada värvub seistes eraldi, kokkuvõttes „CON1: ülekandeid“), G2 kaasaegses (avatud konveier, alus seisab otsaikooni keskel konnektori ees, Event List), Layout-is „kontroll korras“; kaheksa silla ja paleti uue ikooniga mõlemas välimuses; konsoolis vigu pole | ✔ |
 
 Puhvri mahu ja konnektori mõju stsenaariumis S (seeme 1):
 

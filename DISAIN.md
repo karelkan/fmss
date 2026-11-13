@@ -65,7 +65,7 @@ Uus lahendus:
 
 Etapis 4 toetas `Enumerate` ühte suletud pidevat konveierit. Etapist 7a on rajavõrk graaf: mitu rada, konnektorid ja avatud konveier (osa 2.3). Diskreetne rada (7b) ja mitu detaili alusel (7c) annavad veel selge vea „… pole veel toetatud“.
 
-- **Ikoonide küljed** (`IconTypes[...].Ports`, `fms_glb.js`): `HorTr` W–E, `VertTr` N–S, kaared oma kahe küljega (`ArcSE` = S, E), `Tee*` läbib W–E või N–S ja haru (`Branch`) on nimes olev külg (`TeeN` → haru N), `Cruise` neli külge. Y kasvab alla.
+- **Ikoonide küljed** (`IconTypes[...].Ports`, `fms_glb.js`): `HorTr` W–E, `VertTr` N–S, kaared oma kahe küljega (`ArcSE` = S, E), `Tee*` läbib W–E või N–S ja haru (`Branch`) on nimes olev külg (`TeeN` → haru N), `Cruise` neli külge (ühendatud ristmik), `CrossOver` neli külge, aga ei ühenda (sild, osa 2.3). Y kasvab alla.
 - **Suunanool** **[O]**: originaalis oli pideva raja liikumissuund nool ühe raja ikooni kõrval („kirjeldatakse ühel raja ikoonil“). Mudelis on see lahtri väli `"Dir": "N" | "E" | "S" | "W"` – **külg, kust kärud ikoonist väljuvad**. Lubatud ainult raja sirgel ja kaarel ning ainult ikooni külgede suunas (`DirectionPorts`): `HorTr` → `E`/`W`, `ArcSE` → `S`/`E`; hargnemisel, ristmikul ja punktiirühendusel noolt ei ole (`CheckModel`). Diskreetsel rajal noolt ei kasutata.
 - **Mitu noolt** **[T]**: lubatud, kui need on kooskõlas (sama ringi suund); vastuolu on viga. Originaali lahendust me ei tea.
 - **Rada** (`TraceTrack`, `WalkTrack`): alustatakse esimesest noolega ikoonist, väljutakse noole küljest ja liigutakse naabrite kaudu, kuni jõutakse tagasi (**silmus**) või rada lõpeb (**avatud konveier** – siis käiakse ka noolest vastuvoolu raja alguseni, osa 2.3). Rada lõpeb tühja lahtri, objekti või konnektori juures. Vead: naaber ei sobi (viga 1), teise raja ikoon ilma konnektorita, ristmik või haru, mis pole punktiirühendus (viga 2), sama lahter kaks korda, raja ikoon rajast väljas.
@@ -106,6 +106,7 @@ Originaalis: „Rajad on seotud konnektorite, tööpinkide või puhvrite kaudu�
 - **Sõit** **[T]**: alus peatub mahalaadimiseks sõidu lõppjaamas (`Path[0].To`): sihtkohas või konnektoris. Konnektoris jääb detail `WAIT_PICKUP`-olekusse ja järgmise raja alus võtab ta sealt nagu puhvrist. Uus sündmuse objekt `Connector` (`Load` aluselt konnektorisse ja konnektorist alusele).
 - **Valik** **[T]**: `FindMach` arvestab ainult pinke, kuhu tee viib, ja „lähim“ on tee pikkus (ühe silmuse korral sama mis varem). Ummiku tuvastus (`FindDeadlockedWorkpieces`) arvestab samuti ainult kättesaadavaid pinke; tee ootel detail (konnektor kinni) loetakse liikuvaks, sest konnektor vabaneb alati.
 - **Koormamine** **[T]**: konnektor on üks koht `Kl` valemis (`Ntm + Nmt + Nbuf + Ncon`).
+- **Sild** (`CrossOver`) **[U]**: mitteühendatud ristumine nagu elektriskeemil – N–S rada on sirge, W–E rada läheb keskel väikese poolringiga üle. Rajad ei ühendu: kumbki läbib lahtri otse (sirge, pikkus 1). Lahtril on kaks raja numbrit: `N` (W–E) ja `N2` (N–S); `CellTrack` annab külje raja. Sild võib olla kahe raja vahel (sõltumatud konveierid) või sama raja kahe osa vahel (kaheksakujuline silmus). Sillal pole jaama ega suunanoolt; metrokaardi pikkus jaotub nagu sirgel.
 
 ---
 
@@ -322,6 +323,7 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 
 - Objektide seos ruudustikuga: lahtril on ikooni tüüp `T` ja järjenumber `N` vastavas massiivis (originaali väljad, lk 51). Rada ja jaamad tuletatakse `Enumerate`-ga.
 - `N` on **1-põhine** järjenumber (nagu nimed MT1, BUF1): rajaikoonil `Tracks`-is, pingil `Machines`-is, puhvril `Buffers`-is. `FromCS`, `ToCS`, `SysOut` ja konnektoritel `N` puudub. **[T]**
+- Sillal (`CrossOver`, 7a) on teine raja number `N2` (N–S rada); `N` on W–E rada. Teistel ikoonidel `N2` puudub. **[U]**
 - Punktiirühendus (loogiline ühendus, pikkus 0, lk 54) on rajaikoon väljaga `"Dot": true`; sellel pole `N`-i. Jaam tekib seal, kus punktiirühendus liitub rajaga (hargnemisikoon `Tee*`). **[T]**
 - Suunanool on raja sirge või kaare väli `"Dir"` (osa 2.1). **[O]**
 - `Storage: null` tähendab, et kesklattu pole (stsenaarium C0).
@@ -549,6 +551,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `Enumerate` | ruudustikust simulatsiooni võrk ja andmekontroll (osa 2.1–2.2) | [O nimi, U sisu] |
 | `DetectOpenCons`, `FindConflicts` | andmekontroll: vabad otsad; andmete kooskõla (osa 2.2) | [O] |
 | `TraceTrack`, `WalkTrack`, `FindStations`, `FollowDotLink` | rada suunanoole järgi (silmus või avatud); ikoonide läbimine kuni otsa / sulgumiseni; jaamad hargnemistel ja konnektori kõrval raja otsas; punktiirühenduse järgimine | [U] / [U] / [U] / [T] |
+| `PartKey` | raja osa võti (sillal lahter + telg) | [U] |
 | `CheckReachability`, `StationPaths` | kättesaadavuse kontroll (SysOut, ToCS, marsruudi pingid); lühimad teed jaamade vahel üle konnektorite (osa 2.3) | [U] |
 | `CheckObjects`, `LinkMachines` | puhvrite, lao ja väljundi ühendused; pingi ja puhvri seos | [U] / [T] |
 | `MeasureTrack`, `BuildNetwork` | lõigud, pikkused, asukohad; võrgu koostamine | [U] |
@@ -582,7 +585,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 
 | Nimi | Roll | |
 |---|---|---|
-| `IconTypes` | ikooni tüüp → objekti liik, massiiv, millele `N` viitab (joon. 5.4); raja küljed `Ports`, haru `Branch`, kaar `Arc` | [O] / [T] |
+| `IconTypes` | ikooni tüüp → objekti liik, massiiv, millele `N` viitab (joon. 5.4); raja küljed `Ports`, haru `Branch`, kaar `Arc`; sild `CrossOver` (7a) | [O] / [T] / [U] |
+| `CellTrack` | raja number, millele lahtri külg kuulub (sillal W–E → `N`, N–S → `N2`) | [U] |
 | `DIRECTIONS`, `DirectionPorts` | suunad N/E/S/W (samm, vastaskülg); küljed, kuhu suunanool võib näidata | [T] / [O/T] |
 | `MODEL_VERSION` | mudelifaili vormingu versioon (`Meta.Version`) | [U] |
 | `MAX_WORKPIECE_TYPES` | detailitüüpe kõige rohkem (16) | [O] |
@@ -646,6 +650,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `OPERATIONS` | tööpinkide operatsioonid (tabel 4.2) – valikud redaktoris (`fms_glb.js`) | [O] |
 | `PALETTE`, `PaletteTool` | ikoonipalett (tööriistad + originaali ikoonid); mida punkt teeb | [U] |
 | `MAX_LAYOUT_DIM`, `UNDO_LIMIT` | ruudustik kuni 41 × 23 (originaali View); Undo samme 100 | [O] / [U] |
+| `MakeCrossOver` | sirgest sild: teise raja rada risti (7a) | [U] |
 | `CellPorts`, `LinkedPorts`, `PortLinked`, `IsDotTarget` | raja küljed ikoonis; naabriga ühendatud küljed; kas punktiir võib lõppeda objektiga | [T] / [U] |
 | `IconFromPorts`, `SetCellPorts` | automaatne ikoonivalik külgedest; lahtri ikoon uute külgede järgi | [U] |
 | `LaySegment`, `LayPath`, `CellSteps`, `DirectionBetween`, `ExtendDragPath` | lõik kahe lahtri vahel; rada mööda teed; vahelahtrid; naabri suund; lohistamise tee (tagasi = lõik kaob) | [U] |
@@ -724,7 +729,7 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 - Aken: infurida (mudel, ruudustik, aktiivne rada, kursor), ruudustik ja palett. EGA-s ikoon 48 × 35 nagu animaatoris; nähtav osa sõltub ekraanist (EGA-s 13 × 6), ülejäänu kerimisnoolte, hiire ratta või kursoriga. Kaasaegses välimuses on ikoon nii suur, kui ruumi on (36 … 72 pikslit).
 - **Palett** **[O]**: kõik originaali ikoonid (joon. 5.4) + punktiirühendus + tööriistad (vali / liiguta, kustuta, suunanool). Klõps paneb **täpselt valitud ikooni** (originaali moodi).
 - **Rada lohistades** **[U]**: rajaikooni või punktiiri tööriistaga lohistades saab iga lahter küljed, kust rada sisse ja välja läheb, ja ikoon valitakse külgedest (`IconFromPorts`): kaks külge – sirge või kaar, kolm – hargnemine, neli – ristmik. Arvesse lähevad ainult **ühendatud** küljed (`LinkedPorts`) – seepärast saab raja otsast pöörata (ots muutub kaareks, mitte hargnemiseks). Kiire hiire korral täidetakse vahele jäävad lahtrid (`CellSteps`); tagasi liikudes kaob viimane lõik (tee arvutatakse iga kord algseisust uuesti). Klaviatuuril sama: Shift + nool kursorist.
-- **Reeglid** (sama mis `Enumerate`-s): pidev rada ei lähe objekti ega punktiiri sisse; punktiir lõpeb puhvri, lao või väljundiga ja liitub ainult raja **sirgega risti** – nii tekib hargnemine (jaam); punktiir ei hargne. Konnektorisse (7a) jõuab rada või punktiir ainult konnektori raja küljest (`HorCon` W/E, `VertCon` N/S); konnektorist rajale risti tõmmates tekib hargnemine. Teine rada: `T` (aktiivne rada). Mittesobiv lõik jääb tegemata ja olekureal on teade.
+- **Reeglid** (sama mis `Enumerate`-s): pidev rada ei lähe objekti ega punktiiri sisse; punktiir lõpeb puhvri, lao või väljundiga ja liitub ainult raja **sirgega risti** – nii tekib hargnemine (jaam); punktiir ei hargne. Konnektorisse (7a) jõuab rada või punktiir ainult konnektori raja küljest (`HorCon` W/E, `VertCon` N/S); konnektorist rajale risti tõmmates tekib hargnemine. **Sild** (7a): teise raja sirgest risti üle tõmmates tekib ise sild (`CrossOver`, rajad ei ühendu); sama raja ristmik (`Cruise`) muutub sillaks, kui panna sellele paletist sild (ja tagasi ristmikuks paletist ristmikuga). Naabri kustutamine silda ei muuda; raja kustutamisel jääb teise raja sirge. Teine rada: `T` (aktiivne rada). Mittesobiv lõik jääb tegemata ja olekureal on teade.
 - **Objektid**: pink ja puhver saavad paigutamisel uue kirje vaikeväärtustega (pink `MT1` …, esimene operatsioon `OPERATIONS`-ist). Sama liiki ikoon samas lahtris muudab ainult ikooni (objekt ja andmed jäävad). `ToCS` loob kesklao andmed, kui neid polnud.
 - **Kustutamine**: naabruses olev hargnemine / ristmik kaotab selle poole haru. Pingi või puhvri viimase ikooniga kaovad ka tema andmed ja järgmiste numbrid (`N`, `BUFn`) nihkuvad – pinkide nimed jäävad. **Rajad jäävad alles** (rada joonistatakse tihti ümber; rada kustutatakse Transport-menüüst). Metrokaardi pikkus (`EdgeLengths`), mille lahter pole enam rada, kaob.
 - **Suunanool** **[O]**: klõps raja sirgel või kaarel – puudub → üks suund → teine → puudub. Kui ikoon muutub (nt sirgest saab hargnemine), kaob nool, mis enam ei sobi.

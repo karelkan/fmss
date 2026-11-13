@@ -25,7 +25,7 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
   - [x] 6a. Layout ja View (`src/fms_ed.js`: rada lohistades, ikoon valitakse ise; palett, kustutamine, suunanool, Undo, kerimine; salvestamata muudatuse hoiatus)
   - [x] 6b. Andmed vormides (`src/fms_ed_data.js`, `FormBox`): Config (All / Choose), Transport (ka lõigu pikkus ja raja kustutamine), Workpiece data (Edit / Copy / Flush, marsruudid), Storage data, Model data; vigade ja hoiatuste arv Layout-is ja nimekiri (K, Edit → Check)
 - [ ] 7. Rajavõrk ja diskreetsed rajad
-  - [x] 7a. Rajavõrgu graaf (`src/fms_sim.js`: mitu pidevat rada, konnektorid, avatud konveier, tee üle konnektorite – [DISAIN.md](DISAIN.md) osa 2.3, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7a); animaator ja redaktor koos sellega
+  - [x] 7a. Rajavõrgu graaf (`src/fms_sim.js`: mitu pidevat rada, konnektorid, avatud konveier, tee üle konnektorite, sild (mitteühendatud ristumine) – [DISAIN.md](DISAIN.md) osa 2.3, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7a); animaator ja redaktor koos sellega
   - [ ] 7b. Diskreetsed rajad (AGV-d, `ProgTM`, `Collision`)
   - [ ] 7c. Mitu detaili alusel (`PlacesPerCart > 1`)
 - [ ] 8. Rikked ja juhuslikkus

@@ -57,9 +57,9 @@ test('IconFromPorts: iga 2–4 külje kombinatsioon annab ikooni, mille küljed 
   assert.equal(IconFromPorts(['S', 'E']), 'ArcSE');
 });
 
-test('IconFromPorts on CellPorts-i pöördfunktsioon kõigil raja ikoonidel', () => {
+test('IconFromPorts on CellPorts-i pöördfunktsioon kõigil raja ikoonidel (v.a sild)', () => {
   for (const [name, icon] of Object.entries(IconTypes)) {
-    if (icon.Kind !== 'Track') continue;
+    if (icon.Kind !== 'Track' || icon.CrossOver) continue;   // sild tekib ristumisel, mitte külgedest
     assert.equal(IconFromPorts(CellPorts({ T: name })), name);
   }
 });
@@ -281,7 +281,7 @@ test('RestoreModel: sisu asendub, objekt jääb samaks (Undo)', () => {
   assert.equal(model.Tracks.length, 0);
 });
 
-test('Palett: kõik originaali ikoonid (v.a Empty) ja tööriistad on olemas', () => {
+test('Palett: kõik ikoonid (v.a Empty) ja tööriistad on olemas', () => {
   const icons = new Set(PALETTE.filter(item => item.T && !item.Dot).map(item => item.T));
   for (const name of Object.keys(IconTypes)) if (name !== 'Empty') assert.ok(icons.has(name), name);
   assert.deepEqual(PALETTE.filter(item => !item.T).map(item => item.Id), ['Select', 'Erase', 'Direction']);
@@ -559,4 +559,39 @@ test('Konnektor redaktoriga: punktiir hargnemisest konnektori küljeni (G)', () 
   assert.equal(IconAt(model, 5, 1), 'TeeW');
   PlaceIcon(model, 3, 3, Item('VertCon'));
   assert.ok(LayPath(model, Cells([3, 3], [5, 3]), { Dot: true }) > 0);   // VertCon-il pole E külge
+});
+
+test('Sild redaktoriga: teise raja sirge risti -> sild; raja kustutamine; ristmik <-> sild', () => {
+  const model = Blank(6, 6);
+  LayPath(model, Cells([0, 3], [5, 3]), { Track: 1 });
+  assert.equal(LayPath(model, Cells([2, 0], [2, 5]), { Track: 2 }), 0);
+  assert.deepEqual(CellAt(model, 2, 3), { X: 2, Y: 3, T: 'CrossOver', N: 1, N2: 2 });
+  assert.equal(IconAt(model, 2, 2), 'VertTr');
+  assert.deepEqual(CheckModel(model), []);
+  // naabri kustutamine ei muuda silda hargnemiseks
+  EraseCell(model, 2, 4);
+  assert.equal(IconAt(model, 2, 3), 'CrossOver');
+  // raja 1 kustutamisel jääb raja 2 sirge (rada 2 saab numbri 1)
+  DeleteTrack(model, 1);
+  assert.deepEqual(CellAt(model, 2, 3), { X: 2, Y: 3, T: 'VertTr', N: 1 });
+  assert.deepEqual(CheckModel(model), []);
+  // sama raja ristmik -> sild (palett) ja tagasi
+  const loop = Blank(6, 6);
+  LayPath(loop, Cells([0, 2], [4, 2]));
+  LayPath(loop, Cells([2, 0], [2, 4]));
+  assert.equal(IconAt(loop, 2, 2), 'Cruise');
+  PlaceIcon(loop, 2, 2, Item('CrossOver'));
+  assert.deepEqual(CellAt(loop, 2, 2), { X: 2, Y: 2, T: 'CrossOver', N: 1, N2: 1 });
+  PlaceIcon(loop, 2, 2, Item('Cruise'));
+  assert.deepEqual(CellAt(loop, 2, 2), { X: 2, Y: 2, T: 'Cruise', N: 1 });
+});
+
+test('Sild: CheckModel nõuab N2 ainult sillal', () => {
+  const model = Blank(3, 3);
+  LayPath(model, Cells([0, 1], [2, 1]));
+  CellAt(model, 1, 1).N2 = 1;
+  assert.ok(CheckModel(model).some(error => error.Path.endsWith('.N2')));
+  delete CellAt(model, 1, 1).N2;
+  CellAt(model, 1, 1).T = 'CrossOver';
+  assert.ok(CheckModel(model).some(error => error.Path.endsWith('.N2')));
 });

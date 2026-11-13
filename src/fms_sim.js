@@ -15,7 +15,7 @@
 //
 // Moodul ei kasuta brauserit, nii et seda saab testida Node'iga.
 
-import { IconTypes, DIRECTIONS } from './fms_glb.js';
+import { IconTypes, DIRECTIONS, CellTrack } from './fms_glb.js';
 import { Texts, FormatText } from './fms_lng.js';
 
 // =====================================================================
@@ -109,9 +109,17 @@ function Neighbor(context, cell, direction) {
   return neighbor && neighbor.T !== 'Empty' ? neighbor : null;
 }
 
-// [U] OtherPort – kaheküljelise ikooni teine külg.
+// [U] OtherPort – kaheküljelise ikooni teine külg; sillal (CrossOver) vastaskülg.
 function OtherPort(cell, port) {
+  if (IconTypes[cell.T].CrossOver) return DIRECTIONS[port].Opposite;
   return IconTypes[cell.T].Ports.find(other => other !== port);
+}
+
+// [U] PartKey – raja osa võti: lahter, sillal lahter + telg (W–E või N–S), sest sillast läheb
+//     läbi kaks rada (või sama rada kaks korda).
+function PartKey(cell, port) {
+  if (!IconTypes[cell.T].CrossOver) return CellKey(cell.X, cell.Y);
+  return `${CellKey(cell.X, cell.Y)},${port === 'N' || port === 'S' ? 'NS' : 'WE'}`;
 }
 
 // [O nimi, U sisu] Enumerate – käib ruudustiku läbi ja koostab simulatsiooni võrgu: rada
@@ -133,7 +141,8 @@ export function Enumerate(model) {
     .forEach((cell, i) => context.ConnectorNames.set(CellKey(cell.X, cell.Y), `CON${i + 1}`));
 
   // Mida see versioon veel ei toeta
-  const usedTracks = [...new Set(trackCells.map(cell => cell.N - 1))].sort((a, b) => a - b);
+  const usedTracks = [...new Set(trackCells.flatMap(cell => (cell.N2 !== undefined ? [cell.N - 1, cell.N2 - 1] : [cell.N - 1])))]
+    .sort((a, b) => a - b);
   model.Tracks.forEach((track, trackIndex) => {
     if (!usedTracks.includes(trackIndex)) {
       EnumWarning(context, `Tracks[${trackIndex + 1}]`, Texts.EnumNotOnLayout, { Object: track.Name });
@@ -182,7 +191,11 @@ export function Enumerate(model) {
 //     Kutsub: Enumerate.
 function TraceTrack(context, trackIndex, trackCells) {
   const name = context.Model.Tracks[trackIndex].Name;
-  const ownCells = trackCells.filter(cell => cell.N - 1 === trackIndex);
+  // oma osad: lahtrid, sillal ainult selle raja telg
+  const ownParts = cell => (IconTypes[cell.T].CrossOver
+    ? ['E', 'S'].filter(port => CellTrack(cell, port) - 1 === trackIndex).map(port => PartKey(cell, port))
+    : (cell.N - 1 === trackIndex ? [PartKey(cell, null)] : []));
+  const ownCells = trackCells.filter(cell => ownParts(cell).length > 0);
   const arrowCells = ownCells.filter(cell => cell.Dir !== undefined);
   if (arrowCells.length === 0) {
     EnumError(context, `Tracks[${trackIndex + 1}]`, Texts.EnumNoDirection, { Track: name });
@@ -190,7 +203,7 @@ function TraceTrack(context, trackIndex, trackCells) {
   }
   const start = arrowCells[0];
   const first = { Cell: start, Entry: OtherPort(start, start.Dir), Exit: start.Dir, Unit: IconTypes[start.T].Arc ? ARC_LENGTH : 1 };
-  const visited = new Set([CellKey(start.X, start.Y)]);
+  const visited = new Set([PartKey(start, start.Dir)]);
   const forward = WalkTrack(context, trackIndex, start, start.Dir, visited, first.Entry);
   if (forward === null) return null;
   let sequence = [first, ...forward.Items];
@@ -215,7 +228,7 @@ function TraceTrack(context, trackIndex, trackCells) {
   return {
     TrackIndex: trackIndex, Sequence: sequence, Closed: closed,
     StartEnd: startEnd, FinishEnd: closed ? null : forward.End,
-    Unvisited: ownCells.filter(own => !position.has(CellKey(own.X, own.Y))),
+    Unvisited: ownCells.filter(own => ownParts(own).some(key => !visited.has(key))),
   };
 }
 
@@ -244,10 +257,11 @@ function WalkTrack(context, trackIndex, cell, exit, visited, closeEntry) {
     }
     if (icon.Kind !== 'Track') return free;                       // objekt raja otsas
     if (next.Dot) return faces ? badJoin(next) : free;            // pidev rada ei lähe punktiiri
-    if (next.N - 1 !== trackIndex) {
+    const nextTrack = CellTrack(next, nextEntry);
+    if (nextTrack - 1 !== trackIndex) {
       if (!faces) return free;
       EnumError(context, CellPath(next), Texts.EnumTracksTouch,
-        { Track: name, Track2: context.Model.Tracks[next.N - 1].Name, X: next.X, Y: next.Y });
+        { Track: name, Track2: context.Model.Tracks[nextTrack - 1].Name, X: next.X, Y: next.Y });
       return null;
     }
     if (!faces) return badJoin(next);
@@ -255,12 +269,12 @@ function WalkTrack(context, trackIndex, cell, exit, visited, closeEntry) {
       if (nextEntry !== closeEntry) return badJoin(next);
       return { Items: items, End: { Kind: 'Closed' } };
     }
-    const key = CellKey(next.X, next.Y);
+    const key = PartKey(next, nextEntry);
     if (visited.has(key)) {
       EnumError(context, CellPath(next), Texts.EnumCrossLoop, { Track: name, X: next.X, Y: next.Y });
       return null;
     }
-    if (icon.Ports.length !== 2) {   // ristmik
+    if (icon.Ports.length !== 2 && !icon.CrossOver) {   // ristmik (sild ei ühenda – sealt minnakse otse läbi)
       EnumError(context, CellPath(next), Texts.EnumBranch, { Track: name, X: next.X, Y: next.Y });
       return null;
     }
@@ -506,7 +520,7 @@ function MeasureTrack(context, trace, links) {
     const path = `EdgeLengths[${i + 1}]`;
     const keys = entry.Cells.every(pair => Array.isArray(pair) && pair.length === 2)
       ? entry.Cells.map(pair => CellKey(pair[0], pair[1])) : null;
-    if (keys !== null && keys.length > 0 && !keys.some(key => ownKeys.has(key))) return;   // teise raja kirje
+    if (keys !== null && keys.length > 0 && !keys.every(key => ownKeys.has(key))) return;   // teise raja kirje
     const edge = keys !== null && keys.length > 0
       ? edges.find(candidate => {
         const innerKeys = new Set(candidate.Inner.map(index => CellKey(sequence[index].Cell.X, sequence[index].Cell.Y)));

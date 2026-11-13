@@ -13,7 +13,9 @@ import { Texts, FormatText } from './fms_lng.js';
 //     Kind: Track – rajalõik; Connector – radade ühendus; Buffer, Storage, Output, Machine – objektid.
 //     [T] Ports – küljed, mille kaudu rada läbi ikooni kulgeb (N üles, E paremale, S alla, W vasakule);
 //     Branch – hargnemisikooni (Tee*) haru külg. Ristmikul (Cruise) kulgeb rada otse läbi (N–S, W–E).
-//     Arc – kaar (veerandring, pikkus π/4 ikooni). Kasutavad: CheckModel, Enumerate, redaktor, animaator.
+//     Arc – kaar (veerandring, pikkus π/4 ikooni).
+//     [U] CrossOver – mitteühendatud ristumine (sild, nagu elektriskeemil): W–E rada (N) läheb väikese
+//     kaarega üle N–S raja (N2); rajad ei ühendu. Kasutavad: CheckModel, Enumerate, redaktor, animaator.
 export const IconTypes = {
   Empty:            { Kind: 'Empty',     Array: null },
   VertTr:           { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'S'] },
@@ -27,6 +29,7 @@ export const IconTypes = {
   TeeS:             { Kind: 'Track',     Array: 'Tracks', Ports: ['W', 'E'], Branch: 'S' },
   TeeW:             { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'S'], Branch: 'W' },
   Cruise:           { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'E', 'S', 'W'] },
+  CrossOver:        { Kind: 'Track',     Array: 'Tracks', Ports: ['N', 'E', 'S', 'W'], CrossOver: true },
   VertCon:          { Kind: 'Connector', Array: null, Ports: ['N', 'S'] },
   HorCon:           { Kind: 'Connector', Array: null, Ports: ['W', 'E'] },
   InBuf:            { Kind: 'Buffer',    Array: 'Buffers' },
@@ -49,6 +52,13 @@ export const DIRECTIONS = {
   S: { DX: 0, DY: 1, Opposite: 'N' },
   W: { DX: -1, DY: 0, Opposite: 'E' },
 };
+
+// [U] CellTrack – raja number (N), millele lahtri külg port kuulub: sillal (CrossOver) W–E → N,
+//     N–S → N2; teistel ikoonidel N. Kasutavad: Enumerate, redaktor, animaator.
+export function CellTrack(cell, port) {
+  if (IconTypes[cell.T]?.CrossOver && (port === 'N' || port === 'S')) return cell.N2;
+  return cell.N;
+}
 
 // [O/T] DirectionPorts – küljed, kuhu raja suunanool võib ikoonil näidata: ainult sirgel ja
 //     kaarel (kaks külge), mitte hargnemisel ega ristmikul. Nool näitab, kummast küljest
@@ -281,6 +291,15 @@ export function CheckModel(model) {
             fail(`${path}.N`, FormatText(Texts.CheckNoObject,
               { N: cell.N, Array: arrayName, Count: arrays[arrayName].length }));
           }
+        }
+        // Sild (CrossOver): teine rada N2 (N–S); teistel ikoonidel N2 puudub.
+        if (IconTypes[cell.T].CrossOver) {
+          if (cell.Dot) fail(`${path}.Dot`, Texts.CheckDotCrossOver);
+          if (checkNumber(cell.N2, `${path}.N2`, { integer: true, min: 1 }) && cell.N2 > arrays.Tracks.length) {
+            fail(`${path}.N2`, FormatText(Texts.CheckNoObject, { N: cell.N2, Array: 'Tracks', Count: arrays.Tracks.length }));
+          }
+        } else if (cell.N2 !== undefined) {
+          fail(`${path}.N2`, Texts.CheckN2Icon);
         }
       });
     }

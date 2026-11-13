@@ -391,3 +391,67 @@ test('Animaator: avatud konveieril on punktid pidevad algusest lõpuni', () => {
   }
   assert.ok(Math.abs(previous.X - 8.99) < 1e-3);
 });
+
+// ---------------------------------------------------------------------
+// Sild (CrossOver): mitteühendatud ristumine
+// ---------------------------------------------------------------------
+
+// Kaheksa: üks silmus ristub iseendaga sillal (3, 2). Ülemine ring: (3,1) üles, kaared, (4,1) alla,
+// sillast läbi W suunas; alumine ring: (2,3) alla, kaared, (3,3) üles, sillast läbi N suunas.
+function LayoutEight() {
+  return {
+    Meta: { Name: 'Kaheksa', Version: 1 },
+    Scale: 100,
+    Layout: {
+      Dim: { X: 7, Y: 5 },
+      Cells: Cells([
+        [6, 0, 'MachToolDown', 1], [6, 1, 'InOutBuf', 1], [5, 1, 'HorTr', null, DOT],
+        [3, 0, 'ArcSE', 1], [4, 0, 'ArcSW', 1],
+        [3, 1, 'VertTr', 1, { Dir: 'N' }], [4, 1, 'TeeE', 1],
+        [2, 2, 'ArcSE', 1], [3, 2, 'CrossOver', 1, { N2: 1 }], [4, 2, 'ArcNW', 1],
+        [2, 3, 'TeeW', 1], [3, 3, 'TeeE', 1],
+        [2, 4, 'ArcNE', 1], [3, 4, 'ArcNW', 1],
+        [1, 3, 'HorTr', null, DOT], [0, 3, 'SysOut'], [4, 3, 'HorTr', null, DOT], [5, 3, 'FromCS'],
+      ]),
+    },
+    EdgeLengths: [],
+    Tracks: [Track('Kaheksa', { Carts: 3 })],
+    Machines: [Machine('MT1', ['treimine'])],
+    Buffers: [Buffer()],
+    Storage: null,
+    Workpieces: [{ Name: 'Võll', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: 'treimine', Mean: 240, Dev: 30 }] }] }],
+    Sim: { Seed: 1, Duration: 7200, Kl: 0.85, StallTime: 600 },
+  };
+}
+
+test('Sild: kaheksakujuline silmus läbib silda kaks korda (risti), ei ühendu', () => {
+  const network = NetworkOf(LayoutEight());
+  const track = network.Tracks[0];
+  assert.equal(track.Closed, true);
+  assert.equal(track.Length, Math.round((6 + 1.5 * Math.PI) * 100 * 1000) / 1000);   // 6 kaart, 4 sirget, sild 2 ×
+  const passes = track.Cells.filter(cell => cell.T === 'CrossOver').map(cell => `${cell.Entry}${cell.Exit}`).sort();
+  assert.deepEqual(passes, ['EW', 'SN']);
+  const report = SimRun(network, CHECKED);
+  assert.equal(report.Deadlock, false);
+  assert.ok(report.Completed > 10);
+});
+
+test('Sild: teine rada ristub avatud konveieriga ilma ühenduseta – H1 tsükliaeg ei muutu', () => {
+  const model = LayoutH();
+  model.Tracks.push(Track('Ristuv'));
+  const cell = model.Layout.Cells.find(item => item.X === 2 && item.Y === 3);
+  Object.assign(cell, { T: 'CrossOver', N: 1, N2: 2 });
+  for (const y of [0, 1, 2, 4, 5]) model.Layout.Cells.push({ X: 2, Y: y, T: 'VertTr', N: 2, ...(y === 0 ? { Dir: 'S' } : {}) });
+  const network = NetworkOf(model);
+  assert.deepEqual(network.Tracks.map(track => [track.Name, track.Closed, track.Length]), [['Liin', false, 900], ['Ristuv', false, 600]]);
+  const report = SimRun({ ...network, Sim: { ...network.Sim, Kl: 0.1, Duration: 800 } }, CHECKED);
+  assert.equal(report.Finished[0].TimeOut, 683);
+});
+
+test('Sild: ristmik (Cruise) pideval rajal on endiselt viga, sild mitte', () => {
+  const model = LayoutEight();
+  const cell = model.Layout.Cells.find(item => item.T === 'CrossOver');
+  cell.T = 'Cruise';
+  delete cell.N2;
+  assertEnumError(model, 'on haru');
+});

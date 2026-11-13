@@ -28,7 +28,9 @@ test('tühi mudel (File → New) läbib kontrolli', () => {
 });
 
 test('näidismudel kasutab ainult originaali ikoone (joon. 5.4)', () => {
-  assert.equal(Object.keys(IconTypes).length, 25);
+  // 25 originaali ikooni + sild (CrossOver, etapp 7a)
+  assert.equal(Object.keys(IconTypes).length, 26);
+  assert.ok(demo().Layout.Cells.every(cell => cell.T !== 'CrossOver'));
   for (const cell of demo().Layout.Cells) assert.ok(cell.T in IconTypes, cell.T);
 });
 

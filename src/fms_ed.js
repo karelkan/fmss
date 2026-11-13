@@ -16,7 +16,7 @@
 // kolm – hargnemine (Tee*), neli – ristmik. Külgi, mis naabriga pole ühendatud, arvesse ei võeta
 // (LinkedPorts) – nii saab raja otsast pöörata.
 
-import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS, CheckModel } from './fms_glb.js';
+import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS, CheckModel, CellTrack } from './fms_glb.js';
 import { Enumerate } from './fms_sim.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
@@ -38,13 +38,14 @@ const MODERN_PALETTE_CELL = 34;
 const PALETTE_ROWS = 2;
 
 // [U] PALETTE – ikoonipalett: tööriistad (vali / liiguta, kustuta, suunanool) ja originaali
-//     ikoonid (joon. 5.4). Punktiirühendus (Dot) on raja ikoon pikkusega 0 (lk 54).
+//     ikoonid (joon. 5.4) + sild (CrossOver, etapp 7a). Punktiirühendus (Dot) on raja ikoon
+//     pikkusega 0 (lk 54).
 export const PALETTE = [
   { Id: 'Select' }, { Id: 'Erase' }, { Id: 'Direction' },
   { Id: 'HorTr', T: 'HorTr' }, { Id: 'VertTr', T: 'VertTr' },
   { Id: 'ArcSE', T: 'ArcSE' }, { Id: 'ArcSW', T: 'ArcSW' }, { Id: 'ArcNE', T: 'ArcNE' }, { Id: 'ArcNW', T: 'ArcNW' },
   { Id: 'TeeN', T: 'TeeN' }, { Id: 'TeeS', T: 'TeeS' }, { Id: 'TeeE', T: 'TeeE' }, { Id: 'TeeW', T: 'TeeW' },
-  { Id: 'Cruise', T: 'Cruise' },
+  { Id: 'Cruise', T: 'Cruise' }, { Id: 'CrossOver', T: 'CrossOver' },
   { Id: 'Dot', T: 'VertTr', Dot: true },
   { Id: 'HorCon', T: 'HorCon' }, { Id: 'VertCon', T: 'VertCon' },
   { Id: 'InBuf', T: 'InBuf' }, { Id: 'OutBuf', T: 'OutBuf' }, { Id: 'InOutBuf', T: 'InOutBuf' }, { Id: 'TurnBuf', T: 'TurnBuf' },
@@ -134,9 +135,22 @@ export function LinkedPorts(grid, cell) {
 }
 
 // [U] SetCellPorts – raja lahtri ikoon uute külgede järgi; suunanool kaob, kui see ei sobi.
+//     Sild (CrossOver) jääb sillaks: selle küljed ei muutu.
 function SetCellPorts(cell, ports) {
+  if (IconTypes[cell.T].CrossOver) return;
   cell.T = IconFromPorts(ports);
   if (cell.Dir !== undefined && !DirectionPorts(cell.T).includes(cell.Dir)) delete cell.Dir;
+}
+
+// [U] MakeCrossOver – sirgest saab sild: sirge jääb oma rajale, risti läheb rada track.
+//     W–E rada on N (kaarega üle), N–S rada N2. Suunanool kaob (sillal noolt pole).
+function MakeCrossOver(cell, track) {
+  const horizontal = IconTypes[cell.T].Ports.includes('W');
+  const own = cell.N;
+  cell.T = 'CrossOver';
+  cell.N = horizontal ? own : track;
+  cell.N2 = horizontal ? track : own;
+  delete cell.Dir;
 }
 
 // [U] UniqueName – esimene vaba nimi kujul prefix + number (MT1, MT2 …).
@@ -194,9 +208,14 @@ function CleanEdgeLengths(model) {
 //   { Create, Ports } – uus lahter; { Cell, Ports } – olemasolev saab uued küljed;
 //   { Keep } – lahter jääb samaks (objekt, kuhu punktiir lõpeb, või külg on juba olemas);
 //   null – sinna ei saa (nt rada objekti sisse või punktiir raja kaarele).
-function SegmentEnd(grid, cell, port, dot) {
+function SegmentEnd(grid, cell, port, dot, track) {
   if (!cell) return { Create: true, Ports: [port] };
   const kind = IconTypes[cell.T].Kind;
+  if (kind === 'Track' && IconTypes[cell.T].CrossOver) return dot ? null : { Keep: true };
+  if (kind === 'Track' && !dot && !cell.Dot && cell.N !== track
+      && (cell.T === 'HorTr' || cell.T === 'VertTr') && !IconTypes[cell.T].Ports.includes(port)) {
+    return { Cell: cell, CrossOver: true };   // teise raja sirge risti -> sild (ei ühendu)
+  }
   if (kind === 'Connector') return CellPorts(cell).includes(port) ? { Keep: true } : null;   // rada või punktiir
   if (kind !== 'Track') return dot && IsDotTarget(cell) ? { Keep: true } : null;
   const linked = LinkedPorts(grid, cell);
@@ -223,8 +242,8 @@ export function LaySegment(model, x, y, direction, { Dot: dot = false, Track: tr
   const toY = y + step.DY;
   if (!InsideGrid(model, x, y) || !InsideGrid(model, toX, toY)) return false;
   const grid = LayoutGrid(model);
-  const fromPlan = SegmentEnd(grid, grid.get(CellKey(x, y)), direction, dot);
-  const toPlan = SegmentEnd(grid, grid.get(CellKey(toX, toY)), step.Opposite, dot);
+  const fromPlan = SegmentEnd(grid, grid.get(CellKey(x, y)), direction, dot, track);
+  const toPlan = SegmentEnd(grid, grid.get(CellKey(toX, toY)), step.Opposite, dot, track);
   if (!fromPlan || !toPlan || (fromPlan.Keep && toPlan.Keep)) return false;
   for (const [plan, cellX, cellY] of [[fromPlan, x, y], [toPlan, toX, toY]]) {
     if (plan.Keep) continue;
@@ -233,6 +252,9 @@ export function LaySegment(model, x, y, direction, { Dot: dot = false, Track: tr
       if (dot) cell.Dot = true;
       else { EnsureTrack(model, track); cell.N = track; }
       model.Layout.Cells.push(cell);
+    } else if (plan.CrossOver) {
+      EnsureTrack(model, track);
+      MakeCrossOver(plan.Cell, track);
     } else {
       SetCellPorts(plan.Cell, plan.Ports);
     }
@@ -340,6 +362,16 @@ export function PlaceIcon(model, x, y, item, { Track: track = 1 } = {}) {
   }
   if (existing && existing.T === item.T && !existing.Dot) return false;
   if (existing && icon.Kind === 'Track' && IconTypes[existing.T].Kind === 'Track' && !existing.Dot) {
+    if (icon.CrossOver) {
+      // ristmik -> sild (sama rada mõlemas suunas); sirge -> sild aktiivse rajaga risti
+      if (existing.T === 'HorTr' || existing.T === 'VertTr') { EnsureTrack(model, track); MakeCrossOver(existing, track); }
+      else { existing.T = 'CrossOver'; existing.N2 = existing.N; delete existing.Dir; }
+      return true;
+    }
+    if (IconTypes[existing.T].CrossOver) {   // sillast tavaline ikoon: N–S rada (N2) kaob
+      delete existing.N2;
+      existing.T = 'Cruise';
+    }
     SetCellPorts(existing, CellPorts({ T: item.T }));
     return true;
   }
@@ -350,6 +382,7 @@ export function PlaceIcon(model, x, y, item, { Track: track = 1 } = {}) {
     if (existing) EraseCell(model, x, y);
     const cell = { X: x, Y: y, T: item.T };
     if (icon.Kind === 'Track') { EnsureTrack(model, track); cell.N = track; }
+    if (icon.CrossOver) cell.N2 = track;
     else if (icon.Array) cell.N = AddObject(model, icon.Array);
     model.Layout.Cells.push(cell);
   }
@@ -405,10 +438,16 @@ export function ParseDim(text) {
 //     nihkuvad ühe võrra. Kutsub: Transport-vorm (fms_ed_data.js), testid.
 export function DeleteTrack(model, number) {
   const ownCell = cell => IconTypes[cell.T]?.Array === 'Tracks' && !cell.Dot;
+  // sild, kus kustutatav rada on ainult ühes suunas, jääb teise raja sirgeks
+  for (const cell of model.Layout.Cells.filter(cell => IconTypes[cell.T]?.CrossOver && cell.N !== cell.N2)) {
+    if (cell.N === number) { cell.T = 'VertTr'; cell.N = cell.N2; delete cell.N2; }
+    else if (cell.N2 === number) { cell.T = 'HorTr'; delete cell.N2; }
+  }
   for (const cell of model.Layout.Cells.filter(cell => ownCell(cell) && cell.N === number)) EraseCell(model, cell.X, cell.Y);
   model.Tracks.splice(number - 1, 1);
   for (const cell of model.Layout.Cells) {
     if (ownCell(cell) && cell.N > number) cell.N -= 1;
+    if (ownCell(cell) && cell.N2 > number) cell.N2 -= 1;
   }
   CleanEdgeLengths(model);
 }
@@ -420,8 +459,9 @@ export function DeleteTrack(model, number) {
 export function SegmentCells(model, x, y) {
   const grid = LayoutGrid(model);
   const start = grid.get(CellKey(x, y));
-  const isInner = cell => cell && IconTypes[cell.T].Kind === 'Track' && !cell.Dot && CellPorts(cell).length === 2;
-  if (!isInner(start)) return null;
+  const isInner = cell => cell && IconTypes[cell.T].Kind === 'Track' && !cell.Dot
+    && (CellPorts(cell).length === 2 || IconTypes[cell.T].CrossOver);   // sillast minnakse otse läbi
+  if (!isInner(start) || IconTypes[start.T].CrossOver) return null;   // sild on kahe raja lõigus
   const sides = [];
   let units = 0;
   const unitOf = cell => (IconTypes[cell.T].Arc ? Math.PI / 4 : 1);
@@ -433,13 +473,16 @@ export function SegmentCells(model, x, y) {
     for (;;) {
       const step = DIRECTIONS[exit];
       const next = grid.get(CellKey(cell.X + step.DX, cell.Y + step.DY));
-      if (!next || IconTypes[next.T].Kind !== 'Track' || next.Dot || next.N !== start.N || !CellPorts(next).includes(step.Opposite)) break;
+      if (!next || IconTypes[next.T].Kind !== 'Track' || next.Dot || CellTrack(next, step.Opposite) !== start.N
+          || !CellPorts(next).includes(step.Opposite)) break;
       if (!isInner(next)) { units += 0.5; break; }   // hargnemine: pool sellest kuulub lõiku
-      if (seen.has(CellKey(next.X, next.Y))) break;  // silmus ilma hargnemiseta
-      seen.add(CellKey(next.X, next.Y));
+      const crossOver = IconTypes[next.T].CrossOver;
+      const key = crossOver ? `${CellKey(next.X, next.Y)},${step.Opposite === 'N' || step.Opposite === 'S' ? 'NS' : 'WE'}` : CellKey(next.X, next.Y);
+      if (seen.has(key)) break;  // silmus ilma hargnemiseta
+      seen.add(key);
       cells.push(next);
       cell = next;
-      exit = CellPorts(next).find(other => other !== step.Opposite);
+      exit = crossOver ? DIRECTIONS[step.Opposite].Opposite : CellPorts(next).find(other => other !== step.Opposite);
     }
     sides.push(cells);
   }

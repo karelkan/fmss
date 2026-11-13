@@ -207,6 +207,8 @@ export const Texts = {
   CheckNoObject: 'viitab objektile nr {N}, aga {Array} on ainult {Count}',
   CheckDevTooLarge: 'kõrvalekalle ei tohi olla suurem kui keskmine',
   CheckTooManyTypes: 'detailitüüpe võib olla kõige rohkem {Max}',
+  CheckDotCrossOver: 'sild ei saa olla punktiirühendus',
+  CheckN2Icon: 'teine rada (N2) on ainult sillal (CrossOver)',
   CheckDirIcon: 'suunanoole saab panna ainult raja sirgele või kaarele',
 
   // --- Rajavõrgu ja andmete kontroll (Enumerate, DetectOpenCons, FindConflicts) ---
