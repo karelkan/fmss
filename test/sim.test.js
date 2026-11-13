@@ -256,10 +256,15 @@ test('Kontrollid 3 ja 6 on hoiatused', () => {
   assert.ok(result.Warnings.some(warning => warning.Message.includes('rohkem kohti')));
 });
 
-test('Hilisema etapi asjad annavad selge vea', () => {
+test('Mitu detaili alusel (7c): näidismudel kahe kohaga – 8 h ilma ummikuta, alusel kuni 2 detaili', () => {
   const places = demo();
   places.Tracks[0].PlacesPerCart = 2;
-  assertEnumError(places, 'PlacesPerCart');
+  const result = Enumerate(places);
+  assert.deepEqual(result.Errors, []);
+  const report = SimRun(result.Network, { CheckInvariants: true });
+  assert.equal(report.Deadlock, false);
+  assert.equal(report.Tracks[0].MaxLoad, 2);
+  assert.ok(report.Tracks[0].Pooled > 0);
 });
 
 test('EdgeLengths: lahtrid peavad olema ühe lõigu sees', () => {

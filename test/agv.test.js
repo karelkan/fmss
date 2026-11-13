@@ -512,3 +512,38 @@ test('Diskreetne rada: ühesuunaliselt ei pääse tagasi -> kättesaadavuse viga
   model.Layout.Cells.find(cell => cell.X === 2 && cell.Y === 3).Dir = 'W';   // FromCS -> BUF1 ei saa
   assertEnumError(model, 'operatsiooni');
 });
+
+// ---------------------------------------------------------------------
+// 7c – mitu detaili kärul: koormusega stsenaariumid (invariandid igal sekundil seemnel 1:
+//   kohad, peatuste nimekiri, tsoonid)
+// ---------------------------------------------------------------------
+test('7c: F, R, M, N (ühesuunaline), Näidis-AGV kahe ja kolme kohaga – 8 h ilma ummikuta', () => {
+  const scenarios = [
+    ['F', seed => LayoutF({ Carts: 2, Seed: seed })], ['R', seed => LayoutR({ Carts: 3, Seed: seed })],
+    ['M', seed => LayoutM({ Seed: seed })], ['N', seed => DemoDiscrete({ Carts: 3, OneWay: true, Seed: seed })],
+    ['Näidis-AGV', seed => DemoAgv({ Carts: 3, Seed: seed })],
+  ];
+  for (const [name, make] of scenarios) {
+    for (const places of [2, 3]) {
+      for (let seed = 1; seed <= 3; seed++) {
+        const model = make(seed);
+        for (const track of model.Tracks) track.PlacesPerCart = places;
+        const report = SimRun(NetworkOf(model), seed === 1 ? CHECKED : {});
+        assert.equal(report.Deadlock, false, `${name}, ${places} kohta, seeme ${seed}: ${report.DeadlockReason}`);
+        assert.ok(report.Completed > 0);
+      }
+    }
+  }
+});
+
+test('7c: transport on pudelikael (I2, üks käru) – rohkem kohti, rohkem valmis (kogumissõit)', () => {
+  const completed = [1, 2, 3].map(places => {
+    const model = LayoutI({ Kl: 0.85, Duration: 28800, Mean: 30 });
+    model.Tracks[0].PlacesPerCart = places;
+    const report = SimRun(NetworkOf(model), CHECKED);
+    assert.equal(report.Tracks[0].MaxLoad, places);
+    return report.Completed;
+  });
+  assert.equal(completed[0], 513);
+  assert.ok(completed[1] > completed[0] && completed[2] > completed[1], `valmis ${completed.join(' / ')}`);
+});

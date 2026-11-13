@@ -295,3 +295,72 @@ Teine käru annab +27 %, kolmas peaaegu mitte midagi: kõik sõidud läbivad sam
 **Leid** (brauseris): hargnemise haru joonistati alati punktiirina – diskreetse raja raja-haru nägi välja nagu punktiirühendus. Parandus: `BranchIsTrack` (haru naaber on sama raja rajaikoon → pidev joon). **Leid**: EGA-s jäi AGV kokkuvõtte rida ja olekurea „ootab“ ekraanist välja – kokkuvõte kahel real, olekureal ootajatega „AGV ootab 1/3“. **Leid**: diskreetse raja otsalahter on sõlm, redaktor luges selle lõigu metrokaardis terveks ikooniks – `SegmentCells` ja `MeasureGraph` nüüd kooskõlas.
 
 **Mida see EI kontrolli:** tsoonide tükeldamist (`ZoneLength`), parkimiskohti, kärude kiirendust ja pikkust (käru on punkt), mitut detaili kärul (7c), rikkeid (8).
+
+---
+
+# Etapp 7c: mitu detaili alusel / kärul (`PlacesPerCart > 1`)
+
+Uus loogika: [DISAIN.md](DISAIN.md) osa 16 – kohad alusel (`Places`, `ReservedWPs`), jaamas enne mahalaadimised ja siis pealelaadimised (`PalletAction`), käru peatuste nimekiri (`StopList`) ja soov hõivatud kärule odavaima lisamisega (`CartInsertion`). Testid: [test/places.test.js](test/places.test.js), koormusega stsenaariumid ka [test/agv.test.js](test/agv.test.js), [test/network.test.js](test/network.test.js), [test/sim.test.js](test/sim.test.js), animaator [test/anima.test.js](test/anima.test.js).
+
+Enne täisteostust kontrolliti simulaatorit (invariandid igal sekundil, uued: `CheckPallet` ja käru peatuste nimekiri `CheckCarts`-is). Alles siis tehti animaator.
+
+## `PlacesPerCart = 1` – midagi ei muutunud
+
+Kõigi testide (103 simulatsiooni) aruanded (kogu `SimReport`, ka iga valmis detaili ajad) räsiti enne ja pärast muudatust: **identsed**. Seega on 7a/7b tulemused ja prototüübi võrdlus endised.
+
+## Käsitsi arvutatud ajad
+
+| Test | Tulemus |
+|---|---|
+| **K1** avatud konveier H, alusel 2 kohta, 2 detaili (`Kl` 0,2) | FromCS-is üks peatus ja kaks pealelaadimist, BUF1-s kaks mahalaadimist; hiljem BUF1-s samas peatuses maha ja peale. Valmis **658 s** ja **988 s** – täpselt käsitsi arvutatud (arvutus testi kommentaaris) ✔ |
+| **K2** AGV joon I, kärul 2 kohta, 2 detaili | t=1 saab vaba käru WP0, sama käru saab ka WP1 (`CartInsertion`, sõiduaeg ei muutu); FromCS-is kaks pealelaadimist, BUF1-s kaks mahalaadimist. Valmis **381 s** ja **701 s** – täpselt käsitsi arvutatud ✔ |
+| **K** `PlacesPerCart = 1` | H1 **683 s**, I1 **371 s** nagu varem ✔ |
+| **Invariantide kontroll** – meelega vead: kolmas koht kahekohalisel kärul, detaili mahalaadimine kustutatud käru nimekirjast, kohad alusel vahetatud | kõik tabati kohe ✔ |
+
+## Koormusega stsenaariumid (8 h)
+
+20 stsenaariumi (pidevad A, C, näidis-PTS, G, H, S, G2, P; diskreetsed F 1–3 käru, R 2–3 käru, M, N 2 käru, N ühesuunaline 3 käru, Näidis-AGV 1–3 käru, I2) × kohti 1 / 2 / 3 × 5 seemet = 300 simulatsiooni: **ühtegi ummikut ega invariandi viga** (invariandid igal sekundil seemnel 1). Kohtade arv ei suurendanud `Collision`-eid ega suurimat ootamist.
+
+Valmis 8 h / keskmine tsükliaeg / keskmine WIP (seeme 1, lõplik `Kl`: `Ntm` = aluste arv – leid 1):
+
+| Stsenaarium | 1 koht | 2 kohta | 3 kohta | Kogumissõite (2 kohta) |
+|---|---|---|---|---|
+| A (üks pink) | 89 / 1883 s / 6 | 89 / 1878 s / 6 | 89 / 1878 s / 6 | 1 |
+| H (avatud, 3 alust) | 88 / 2490 s / 8 | 88 / 2491 s / 8 | 88 / 2491 s / 8 | 1 |
+| S (kaks silmust, ristmarsruudid) | 49 / 6117 s / 13 | 49 / 5968 s / 13 | 49 / 5968 s / 13 | 20 + 1 |
+| näidis-PTS | 84 / 3663 s / 12 | 84 / 3663 s / 12 | 84 / 3663 s / 12 | 7 |
+| F (ristmik, 2 käru) | 248 / 799 s / 7 | 249 / 797 s / 7 | 249 / 797 s / 7 | 3 |
+| R (linnavõrk, 3 käru) | 60 / 3858 s / 9 | 61 / 3757 s / 9 | 61 / 3760 s / 9 | 21 |
+| Näidis-AGV, 1 käru | 107 / 2960 s / 12 | **115** / 2775 s / 12 | **115** / 2779 s / 12 | 72 |
+| Näidis-AGV, 3 käru | 138 / 2524 s / 13 | 140 / 2487 s / 13 | 140 / 2485 s / 13 | 36 |
+| I2 (üks käru, transport pudelikael) | 513 / 224 s / 4 | **529** / 217 s / 4 | **552** / 208 s / 4 | 531 |
+
+Hõivatud kärule anti soov (`CartInsertion`) sageli **teises jaamas** kui tema järgmine peatus (2 kohta: Näidis-AGV 1 käruga 63 korda, R 19, N 16, I2 529) – kogumissõit ei ole ainult „samast jaamast kaks“.
+
+## Leiud
+
+1. **`Kl` lugemine kohtade järgi tõstis tsükliaega** **[U]**. Originaali valemis on `Ntm` „kohtade arv transpordil“ (`Carts × PlacesPerCart`). Mitme kohaga tõi Planner süsteemi rohkem detaile, aga need ootasid FromCS-is – **tsükliaeg kasvas**, läbilaskevõime mitte; pideval konveieril oli kogumissõite vähe (A, H, G, P: 0–1). Originaali valemiga (seeme 1):
+
+   | Stsenaarium | 1 koht | 2 kohta | 3 kohta |
+   |---|---|---|---|
+   | A | 89 / 1883 s / 6 | 89 / 3059 s / 10 | 89 / 3907 s / 13 |
+   | S | 49 / 6117 s / 13 | 48 / 7916 s / 19 | 46 / 8218 s / 24 |
+   | näidis-PTS | 84 / 3663 s / 12 | 85 / 4852 s / 17 | 88 / 5858 s / 23 |
+   | R, 3 käru | 60 / 3858 s / 9 | 59 / 4967 s / 12 | 59 / 5776 s / 15 |
+   | Näidis-AGV, 1 käru | 107 / 2960 s / 12 | 115 / 2775 s / 12 | 116 / 2972 s / 13 |
+   | I2 | 513 / 224 s / 4 | 529 / 271 s / 5 | 552 / 312 s / 6 |
+
+   **Otsus (kasutaja):** `Ntm` = aluste / kärude arv, kohtade arvust sõltumata. Siis jäävad WIP ja tsükliaeg samaks (või lühenevad) ja kogumissõidu kasu jääb alles (tabel ülal). `PlacesPerCart = 1` korral on valem sama mis enne. Test „K: Kl ei loe kohti alusel“ (H, 3 alust: WIP 8 / 8 / 8, valmis 88 / 88 / 88). Pärast muudatust uuesti 300 simulatsiooni (20 stsenaariumi × 1/2/3 kohta × 5 seemet): ummikuid ega vigu pole.
+2. **Kogumissõit aitab, kui transport on pudelikael** (I2 +3 % / +8 %, Näidis-AGV ühe käruga +7 %), mitte rohkem: laadimisaeg on detaili kohta (iga detail 4 × `LoadTime`), ühiseks saab ainult sõit. Mitu kärul olevat detaili kasvatab ka nende transpordiaega (ootavad teiste laadimisi).
+3. **Vabad kohad olid EGA-s nähtamatud** (brauseris): kontuur `SlotFree` oli sama värvi kui alus. Uus roll `PalletPlace` (EGA must, kaasaegses tumedam hall).
+
+## Animaator ja redaktor
+
+| Test | Tulemus |
+|---|---|
+| **Kohtade paigutus** – 1, 2, 3 kohta reas, 4 ja enam 2 × 2; kohad ei kattu ja on aluse sees; üks koht nagu enne (aluse keskel) | ✔ |
+| **Näidis-PTS kahe kohaga** 2 h sammhaaval: detail on oma kohas, mahalaadimine algab detaili kohast, pealelaadimine läheb vabasse kohta; alusel oli kaks detaili; aruanne sama mis `SimRun`-iga | ✔ |
+| **Brauseris** (käsitsi): EGA – M (konveier + AGV, 2 kohta: olekurida kahel real), Näidis-AGV 3 kohaga (vabad kohad mustad, detail oma kohas), S 6 kohaga (2 × 2 ja „1/6“, olekurida kahel real); kaasaegne – Näidis-AGV (broneeritud koht katkendjoonega, aluse raam sinine), S (arv aluse kohal, juhtriba tekst lühendatud „..“); kokkuvõttes rida „kohti 3: keskmiselt 0,2 detaili, kuni 3, kogumissõite 5“; redaktor (Edit → Check): vigu 0, hoiatus 6 arvestab kohti; konsoolis vigu pole | ✔ |
+| **EGA olekurida** (7b ootel töö 4): kui radade tekst kõige pikemal kujul ei mahu, on rajad teisel real (rida ei hüppa), vajadusel lühendatud | ✔ |
+
+**Mida see EI kontrolli:** mitme sammu planeerimist (kahesuunaline ring 3+ käruga – 7b leid 6), parkimiskohti, `ZoneLength`, `Dispatch`-valikut, konnektori broneerimist alles lähenedes (7a leid 2), mitut detaili pingis, kärul olevate detailide tähtaegu (lisamise piir on ainult sõiduaja kasv), rikkeid (8).

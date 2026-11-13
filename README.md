@@ -24,10 +24,10 @@ Originaali täpne kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomit�
 - [x] 6. Redaktor ([DISAIN.md](DISAIN.md) osa 15, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 6)
   - [x] 6a. Layout ja View (`src/fms_ed.js`: rada lohistades, ikoon valitakse ise; palett, kustutamine, suunanool, Undo, kerimine; salvestamata muudatuse hoiatus)
   - [x] 6b. Andmed vormides (`src/fms_ed_data.js`, `FormBox`): Config (All / Choose), Transport (ka lõigu pikkus ja raja kustutamine), Workpiece data (Edit / Copy / Flush, marsruudid), Storage data, Model data; vigade ja hoiatuste arv Layout-is ja nimekiri (K, Edit → Check)
-- [ ] 7. Rajavõrk ja diskreetsed rajad
+- [x] 7. Rajavõrk ja diskreetsed rajad
   - [x] 7a. Rajavõrgu graaf (`src/fms_sim.js`: mitu pidevat rada, konnektorid, avatud konveier, tee üle konnektorite, sild (mitteühendatud ristumine) – [DISAIN.md](DISAIN.md) osa 2.3, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7a); animaator ja redaktor koos sellega
   - [x] 7b. Diskreetsed rajad (`src/fms_sim.js`: rada kui teedevõrk – raja-harud, ristmikud, ühesuunalised lõigud noolega; kärud, tsoonid ja plokid, `ProgTM`, `FindPal`, `Collision`, ümbersõit ja kõrvalepõige; paralleelsed konnektorid; teed aja järgi – [DISAIN.md](DISAIN.md) osa 11, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b); animaator ja redaktor koos sellega; näidismudel `models/agv.fms.json` (File → Load → Näidis-AGV)
-  - [ ] 7c. Mitu detaili alusel (`PlacesPerCart > 1`)
+  - [x] 7c. Mitu detaili alusel / kärul (`src/fms_sim.js`: kohad alusel, jaamas mitu peale- ja mahalaadimist, käru peatuste nimekiri ja kogumissõit odavaima lisamisega – [DISAIN.md](DISAIN.md) osa 16, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c); animaator (kohad alusel, EGA olekurida kahel real) ja kokkuvõte
 - [ ] 8. Rikked ja juhuslikkus
 - [ ] 9. Aruanded
 - [ ] 10. Avaldamine (GitHub Pages)

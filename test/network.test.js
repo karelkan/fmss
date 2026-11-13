@@ -426,10 +426,20 @@ test('EdgeLengths: kirje, mille lahtrid pole ühelgi rajal', () => {
   assertEnumError(model, 'ühe lõigu');
 });
 
-test('Hilisem etapp: mitu kohta kärul (7c)', () => {
-  const places = LayoutG();
-  places.Tracks[0].PlacesPerCart = 2;
-  assertEnumError(places, 'etapis 7c');
+test('7c: G, H, S, P kahe ja kolme kohaga alusel – 8 h ilma ummikuta, läbilaskevõime ei vähene', () => {
+  // invariandid igal sekundil: kohad alusel, koormaga alus ei läbi avatud konveieri lõppu
+  for (const [name, make] of [['G', LayoutG], ['H', () => { const model = LayoutH(); model.Tracks[0].Carts = 3; return model; }],
+    ['S', LayoutS], ['P', LayoutP]]) {
+    const completed = [];
+    for (const places of [1, 2, 3]) {
+      const model = make();
+      for (const track of model.Tracks) track.PlacesPerCart = places;
+      const report = SimRun(NetworkOf(model), places > 1 ? CHECKED : {});
+      assert.equal(report.Deadlock, false, `${name}, ${places} kohta: ${report.DeadlockReason}`);
+      completed.push(report.Completed);
+    }
+    assert.ok(Math.min(...completed) >= completed[0] * 0.9, `${name}: valmis ${completed.join(' / ')}`);
+  }
 });
 
 // ---------------------------------------------------------------------

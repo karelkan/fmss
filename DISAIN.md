@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -63,7 +63,7 @@ Uus lahendus:
 
 ### 2.1 `Enumerate` – teostus (etapp 4) **[T + U]**
 
-Etapis 4 toetas `Enumerate` ühte suletud pidevat konveierit. Etapist 7a on rajavõrk graaf: mitu rada, konnektorid ja avatud konveier (osa 2.3); etapist 7b ka diskreetne rada (`TraceGraph`, osa 11.1). Mitu detaili alusel (7c) annab veel selge vea „… pole veel toetatud“.
+Etapis 4 toetas `Enumerate` ühte suletud pidevat konveierit. Etapist 7a on rajavõrk graaf: mitu rada, konnektorid ja avatud konveier (osa 2.3); etapist 7b ka diskreetne rada (`TraceGraph`, osa 11.1); etapist 7c on alusel / kärul ka mitu kohta (`PlacesPerCart > 1`, osa 16).
 
 - **Ikoonide küljed** (`IconTypes[...].Ports`, `fms_glb.js`): `HorTr` W–E, `VertTr` N–S, kaared oma kahe küljega (`ArcSE` = S, E), `Tee*` läbib W–E või N–S ja haru (`Branch`) on nimes olev külg (`TeeN` → haru N), `Cruise` neli külge (ühendatud ristmik), `CrossOver` neli külge, aga ei ühenda (sild, osa 2.3). Y kasvab alla.
 - **Suunanool** **[O]**: originaalis oli pideva raja liikumissuund nool ühe raja ikooni kõrval („kirjeldatakse ühel raja ikoonil“). Mudelis on see lahtri väli `"Dir": "N" | "E" | "S" | "W"` – **külg, kust kärud ikoonist väljuvad**. Lubatud ainult raja sirgel ja kaarel ning ainult ikooni külgede suunas (`DirectionPorts`): `HorTr` → `E`/`W`, `ArcSE` → `S`/`E`; hargnemisel, ristmikul ja punktiirühendusel noolt ei ole (`CheckModel`). Diskreetsel rajal teeb nool lõigu ühesuunaliseks (osa 11.1).
@@ -118,19 +118,19 @@ Originaalis: „Rajad on seotud konnektorite, tööpinkide või puhvrite kaudu�
 |---|---|
 | `Speed` | cm/s |
 | `Carts` | kohtade (alustade, `Pallette`) arv konveieril |
-| `PlacesPerCart` | mitu detaili alusele mahub (esimeses järgus 1) |
+| `PlacesPerCart` | mitu detaili alusele mahub (etapist 7c ka > 1, osa 16) |
 | `LoadTime` | detaili peale- või mahalaadimise aeg, s |
 | `AccessTime` | esmakordse pöördumise aeg, s (esimeses järgus ei kasuta) |
 | `Direction` | liikumissuund |
 
 - Alused on konveieril võrdsete vahedega `Length / Carts` ja liiguvad koos: konveieril on üks nihe `Offset`, alus `palletIndex` asub kohal `(Offset + palletIndex · Length / Carts) mod Length`. **[T]**
 - Olek: `StopCount` – mitu laadimist parasjagu käib. Kui `StopCount > 0`, seisab **kogu konveier** (lk 45). **[O]**
-- Alus peatub jaamas ainult siis, kui seal on **tegevus**:
-  - **mahalaadimine**: alusel on detail, mille sihtkoht on see jaam;
-  - **pealelaadimine**: alus on tühi ja jaamas ootab detail, millele on sihtkoht juba broneeritud (vt 5.2).
+- Alus peatub jaamas ainult siis, kui seal on **tegevus** (`NeedsStop`):
+  - **mahalaadimine**: alusel on detail, mille sõit lõpeb selles jaamas (sihtkoht või konnektor);
+  - **pealelaadimine**: alusel on vaba koht (7c: detaile + broneeringuid < `PlacesPerCart`; ühe kohaga – alus on tühi) ja jaamas ootab detail, millele on sihtkoht juba broneeritud (vt 5.2).
 
   Muidu sõidab alus mööda. **[T]**
-- Kui samas jaamas on mõlemad, tehakse enne maha- ja siis pealelaadimine, konveier seisab vahepeal edasi. **[T]**
+- Kui samas jaamas on mitu tegevust, tehakse enne kõik mahalaadimised ja siis pealelaadimised (`PalletAction`), konveier seisab vahepeal edasi. **[T]**
 
 ### 3.2 Puhver **[O + T]**
 
@@ -251,7 +251,7 @@ Planner otsustab ja lisab sündmusi (`InSys`, `Load`, `OutSys`). **[O]** (lk 51)
 ### 5.2 Mida otsustab
 
 1. **Uue detaili sissetoomine** (`InSys`). **[O]**
-   - Millal: kui `Ndet / (Ntm + Nmt + Nbuf) < Kl`, vaikimisi `Kl = 0.85`. Lisaks igal lahkumisel kontrollitakse uuesti. Teised originaali reeglid (kindel intervall, ajakava, partiid) on valitavad seadetes.
+   - Millal: kui `Ndet / (Ntm + Nmt + Nbuf) < Kl`, vaikimisi `Kl = 0.85`. Etapist 7a lisandub konnektorite arv `Ncon`. `Ntm` on originaalis kohtade arv transpordil; etapist 7c **aluste / kärude arv** (`Carts`, kohtade arvust sõltumata) **[U]** – kohad tõid süsteemi detaile, mis ootasid FromCS-is (VALIDEERIMINE.md etapp 7c, leid 1). Ühe kohaga alusel on see sama. Lisaks igal lahkumisel kontrollitakse uuesti. Teised originaali reeglid (kindel intervall, ajakava, partiid) on valitavad seadetes.
    - Mis tüüp: kõige vähem töödeldud tüüp (vaikimisi); valitavad ka „üks tüüp järjest“ ja „kõige rohkem vabu pinke marsruudis“.
 2. **Marsruudi valik** sisenemisel. **[O]** Kriteeriumid: enim hetkel vabade pinkide operatsioone → lähim esimese operatsiooni pink → enim operatsioone samas pingis. Viik → marsruudi prioriteet.
 3. **Sihtkoha valik ja broneerimine** (`FindMach`, `FindBuf`, `FindSysPos`). **[T + U]**
@@ -291,6 +291,7 @@ Korraga peatub konveier ainult ühe aluse pärast. Teised tegevused tulevad jär
 - Pingi kohta: aeg igas olekus → rakendatus, töötlemise / häälestuse / laadimise / jõudeoleku osakaal, tehtud operatsioonide arv.
 - Puhvri kohta: keskmine ja maksimaalne täituvus.
 - Konveieri kohta: liikumise ja seismise osakaal, peatuste arv.
+- Raja kohta (7c): aluste / kärude keskmine ja suurim täituvus (`AvgLoad` – detaile aluse kohta, `MaxLoad`) ja kogumissõidud (`Pooled` – pealelaadimised, kui alusel oli juba detail). **[U]**
 - Detailitüübi kohta: sisse toodud, valmis, keskmine tsükliaeg.
 - Süsteem: läbilaskevõime (detaili tunnis), keskmine ja suurim detailide arv süsteemis, kesklattu pargitud.
 - **Aegrida** (`Stats.Timeline`, Dynamic-aruande jaoks, etapp 9) **[U]**: iga `SampleInterval` sekundi järel (vaikimisi 60, ka algus ja lõpp) detailid süsteemis, valmis, hõivatud pingid, puhvrite täituvus.
@@ -348,7 +349,8 @@ Invariandid, mida kontrollitakse igal sekundil:
 - igal kohal (alus, puhvri koht, pink) on max 1 detail, broneeringud ei ületa mahutavust;
 - `SYSTEM_TIME` ei vähene, Event Listis pole sündmust `Time < SYSTEM_TIME` pärast sisetsüklit;
 - `StopCount ≥ 0` ja seisev konveier ainult siis, kui mõni laadimine käib;
-- (diskreetsed rajad) igas tsoonis on max 1 käru ja käru on ainult tsoonis, mille ta on broneerinud.
+- (diskreetsed rajad) igas tsoonis on max 1 käru ja käru on ainult tsoonis, mille ta on broneerinud;
+- (7c) alusel on detaile + broneeringuid kokku kõige rohkem `PlacesPerCart`, iga detail viitab oma kohale; käru peatuste nimekirjas on igal tema detailil mahalaadimine sõidu lõppjaamas ja igal ootaval broneeringul enne seda pealelaadimine; käru sõidab nimekirja esimesse jaama.
 
 ---
 
@@ -357,7 +359,7 @@ Invariandid, mida kontrollitakse igal sekundil:
 1. **Avatud konveier** (mitte silmus): mis juhtub detailiga, mis jõuab raja lõppu? Ettepanek: konveier seiskub, kuni see maha laaditakse; Planner ei saada detaili teele, kui sihtkoht pole raja suunas eespool. *Teostatud etapis 7a (osa 2.3):* Planner saadab detaili ainult allavoolu, nii et koormaga alus ei jõua kunagi lõppu (invariant); tühjad alused lähevad lõpust otse algusesse.
 2. **Konnektor** (radade ühendus): kas see on lihtsalt kahe raja jaam, kus detail tõstetakse ühelt rajalt teisele (puhver mahutavusega 0, `Load` + `Load`)? Ettepanek: jah. *Teostatud etapis 7a (osa 2.3)* `Load` + `Load`-iga, kuid konnektor mahutab ühe detaili ja see broneeritakse koos sihtkohaga.
 3. **`AccessTime`** (keskmine pöördusaeg): tähendus on ebaselge. Ettepanek: lisaviivitus enne esimest laadimist, kui konveier oli seisnud – või jätta kasutamata.
-4. **Mitu detaili alusel** (`placesPerCart > 1`) ja **mitu detaili pingis**: esimeses järgus 1, hiljem laiendada.
+4. **Mitu detaili alusel** (`placesPerCart > 1`) ja **mitu detaili pingis**: esimeses järgus 1, hiljem laiendada. *Mitu detaili alusel teostatud etapis 7c (osa 16);* mitu detaili pingis on endiselt 1.
 
 ---
 
@@ -378,16 +380,16 @@ Tänapäevased nimetused: **AGV** (*automated guided vehicle*, automaatjuhitav k
 
 ### 11.2 Käru kui iseseisev objekt **[O + T]**
 
-- Raja parameetrid (tabel 4.1): kärude arv, kohtade arv kärul (1, 7c), kiirus, laadimisaeg, pöördusaeg (ei kasuta). **[O]**
-- Käru (`Pallets[i]`, nagu konveieri alus – detaili asukoht `Pallet`) on **punkt**: sõlmes (`Node`) või lõigul (`Edge`, `Dir`, `Distance`). Tal on tee (`Route` – sammud `{ Edge, Dir }`, `RouteEnd`), töö sihtsõlm (`Goal`), detail (`WP`) või broneeritud detail (`ReservedWP`). Algul on kärud sõlmedes: enne jaamata otsad, siis muud sõlmed, siis hargnemised (`InitCarts`).
+- Raja parameetrid (tabel 4.1): kärude arv, kohtade arv kärul (etapist 7c ka > 1, osa 16), kiirus, laadimisaeg, pöördusaeg (ei kasuta). **[O]**
+- Käru (`Pallets[i]`, nagu konveieri alus – detaili asukoht `Pallet`) on **punkt**: sõlmes (`Node`) või lõigul (`Edge`, `Dir`, `Distance`). Tal on tee (`Route` – sammud `{ Edge, Dir }`, `RouteEnd`), töö sihtsõlm (`Goal`), kohad detailidega (`Places`), broneeritud detailid (`ReservedWPs`) ja peatuste nimekiri (`StopList`, 7c – osa 16). Algul on kärud sõlmedes: enne jaamata otsad, siis muud sõlmed, siis hargnemised (`InitCarts`).
 - Olek statistikas (`CartState`): `LOADING` (laadimine), `WAIT_ZONE` (ootab tsooni), `LOADED` / `EMPTY` (sõidab koormaga / tühjalt, ka kõrvale), `IDLE` (vaba). Käru peatub ainult tee lõpus, sõlmes või lõigu ooteasendis (`WaitPoint` – pool ikooni enne sõlme keskpunkti).
 - Sündmused jäävad samaks: `StopMov` (käru jõudis jaama), `Load` (väli `Pal` = käru), `MoveZ` (laadimine läbi – käru jätkab, `CartContinues`), lisaks `Collision`. Parkimiskohti (`Parking`) ei teostatud: vaba käru jääb paigale, aga läheb ise hargnemisest ära ja lükatakse teelt kõrvale (11.5).
 
 ### 11.3 Töö jagamine kärudele – `FindPal` **[O nimi, T sisu]**
 
-- Transpordisoov tekib, kui detail läheb teele (`Depart`, osa 2.3) ja tema sõit algab diskreetsel rajal. `FindPal` (igal sekundil enne liikumist) käib soovid läbi vanim enne ja annab igaühele vaba käru, kes jõuab **kõige kiiremini** kohale (`ProgTM`); viigi korral väiksem number.
+- Transpordisoov tekib, kui detail läheb teele (`Depart`, osa 2.3) ja tema sõit algab diskreetsel rajal. `FindPal` (igal sekundil enne liikumist) käib soovid läbi vanim enne ja annab igaühele vaba käru, kes jõuab **kõige kiiremini** kohale (`ProgTM`); viigi korral väiksem number. Vaba käru peatuste nimekiri on siis pealelaadimine ja mahalaadimine. Mitme kohaga kärul võib soovi saada ka hõivatud käru (7c, osa 16).
 - Eelistatud on käru, kelle **teel pole teist käru**. Kui sobiv vaba käru peaks teisest mööda pääsema, ootab soov kuni `REQUEST_PATIENCE` (30 s) – vahepeal vabaneb tavaliselt lähem käru – ja alles siis antakse see ikkagi. *Valideerimisest (I2):* ilma selleta andis teine käru üherealisel joonel 26 % vähem valmis detaile.
-- Käru, kes jaamas maha laadis, võtab sealt kohe ootava soovi, millel käru pole (`CartPickupCandidate`).
+- Käru, kes jaamas maha laadis, võtab sealt kohe ootava soovi, millel käru pole, kui tal on vaba koht (`CartPickupCandidate`).
 
 ### 11.4 Teekond – `ProgTM` **[O nimi, U sisu]**
 
@@ -513,7 +515,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `StationArray` | jaamad (kus kärud peatuvad ja laaditakse) | [U] |
 | `ConnectorArray` | konnektorid: radade ülekandekoht, mahutab 1 detaili (osa 2.3) | [O] |
 | `TransportPaths` | lühimad teed jaamast jaama (`StationPaths` tulemus) | [U] |
-| `Tracks[i].Pallets` | konveieri alused / diskreetse raja kärud (käru: `Node`, `Edge`, `Dir`, `Distance`, `Route`, `Goal`, `Waiting`) | [T] |
+| `Tracks[i].Pallets` | konveieri alused / diskreetse raja kärud: kohad `Places` (detail või `null`), broneeritud `ReservedWPs` (7c); käru ka `Node`, `Edge`, `Dir`, `Distance`, `Route`, `Goal`, `Waiting`, `StopList` | [T] / [U] |
 | `Tracks[i].Nodes`, `Tracks[i].Edges`, `Tracks[i].Holder` | diskreetse raja sõlmed (`Junction` – hargnemine) ja lõigud (`OneWay`); tsoon → käru (osa 11) | [U] |
 | `Stats` | kogutud statistika (`Stats.Timeline` – aegrida) | [T] |
 
@@ -543,6 +545,9 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `CartBlock`, `TryHoldZones`, `ReleaseZone`, `NodeZone`, `EdgeZone`, `CartZone`, `HeldByOther`, `FarNode`, `WaitPoint` | plokk (osa 11.5); broneerimine korraga; vabastamine; tsooni võti; käru tsoon; kas teise käru käes; sõlm, kuhu käru sõidab; ooteasend lõigul | [U] |
 | `MoveCarts`, `MoveCart`, `CartArrives`, `CartContinues`, `TryDetour` | diskreetse raja sekund (`MinuteMan`); käru liikumine; tee lõpus; laadimise järel (`MoveZ`); ümbersõit kinnise ploki korral (osa 11.5, 11.7) | [U] |
 | `CartIdle`, `CartPickupCandidate`, `InitCarts`, `CartState`, `CheckCarts` | vaba käru; jaamas peale võetav detail; kärude algkohad; olek statistikas; diskreetse raja invariandid | [U] |
+| `PalletWPs`, `PalletHasRoom`, `PalletEmpty`, `ClearPlace`, `CheckPallet` | detailid alusel; kas alusel on vaba koht (detailid + broneeringud < `PlacesPerCart`); alus tühi ja broneeringuteta; detail lahkub kohalt; aluse kohtade invariandid (osa 16) | [U] |
+| `PalletAction`, `BeginPalletAction` | aluse järgmine tegevus jaamas (enne mahalaadimised, siis pealelaadimised); selle alustamine või `MoveZ` (osa 16) | [U] |
+| `StopNode`, `RemoveCartStop`, `StopListTime`, `CartInsertion`, `CartInsertDrop`, `CanTakeMore`, `UpdateCartGoal` | käru peatuste nimekiri (osa 16): peatuse sõlm; peatuse kustutamine; sõiduaeg läbi peatuste; odavaim lisamine (soov hõivatud kärule); jaamas lisaks võetud detaili mahalaadimine; kas hõivatud käru võib soovi saada; sihtsõlm = esimene peatus | [U] |
 | `SendAside`, `NeededZones`, `Blockers`, `Stuck`, `IsWaiting`, `FindWaitCycle`, `FindCollision` | käru kõrvale; tsoonid, mida käru veel vajab; kelle taga käru ootab; kõrvale saamata vaba käru; ootab ootegraafis; ootegraafi ring; `Collision`-i ring (osa 11.6) | [U] |
 | `CollisionProc` | `Collision`: ümbersõit või kõrvalepõige, muidu ummik (osa 11.6) | [O nimi, U tähendus] |
 | `DETOUR_FACTOR`, `DETOUR_SLACK`, `REQUEST_PATIENCE`, `COLLISION_RETRIES` | ümbersõidu piir (1,5 × + 10 s); soovi ootamine vaba teega käru järele (30 s); sama ring järjest (10) | [U] |
@@ -559,7 +564,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, piirid, viited); kasutavad ka redaktori vormid | [U] |
 | `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
 | abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `PICKUP_SOURCE`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves`, `SampleDuration`, `Random` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
-| `Animator`, `SimStatus`, `Transport` | kuvamine: pinkide, puhvrite ja ladude seis; üldseis ühe reana; alused ja detailid (`anima.js`, osa 14) | [O] |
+| `Animator`, `SimStatus`, `Transport` | kuvamine: pinkide, puhvrite ja ladude seis; üldseis (üldosa + rajad); alused ja nende kohad (`anima.js`, osa 14) | [O] |
 
 **Mudeli konstandid** (`src/fms_glb.js`)
 
@@ -613,6 +618,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `EdgePoint`, `NodePoint`, `CartPosition`, `CartPoint`, `InterpolateCart`, `CartPositions` | diskreetse raja punkt lõigul; sõlme punkt; käru asukoht (koopia); käru punkt; käru punkt kahe sekundi vahel; kõigi kärude eelmine asukoht (7b) | [U] |
 | `DrawZones`, `BranchIsTrack` | broneeritud plokk (katkendjoon, ring); kas hargnemise haru on rada (pidev joon) või punktiirühendus (7b) | [U] |
 | `WorkpiecePlaces`, `PlacePoint`, `BuildScene` | kus iga detail joonistatakse (ka laadimisel liikumas); koha punkt; kaadri andmed | [U] |
+| `PalletGrid`, `PalletPlacePoint`, `DrawPalletPlaces`, `PLACES_SHOWN`, `PLACE_PITCH` | aluse kohtade paigutus (1–3 reas, 4 – 2 × 2); koha punkt alusel; vabad ja broneeritud kohad, üle 4 koha detailide arv; nähtavaid kohti 4; kohtade vahe (7c) | [U] |
+| `FitText`, `EgaStatusRows` | tekst lühendatud laiusesse („..“); EGA olekurida üks või kaks rida (7c, 7b ootel töö) | [U] |
 | `EventListArray`, `DiffEventList`, `EventAxisX`, `EVENT_TICKS`, `EventCardLayout`, `RelatedObjects` | Event List massiivina; lisandunud ja töödeldud kirjed; ajatelg ja selle märgid (kellaajana); kaartide veerud; kaardiga seotud objektid | [U] |
 | `SPEED_STEPS`, `MAX_SPEED`, `SpeedFromSlider`, `SliderFromSpeed`, `NextSpeed`, `SpeedText`, `ClockText` | kiiruse skaala (×1 … ×1000) ja vormindus; aeg h:mm:ss | [U] |
 | `LayoutView`, `DrawLayout`, `DrawIcon`, `ObjectLabel` | ruudustiku vaade ekraanil; ikoonid (kasutab ka redaktor) | [U] |
@@ -688,13 +695,13 @@ Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinki
 |---|---|
 | konveier | rada; seisab → teine värv (iga rada eraldi, 7a), olekureal „seisab (n)“ = käivaid laadimisi; avatud konveieril lähevad alused lõpust algusesse |
 | konnektor (7a) | kast raja vahel; detail sees; broneeritud (detail tuleb) – kontuur ümber kasti |
-| alus | ruut raja peal; broneeritud (detail tuleb peale) – teine raam |
+| alus | ruut raja peal; broneeritud (detail tuleb peale) – teine raam. Mitme kohaga (7c): kohad lahtritena 1–3 reas või 2 × 2, detail oma kohas, vaba koht (`PalletPlace`), broneeritud koht kontuuriga; üle 4 koha – „detaile/kohti“ aluse kohal |
 | AGV käru (7b) | ruut raja graafis (`CartPoint`), liigub sujuvalt ka sõlme kaudu ja ümber pöörates (`InterpolateCart`); ootab tsooni – oranž / pruun raam; broneeritud plokk, kuhu käru pole veel jõudnud – lõik katkendjoonena, sõlm ringina (`DrawZones`); raja-haru on pidev joon, punktiirühendus punktiir |
 | detail | ring tüübi värviga (16 tüüpi); ummiku tõttu kesklattu saadetav – punane ring |
 | tööpink | keha värv olekust; täht: L laadimine, H häälestus, T töötlemine, M mahalaadimine (R rike – etapp 8) |
 | puhver | kohad lahtritena: detail (nool pingi poole – sissetulev, raja poole – väljaminev), broneeritud (kontuur), vaba |
 | FromCS / ToCS / SysOut | ootavad detailid (4 + arv); täituvus valmis + pargitud + broneeritud / mahutavus; lahkunute arv |
-| SimStatus | aeg / kestus, kiirus, olek, detailid süsteemis ja valmis, tk/h, konveier; diskreetsel rajal „AGV liigub 2/3“ või „AGV ootab 1/3“ |
+| SimStatus | aeg / kestus, kiirus, olek, detailid süsteemis ja valmis, tk/h, konveier; diskreetsel rajal „AGV liigub 2/3“ või „AGV ootab 1/3“. EGA-s kahel real, kui radade tekst kõige pikemal kujul ei mahu (rida ei hüppa), teine rida vajadusel lühendatud „..“; kaasaegses juhtribal lühendatud (7c) |
 
 EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 värviga (Bresenham, ilma silumiseta).
 
@@ -732,3 +739,21 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 - **Andmekontroll ja hoiatused** [U]: Layout-i infureal on vigade ja hoiatuste arv (`ModelProblems`: `CheckModel`, siis `Enumerate`; arvutatakse iga muudatuse järel). **K** või Edit → **Check** näitab nimekirja; Enter viib vea kohale joonisel (`ProblemCell`: lahter, pink, puhver või rada).
 - **Pooleli mudel jääb salvestatavaks**: „operatsiooni ei tee ükski pink“ on nüüd ainult `Enumerate`-i viga (osa 2.2) – muidu muutuks mudel pärast pingi kustutamist laadimatuks.
 - Vormi muudatus läheb Layout-i Undo-sse (`NoteEditorChange`) ja märgib mudeli muudetuks.
+
+---
+
+## 16. Mitu detaili alusel / kärul (etapp 7c) **[O + U]**
+
+Originaalis on rajal „kohtade arv transpordivahendil – mitu detaili mahub korraga“ (originaal.md tabel 4.1), aga kuidas mitu detaili ühel alusel liiguvad, pole kirjeldatud. **[O]** Teostus: `src/fms_sim.js`, testid `test/places.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c.
+
+- **Põhimõte jääb** **[U]**: detail läheb alusele ainult siis, kui tema sihtkoht (ja tee konnektorid) on broneeritud (osa 5.2). Seega pääseb iga alusel olev detail alati maha – transpordikohad ei ole kunagi ringootamises ja ummiku vältimist (osa 5.3) muuta pole vaja.
+- **Kohad** **[U]**: alusel / kärul on `Places` (massiiv pikkusega `PlacesPerCart`, detail või `null`) ja `ReservedWPs` (pidev rada: pealelaadimine käib; käru: talle antud soovid). Detaili asukoht `Pallet` teab oma kohta (`Place`). `PlacesPerCart = 1` korral on kõik nagu enne: kõik varasemad aruanded on identsed (VALIDEERIMINE.md 7c).
+- **Jaamas** (`PalletAction`) **[T]**: enne kõik mahalaadimised (detailid, mille sõit lõpeb siin), siis pealelaadimised (vaba koht ja ootav detail, vanim enne). Iga detail on eraldi `Load` (`LoadTime`); alus seisab, kuni tegevusi on.
+- **Pidev konveier** **[T]**: alus peatub, kui tal on siin mahalaadimine või vaba koht ja jaamas ootab detail (`NeedsStop`). Kogumissõit tuleb iseenesest – alus korjab detaile tee pealt. Avatud konveier jääb ohutuks, sest iga detail sõidab ainult allavoolu (osa 2.3).
+- **Käru – peatuste nimekiri** (`StopList`) **[U]**: kirjed `{ Kind: 'Pickup' | 'Drop', Station, WP }`. Käru sõidab nimekirja esimesse jaama (`Goal`), teeb seal kõik tegevused ja jätkab järgmisse (`CartContinues`). Tühi nimekiri – käru on vaba.
+- **Soov hõivatud kärule – odavaim lisamine** (*cheapest insertion*, *dial-a-ride* ülesande tuntud heuristika) **[U]**: `FindPal` võib soovi anda ka kärule, kellel on töö ja vaba koht (detailid + broneeringud < `PlacesPerCart`), kes ei laadi ja sõidab oma sihtsõlme (`CanTakeMore`). `CartInsertion` proovib kõiki kohti nimekirjas: pealelaadimine positsioonile *i*, mahalaadimine *j ≥ i*; valitakse väikseim sõiduaeg (käru juurest `ProgTM`, edasi `NodeDistances`). Lubatud ainult siis, kui uus sõiduaeg on kõige rohkem `DETOUR_FACTOR` × praegune + `DETOUR_SLACK` (1,5 × + 10 s) – kärul olevad detailid ei jää kauaks peale. Kui jaam on käru teel, on lisakulu 0. Soov läheb kärule, kes jõuab pealelaadimisele kõige varem (vaba käru: sõiduaeg; hõivatud: sõit + eelnevate peatuste laadimised). Kuna kohustusi pole rohkem kui kohti, ei saa käru kunagi ületäis ja nimekirjas on kõige rohkem `2 × PlacesPerCart` peatust.
+- **Jaamas lisaks** **[T]**: kui kärul on pärast mahalaadimisi vaba koht, võtab ta jaamas ootava soovi, millel käru pole (`CartPickupCandidate`, nagu 7b-s), ja selle mahalaadimine lisatakse nimekirja odavaimasse kohta (`CartInsertDrop`).
+- **Liiklus** (osa 11.5–11.6) ei muutu: osaliselt täis käru on `Collision`-i valikus „koormaga“; kõrvale saadetakse ainult vabu kärusid; hõivatud kärule ei lisata soovi, kui ta on kõrvalepõikel või ümbersõidul teise sõlme (`RouteEnd ≠ Goal`).
+- **`Kl`** **[U]**: `Ntm` = aluste / kärude arv (`Carts`), mitte kohtade arv (osa 5.2). Originaali järgi (`Carts × PlacesPerCart`) tõi Planner süsteemi rohkem detaile, mis ootasid FromCS-is – tsükliaeg kasvas (A: 1883 → 3907 s), läbilaskevõime mitte (VALIDEERIMINE.md 7c leid 1).
+- **Statistika**: raja `AvgLoad`, `MaxLoad`, `Pooled` (osa 7); kokkuvõttes rida „kohti N: keskmiselt …, kuni …, kogumissõite …“.
+- **Andmemudel**: uusi välju pole – `PlacesPerCart` oli olemas; redaktori hoiatus 6 (`Carts × PlacesPerCart > Σ Capacity`) arvestab kohti.

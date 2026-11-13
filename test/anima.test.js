@@ -114,7 +114,7 @@ test('animaator ei mõjuta simulatsiooni; iga detail on igal sekundil täpselt �
         moving++;
       }
       if (place.Kind === 'Pallet') {
-        assert.equal(state.Tracks[place.Track].Pallets[place.Pal].WP, place.WP.Id);
+        assert.equal(state.Tracks[place.Track].Pallets[place.Pal].Places[place.Place], place.WP.Id);
       }
       if (place.Kind === 'Buffer') assert.ok(place.Slot >= 0 && place.Slot < network.Buffers[place.Index].Capacity);
     }

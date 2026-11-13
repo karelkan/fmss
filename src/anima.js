@@ -240,7 +240,7 @@ function EventPlace(state, event, type, code) {
 function LocationPlace(state, workpiece) {
   const location = workpiece.Location;
   switch (location.Kind) {
-    case 'Pallet': return { Kind: 'Pallet', Track: location.Track, Pal: location.Pal };
+    case 'Pallet': return { Kind: 'Pallet', Track: location.Track, Pal: location.Pal, Place: location.Place };
     case 'Buffer': {
       const slot = state.BufferArray[location.Index].Entries.findIndex(entry => entry.WP === workpiece.Id);
       return { Kind: 'Buffer', Index: location.Index, Slot: slot };
@@ -644,7 +644,7 @@ function Transport(theme, view, anim, state, scene) {
       const x = Math.round(point.X - widthX / 2);
       const y = Math.round(point.Y - widthY / 2);
       theme.RoundRect(x, y, Math.round(widthX), Math.round(widthY), view.Ega ? 0 : 2, 'Pallet');
-      const reserved = pallet.ReservedWP !== null;
+      const reserved = pallet.ReservedWPs.length > 0;
       const waiting = track.Discrete && pallet.Waiting !== null;   // käru ootab tsooni (7b)
       const role = waiting ? 'TrackStopped' : reserved ? 'PalletReserved' : 'PalletFrame';
       theme.StrokeRect(x, y, Math.round(widthX), Math.round(widthY), role,

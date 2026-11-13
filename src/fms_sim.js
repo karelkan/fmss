@@ -45,7 +45,7 @@ let FromCSQueue = [];         // [T] FromCS jaamas ootavate detailide Id-d
 let Stats = null;             // [T] kogutud statistika
 let RandomState = 0;          // [U] juhuarvugeneraatori olek
 let LastEventTime = 0;        // [U] viimase töödeldud sündmuse aeg (ummiku avastamiseks)
-let TotalPlaces = 0;          // [O] Ntm + Nmt + Nbuf (lk 42)
+let TotalPlaces = 0;          // [O] Ntm + Nmt + Nbuf (lk 42) + Ncon (7a); Ntm = alusi / kärusid (7c)
 
 const MAX_EVENTS_PER_STEP = 100000;  // [U] kaitse lõputu tsükli vastu
 const PARKING_RESERVE = 2;           // [U] kesklao kohti, mis jäetakse ummiku lahendamiseks (5.3)
@@ -158,11 +158,6 @@ export function Enumerate(model) {
     }
   });
   if (usedTracks.length === 0) EnumError(context, 'Layout', Texts.EnumNoTrack);
-  for (const trackIndex of usedTracks) {
-    const track = model.Tracks[trackIndex];
-    const path = `Tracks[${trackIndex + 1}]`;
-    if (track.PlacesPerCart > 1) EnumError(context, `${path}.PlacesPerCart`, Texts.EnumLater, { What: Texts.EnumLaterPlaces, Stage: '7c' });
-  }
   if (context.Errors.length > 0) return result();
 
   // Rajad: suunanoole järgi silmus või avatud konveier; harudel ja otstes jaamad
@@ -1420,12 +1415,51 @@ function PickupCandidate(stationIndex) {
 // MinuteMan – konveierite liigutamine
 // =====================================================================
 
-// [T] NeedsStop – kas alus peab jaamas peatuma: mahalaadimine (detaili sõidu lõpp – sihtkoht
-//     või konnektor) või pealelaadimine (alus tühi, jaamas ootab detail).
+// [U] PalletWPs – detailid alusel (kärul) kohtade järjekorras (etapp 7c: alusel PlacesPerCart kohta).
+function PalletWPs(pallet) {
+  return pallet.Places.filter(workpieceId => workpieceId !== null);
+}
+
+// [U] PalletHasRoom – kas alusel on veel koht: detailid peal + broneeritud (pealelaadimine käib,
+//     käru sõidab järele) < PlacesPerCart.
+function PalletHasRoom(track, pallet) {
+  return PalletWPs(pallet).length + pallet.ReservedWPs.length < track.PlacesPerCart;
+}
+
+// [U] PalletEmpty – alusel pole detaile ega broneeringuid.
+function PalletEmpty(pallet) {
+  return PalletWPs(pallet).length === 0 && pallet.ReservedWPs.length === 0;
+}
+
+// [T] NeedsStop – kas alus peab jaamas peatuma: mahalaadimine (mõne detaili sõidu lõpp – sihtkoht
+//     või konnektor) või pealelaadimine (alusel on vaba koht ja jaamas ootab detail).
 function NeedsStop(track, palletIndex, stationIndex) {
   const pallet = track.Pallets[palletIndex];
-  if (pallet.WP !== null) return SysWPArray[pallet.WP].Path[0].To === stationIndex;
-  return PickupCandidate(stationIndex) !== null;
+  if (PalletWPs(pallet).some(workpieceId => SysWPArray[workpieceId].Path[0].To === stationIndex)) return true;
+  return PalletHasRoom(track, pallet) && PickupCandidate(stationIndex) !== null;
+}
+
+// [U] PalletAction – aluse järgmine tegevus jaamas: enne mahalaadimine (detail, mille sõit lõpeb
+//     siin), siis pealelaadimine (pidev rada: vaba koht ja jaamas ootab detail; käru:
+//     CartPickupCandidate). Tagastab { Kind: 'Unload' | 'Pickup', WP } või null.
+//     Kutsuvad: StopMovProc, AfterPalletAtStation, LoadProc.
+function PalletAction(trackIndex, palletIndex, stationIndex) {
+  const track = Tracks[trackIndex];
+  const pallet = track.Pallets[palletIndex];
+  const unload = PalletWPs(pallet).map(workpieceId => SysWPArray[workpieceId])
+    .find(workpiece => workpiece.Path[0].To === stationIndex && workpiece.State !== 'LOADING');
+  if (unload !== undefined) return { Kind: 'Unload', WP: unload };
+  let candidate = null;
+  if (track.Discrete) candidate = CartPickupCandidate(pallet, stationIndex);
+  else if (PalletHasRoom(track, pallet)) candidate = PickupCandidate(stationIndex);
+  return candidate !== null ? { Kind: 'Pickup', WP: candidate } : null;
+}
+
+// [U] BeginPalletAction – alustab PalletAction-i tegevust; kui seda pole, jätkab alus (MoveZ).
+function BeginPalletAction(trackIndex, palletIndex, stationIndex, action) {
+  if (action === null) PutEvent({ Event: 'MoveZ', Track: trackIndex, Pal: palletIndex });
+  else if (action.Kind === 'Unload') BeginUnloadFromPallet(trackIndex, palletIndex, stationIndex, action.WP);
+  else BeginPickup(trackIndex, palletIndex, stationIndex, action.WP);
 }
 
 // [O] MinuteMan – liigutab iga liikuvat konveierit ühe sekundi võrra. Kui mõni alus ületab
@@ -1606,64 +1640,175 @@ function SetRoute(track, cart, plan) {
 
 // [U] CartIdle – kas käru on vaba (tööd pole, ei laadi). Liikuv (kõrvale minev) vaba käru on ka vaba.
 function CartIdle(cart) {
-  return cart.WP === null && cart.ReservedWP === null && !cart.Stopped && cart.Goal < 0;
+  return PalletEmpty(cart) && !cart.Stopped && cart.Goal < 0;
 }
 
-// [O nimi, T sisu] FindPal – jagab transpordisoovid vabadele kärudele: soov (detail ootab käru
-//     selle raja jaamas, vanim enne) saab käru, mis jõuab kõige kiiremini kohale (ProgTM); viigi
-//     korral väiksema numbriga käru. Kutsub: MoveCarts.
+// [U] StopNode – peatuse (käru peatuste nimekirja kirje { Kind, Station, WP }) sõlm.
+function StopNode(stop) {
+  return StationArray[stop.Station].Node;
+}
+
+// [U] RemoveCartStop – kustutab käru peatuste nimekirjast detaili peale- või mahalaadimise.
+function RemoveCartStop(cart, kind, workpieceId) {
+  cart.StopList = cart.StopList.filter(stop => stop.Kind !== kind || stop.WP !== workpieceId);
+}
+
+// [U] StopListTime – sõiduaeg käru praegusest kohast läbi peatuste (stops) ning sõit kuni iga
+//     peatuseni (Arrivals, ilma laadimisteta). Käru juurest ProgTM, edasi NodeDistances.
+//     Infinity, kui teed pole. Kutsuvad: CartInsertion, CartInsertDrop.
+function StopListTime(track, cart, stops, fromCart) {
+  const distances = NodeDistances(track);
+  const arrivals = [];
+  let time = 0;
+  stops.forEach((stop, index) => {
+    const node = StopNode(stop);
+    if (index === 0) {
+      if (!fromCart.has(node)) fromCart.set(node, ProgTM(track, cart, node)?.Time ?? Infinity);
+      time = fromCart.get(node);
+    } else {
+      const previous = StopNode(stops[index - 1]);
+      time += previous === node ? 0 : (distances[previous][node]?.Time ?? Infinity);
+    }
+    arrivals.push(time);
+  });
+  return { Time: time, Arrivals: arrivals };
+}
+
+// [U] CartInsertion – odavaim lisamine (cheapest insertion, dial-a-ride): kuhu lisada käru
+//     peatuste nimekirja detaili pealelaadimine (sõidu algusjaam) ja selle järel mahalaadimine
+//     (sõidu lõppjaam), et sõiduaeg kasvaks kõige vähem. Lubatud ainult siis, kui uus sõiduaeg on
+//     kõige rohkem DETOUR_FACTOR × praegune + DETOUR_SLACK (teised detailid ei jää kauaks peale).
+//     Tagastab { Stops – uus nimekiri, Arrival – millal käru jõuab pealelaadimisele (sõit +
+//     eelnevate peatuste laadimised) } või null. Kutsub: FindPal.
+function CartInsertion(track, cart, workpiece) {
+  const fromCart = new Map();
+  const list = cart.StopList;
+  const limit = StopListTime(track, cart, list, fromCart).Time * DETOUR_FACTOR + DETOUR_SLACK;
+  const pickup = { Kind: 'Pickup', Station: workpiece.Path[0].From, WP: workpiece.Id };
+  const drop = { Kind: 'Drop', Station: workpiece.Path[0].To, WP: workpiece.Id };
+  let best = null;
+  for (let i = 0; i <= list.length; i++) {
+    for (let j = i; j <= list.length; j++) {
+      const stops = [...list.slice(0, i), pickup, ...list.slice(i, j), drop, ...list.slice(j)];
+      const result = StopListTime(track, cart, stops, fromCart);
+      if (!Number.isFinite(result.Time) || result.Time > limit) continue;
+      if (best === null || result.Time < best.Time) {
+        const loads = stops.slice(0, i).reduce((sum, stop) => sum + StationLoadTime(track.Index, stop.Station), 0);
+        best = { Stops: stops, Time: result.Time, Arrival: result.Arrivals[i] + loads };
+      }
+    }
+  }
+  return best;
+}
+
+// [U] CartInsertDrop – käru võttis jaamas peale detaili, mis polnud tema töö (jaamas ootav soov):
+//     detaili mahalaadimine lisatakse peatuste nimekirja sinna, kus sõiduaeg kasvab kõige vähem.
+//     Kutsub: BeginPickup.
+function CartInsertDrop(track, cart, workpiece) {
+  const fromCart = new Map();
+  const list = cart.StopList;
+  const drop = { Kind: 'Drop', Station: workpiece.Path[0].To, WP: workpiece.Id };
+  let best = null;
+  for (let j = 0; j <= list.length; j++) {
+    const stops = [...list.slice(0, j), drop, ...list.slice(j)];
+    const time = StopListTime(track, cart, stops, fromCart).Time;
+    if (best === null || time < best.Time) best = { Stops: stops, Time: time };
+  }
+  cart.StopList = best.Stops;
+}
+
+// [U] CanTakeMore – kas hõivatud kärule võib lisada soovi (CartInsertion): tal on töö ja vaba koht,
+//     ta ei laadi ja sõidab oma sihtsõlme (mitte kõrvale ega ümbersõidul teise sõlme).
+function CanTakeMore(track, cart) {
+  return cart.StopList.length > 0 && !cart.Stopped && cart.Route !== null && cart.RouteEnd === cart.Goal
+    && PalletHasRoom(track, cart);
+}
+
+// [U] UpdateCartGoal – käru sihtsõlm on peatuste nimekirja esimene jaam; kui see muutus, saab käru
+//     uue tee (ProgTM). Kutsub: FindPal.
+function UpdateCartGoal(track, cart) {
+  const goal = StopNode(cart.StopList[0]);
+  if (goal === cart.Goal) return;
+  const plan = ProgTM(track, cart, goal);
+  if (plan === null) throw new Error(`UpdateCartGoal: rajal ${track.Name} pole teed sõlme ${goal}`);
+  cart.Goal = goal;
+  SetRoute(track, cart, plan);
+}
+
+// [O nimi, T sisu] FindPal – jagab transpordisoovid kärudele: soov (detail ootab käru selle raja
+//     jaamas, vanim enne) saab käru, mis jõuab kõige kiiremini kohale (ProgTM); viigi korral
+//     väiksema numbriga käru. Vaba käru peatuste nimekiri on pealelaadimine ja mahalaadimine.
+//     Mitme kohaga kärul (7c) võib soovi saada ka hõivatud käru, kui sel on vaba koht ja soov sobib
+//     tema teele (CartInsertion – kogumissõit). Kutsub: MoveCarts.
 function FindPal(track) {
+  const reserved = new Set(track.Pallets.flatMap(cart => cart.ReservedWPs));
   const requests = SysWPArray
     .filter(workpiece => workpiece.State === 'WAIT_PICKUP' && workpiece.Path[0].Track === track.Index
-      && !track.Pallets.some(cart => cart.ReservedWP === workpiece.Id))
+      && !reserved.has(workpiece.Id))
     .sort((first, second) => first.StateSince - second.StateSince || first.Id - second.Id);
   for (const workpiece of requests) {
     const goal = StationArray[workpiece.Path[0].From].Node;
     let chosen = null;
     for (const cart of track.Pallets) {
-      if (!CartIdle(cart)) continue;
-      const plan = ProgTM(track, cart, goal);
-      if (plan === null) continue;
-      // eelistatud on käru, kelle teel pole teist käru (muidu peaks see temast mööda pääsema)
-      const free = ProgTM(track, cart, goal, zone => HeldByOther(track, zone, cart));
-      const score = [free !== null ? 0 : 1, plan.Time];
-      if (chosen === null || CompareScores(score, chosen.Score) < 0) chosen = { Cart: cart, Plan: plan, Score: score };
+      let option;
+      if (CartIdle(cart)) {
+        const plan = ProgTM(track, cart, goal);
+        if (plan === null) continue;
+        // eelistatud on käru, kelle teel pole teist käru (muidu peaks see temast mööda pääsema)
+        const free = ProgTM(track, cart, goal, zone => HeldByOther(track, zone, cart));
+        option = { Score: [free !== null ? 0 : 1, plan.Time], Plan: plan, Stops: [
+          { Kind: 'Pickup', Station: workpiece.Path[0].From, WP: workpiece.Id },
+          { Kind: 'Drop', Station: workpiece.Path[0].To, WP: workpiece.Id }] };
+      } else if (CanTakeMore(track, cart)) {
+        const insertion = CartInsertion(track, cart, workpiece);
+        if (insertion === null) continue;
+        option = { Score: [0, insertion.Arrival], Plan: null, Stops: insertion.Stops };
+      } else {
+        continue;
+      }
+      if (chosen === null || CompareScores(option.Score, chosen.Score) < 0) chosen = { Cart: cart, ...option };
     }
     if (chosen === null) {
-      if (!track.Pallets.some(CartIdle)) break;   // vaba käru pole – soovid ootavad (FIFO)
+      if (!track.Pallets.some(cart => CartIdle(cart) || CanTakeMore(track, cart))) break;   // kärusid pole – soovid ootavad (FIFO)
       continue;
     }
     // vaba käru tee on teise käru tõttu kinni: oota veidi, ehk vabaneb lähem käru (REQUEST_PATIENCE)
     if (chosen.Score[0] === 1 && SYSTEM_TIME - workpiece.StateSince < REQUEST_PATIENCE) continue;
-    chosen.Cart.ReservedWP = workpiece.Id;
-    chosen.Cart.Goal = goal;
-    SetRoute(track, chosen.Cart, chosen.Plan);
+    const cart = chosen.Cart;
+    cart.ReservedWPs.push(workpiece.Id);
+    cart.StopList = chosen.Stops;
+    if (chosen.Plan !== null) {
+      cart.Goal = goal;
+      SetRoute(track, cart, chosen.Plan);
+    } else {
+      UpdateCartGoal(track, cart);
+    }
   }
 }
 
-// [U] CartPickupCandidate – detail, mille käru jaamas peale võtab: tema enda soov või (kui käru on
-//     vaba) jaamas ootav soov, millel käru veel pole. Kutsuvad: StopMovProc, AfterPalletAtStation.
+// [U] CartPickupCandidate – detail, mille käru jaamas peale võtab: tema enda soov (vanim) või, kui
+//     kärul on vaba koht, jaamas ootav soov, millel käru veel pole. Kutsub: PalletAction.
 function CartPickupCandidate(cart, stationIndex) {
   const track = Tracks[cart.Track];
-  if (cart.ReservedWP !== null) {
-    const own = SysWPArray[cart.ReservedWP];
-    return own.State === 'WAIT_PICKUP' && own.Path[0].From === stationIndex ? own : null;
-  }
+  const own = cart.ReservedWPs.map(workpieceId => SysWPArray[workpieceId])
+    .filter(workpiece => workpiece.State === 'WAIT_PICKUP' && workpiece.Path[0].From === stationIndex)
+    .sort((first, second) => first.StateSince - second.StateSince || first.Id - second.Id);
+  if (own.length > 0) return own[0];
+  if (!PalletHasRoom(track, cart)) return null;
   const candidate = PickupCandidate(stationIndex);
   if (candidate === null || candidate.Path[0].Track !== cart.Track) return null;
-  if (track.Pallets.some(other => other.ReservedWP === candidate.Id)) return null;
-  cart.Goal = StationArray[stationIndex].Node;
+  if (track.Pallets.some(other => other.ReservedWPs.includes(candidate.Id))) return null;
   return candidate;
 }
 
-// [U] CartContinues – laadimine on läbi (MoveZ): koormaga käru sõidab detaili sõidu lõppjaama,
-//     tühi käru jääb vabaks (FindPal annab uue töö). Kutsub: MoveZProc.
+// [U] CartContinues – laadimine on läbi (MoveZ): käru sõidab peatuste nimekirja järgmisse jaama;
+//     kui nimekiri on tühi, jääb vabaks (FindPal annab uue töö). Kutsub: MoveZProc.
 function CartContinues(track, cart) {
   cart.Stopped = false;
-  if (cart.WP !== null) {
-    cart.Goal = StationArray[SysWPArray[cart.WP].Path[0].To].Node;
+  if (cart.StopList.length > 0) {
+    cart.Goal = StopNode(cart.StopList[0]);
     const plan = ProgTM(track, cart, cart.Goal);
-    if (plan === null) throw new Error(`CartContinues: rajal ${track.Name} pole teed sihtjaama`);
+    if (plan === null) throw new Error(`CartContinues: rajal ${track.Name} pole teed järgmisse jaama`);
     SetRoute(track, cart, plan);
   } else {
     cart.Goal = -1;
@@ -1681,7 +1826,7 @@ function CartArrives(track, cart) {
   if (cart.Goal < 0) return;
   if (cart.Node === cart.Goal) {
     const stationIndex = track.NodeStation[cart.Node];
-    if ((cart.WP === null && cart.ReservedWP === null) || stationIndex < 0) { cart.Goal = -1; return; }   // sõidukäsk (testid)
+    if (cart.StopList.length === 0 || stationIndex < 0) { cart.Goal = -1; return; }   // sõidukäsk (testid)
     cart.Stopped = true;
     track.Stops++;
     PutEvent({ Event: 'StopMov', Track: track.Index, Pal: cart.Index, ObjType: 'Station', ObjCode: stationIndex });
@@ -1918,7 +2063,8 @@ function CollisionProc(currentEvent) {
   const repeat = SYSTEM_TIME - track.LastCollision.Time <= 2
     && members.some(index => track.LastCollision.Carts.includes(index));
   track.LastCollision = { Carts: members, Time: SYSTEM_TIME, Count: repeat ? track.LastCollision.Count + 1 : 1 };
-  const candidates = [...collision.Victims].sort((first, second) => (first.WP !== null) - (second.WP !== null)
+  const loaded = cart => (PalletWPs(cart).length > 0 ? 1 : 0);
+  const candidates = [...collision.Victims].sort((first, second) => loaded(first) - loaded(second)
     || second.WaitSince - first.WaitSince || first.Index - second.Index);
   // ringist väljas olevad kärud liiguvad ise ära (või lükatakse kõrvale) – arvesse lähevad ringi
   // kärude tsoonid
@@ -1972,31 +2118,19 @@ function MoveZProc(currentEvent) {
   if (track.StopCount < 0) throw new Error(`MoveZProc: StopCount < 0 rajal ${track.Name}`);
 }
 
-// [O] StopMovProc – alus seisab jaamas: alustab maha- või pealelaadimist.
-//     Lisab: Load või MoveZ.
+// [O] StopMovProc – alus seisab jaamas: alustab maha- või pealelaadimist (PalletAction); kui
+//     tegevus kadus vahepeal, jätkab alus. Lisab: Load või MoveZ.
 function StopMovProc(currentEvent) {
-  const track = Tracks[currentEvent.Track];
-  const pallet = track.Pallets[currentEvent.Pal];
   const stationIndex = currentEvent.ObjCode;
-  if (pallet.WP !== null) {
-    if (SysWPArray[pallet.WP].Path[0].To === stationIndex) {
-      BeginUnloadFromPallet(currentEvent.Track, currentEvent.Pal, stationIndex);
-      return;
-    }
-  } else {
-    const candidate = track.Discrete ? CartPickupCandidate(pallet, stationIndex) : PickupCandidate(stationIndex);
-    if (candidate !== null) {
-      BeginPickup(currentEvent.Track, currentEvent.Pal, stationIndex, candidate);
-      return;
-    }
-  }
-  PutEvent({ Event: 'MoveZ', Track: currentEvent.Track, Pal: currentEvent.Pal });  // tegevus kadus vahepeal
+  BeginPalletAction(currentEvent.Track, currentEvent.Pal, stationIndex,
+    PalletAction(currentEvent.Track, currentEvent.Pal, stationIndex));
 }
 
 // [U] BeginUnloadFromPallet – alustab detaili mahalaadimist aluselt jaama objekti: sihtkohta
-//     või (tee keskel) konnektorisse.
-function BeginUnloadFromPallet(trackIndex, palletIndex, stationIndex) {
-  const workpiece = SysWPArray[Tracks[trackIndex].Pallets[palletIndex].WP];
+//     või (tee keskel) konnektorisse. Käru peatuste nimekirjast kustub mahalaadimine.
+function BeginUnloadFromPallet(trackIndex, palletIndex, stationIndex, workpiece) {
+  const track = Tracks[trackIndex];
+  if (track.Discrete) RemoveCartStop(track.Pallets[palletIndex], 'Drop', workpiece.Id);
   const target = workpiece.Path.length > 1
     ? { ObjType: 'Connector', ObjCode: StationArray[stationIndex].Connector }
     : DestinationObject(workpiece.Destination);
@@ -2011,9 +2145,18 @@ function BeginUnloadFromPallet(trackIndex, palletIndex, stationIndex) {
 
 // [U] BeginPickup – alustab detaili pealelaadimist jaamast (FromCS, puhver, konnektor) alusele.
 const PICKUP_SOURCE = { FromCS: 'SysInput', Buffer: 'Buffer', Connector: 'Connector' };   // [U]
+//     Kärul: peatuste nimekirjast kustub pealelaadimine; kui käru võtab detaili, mis polnud tema
+//     oma (jaamas ootav soov), broneerib ta selle ja lisab mahalaadimise (CartInsertDrop).
 function BeginPickup(trackIndex, palletIndex, stationIndex, workpiece) {
   const station = StationArray[stationIndex];
-  Tracks[trackIndex].Pallets[palletIndex].ReservedWP = workpiece.Id;
+  const track = Tracks[trackIndex];
+  const pallet = track.Pallets[palletIndex];
+  if (PalletWPs(pallet).length > 0) track.Pooled++;   // kogumissõit: alusel on juba detail
+  if (!pallet.ReservedWPs.includes(workpiece.Id)) {
+    pallet.ReservedWPs.push(workpiece.Id);
+    if (track.Discrete) CartInsertDrop(track, pallet, workpiece);
+  }
+  if (track.Discrete) RemoveCartStop(pallet, 'Pickup', workpiece.Id);
   SetWPState(workpiece, 'LOADING');
   PutEvent({
     Event: 'Load', WP: workpiece.Id, Track: trackIndex, Pal: palletIndex,
@@ -2024,19 +2167,16 @@ function BeginPickup(trackIndex, palletIndex, stationIndex, workpiece) {
   });
 }
 
-// [U] AfterPalletAtStation – pärast mahalaadimist: kui samas jaamas ootab detail, laadi kohe
-//     peale (konveier seisab edasi), muidu konveier jätkab.
+// [U] AfterPalletAtStation – pärast mahalaadimist: kui samas jaamas on veel tegevus (teine
+//     mahalaadimine või ootav detail), alustab seda (konveier seisab edasi), muidu alus jätkab.
 function AfterPalletAtStation(trackIndex, palletIndex, stationIndex) {
   Planner('PalletUnloaded');
-  const track = Tracks[trackIndex];
-  const candidate = track.Discrete
-    ? CartPickupCandidate(track.Pallets[palletIndex], stationIndex)
-    : PickupCandidate(stationIndex);
-  if (candidate !== null) {
-    BeginPickup(trackIndex, palletIndex, stationIndex, candidate);
-  } else {
-    PutEvent({ Event: 'MoveZ', Track: trackIndex, Pal: palletIndex });
-  }
+  BeginPalletAction(trackIndex, palletIndex, stationIndex, PalletAction(trackIndex, palletIndex, stationIndex));
+}
+
+// [U] ClearPlace – detail lahkub aluselt (tema koht vabaneb).
+function ClearPlace(pallet, workpiece) {
+  pallet.Places[workpiece.Location.Place] = null;
 }
 
 // [O] LoadProc – laadimine on lõppenud: detail viiakse lähtekohast sihtkohta.
@@ -2052,7 +2192,7 @@ function LoadProc(currentEvent) {
     // rajalt puhvri sissetulevale kohale
     const pallet = Tracks[currentEvent.Track].Pallets[currentEvent.Pal];
     const buffer = BufferArray[currentEvent.ObjCode];
-    pallet.WP = null;
+    ClearPlace(pallet, workpiece);
     ReleaseSlot(buffer);
     buffer.Entries.push({ WP: workpiece.Id, Dir: 'In', Since: SYSTEM_TIME });
     workpiece.Location = { Kind: 'Buffer', Index: currentEvent.ObjCode, Dir: 'In' };
@@ -2065,7 +2205,7 @@ function LoadProc(currentEvent) {
     // rajalt kesklattu või süsteemist välja
     const pallet = Tracks[currentEvent.Track].Pallets[currentEvent.Pal];
     const destination = workpiece.Destination;
-    pallet.WP = null;
+    ClearPlace(pallet, workpiece);
     workpiece.Destination = null;
     workpiece.Path = null;
     if (destination.Kind === 'ToCS') {
@@ -2088,7 +2228,7 @@ function LoadProc(currentEvent) {
     const pallet = Tracks[currentEvent.Track].Pallets[currentEvent.Pal];
     const connector = ConnectorArray[currentEvent.ObjCode];
     const stationIndex = workpiece.Path.shift().To;
-    pallet.WP = null;
+    ClearPlace(pallet, workpiece);
     connector.Reserved--;
     connector.WP = workpiece.Id;
     connector.Transfers++;
@@ -2107,11 +2247,14 @@ function LoadProc(currentEvent) {
     } else {
       FromCSQueue = FromCSQueue.filter(workpieceId => workpieceId !== workpiece.Id);
     }
-    pallet.ReservedWP = null;
-    pallet.WP = workpiece.Id;
-    workpiece.Location = { Kind: 'Pallet', Track: currentEvent.Track, Pal: currentEvent.Pal };
+    const place = pallet.Places.indexOf(null);
+    pallet.ReservedWPs = pallet.ReservedWPs.filter(workpieceId => workpieceId !== workpiece.Id);
+    pallet.Places[place] = workpiece.Id;
+    workpiece.Location = { Kind: 'Pallet', Track: currentEvent.Track, Pal: currentEvent.Pal, Place: place };
     SetWPState(workpiece, 'ON_PALLET');
-    PutEvent({ Event: 'MoveZ', Track: currentEvent.Track, Pal: currentEvent.Pal });
+    // samas jaamas võib olla veel tegevusi (vaba koht ja ootav detail – 7c), muidu alus jätkab
+    const stationIndex = workpiece.Path[0].From;
+    BeginPalletAction(currentEvent.Track, currentEvent.Pal, stationIndex, PalletAction(currentEvent.Track, currentEvent.Pal, stationIndex));
     Planner('BufferFreed');
 
   } else if (source === 'Buffer' && target === 'Machine') {
@@ -2497,7 +2640,7 @@ function DetectDeadlock() {
   }
   const nothingMoving = FirstAtMoment === null
     && MachineArray.every(machine => machine.State === 'IDLE')
-    && Tracks.every(track => track.Pallets.every(pallet => pallet.WP === null && pallet.ReservedWP === null));
+    && Tracks.every(track => track.Pallets.every(PalletEmpty));
   const anyoneWaitingForPickup = SysWPArray.some(workpiece => workpiece.State === 'WAIT_PICKUP');
   if (nothingMoving && !anyoneWaitingForPickup && CountWorkpiecesInSystem() > 0
       && SYSTEM_TIME - LastEventTime > Model.Sim.StallTime) {
@@ -2526,7 +2669,7 @@ function CheckInvariants() {
       case 'Entering': break;
       case 'FromCS': if (!FromCSQueue.includes(workpiece.Id)) fail(`WP${workpiece.Id} pole FromCS järjekorras`); break;
       case 'Storage': if (!Storage.Parked.includes(workpiece.Id)) fail(`WP${workpiece.Id} pole kesklaos`); break;
-      case 'Pallet': if (Tracks[location.Track].Pallets[location.Pal].WP !== workpiece.Id) fail(`WP${workpiece.Id} pole alusel`); break;
+      case 'Pallet': if (Tracks[location.Track].Pallets[location.Pal].Places[location.Place] !== workpiece.Id) fail(`WP${workpiece.Id} pole alusel`); break;
       case 'Buffer': if (!BufferArray[location.Index].Entries.some(entry => entry.WP === workpiece.Id)) fail(`WP${workpiece.Id} pole puhvris`); break;
       case 'Machine': if (MachineArray[location.Index].WP !== workpiece.Id) fail(`WP${workpiece.Id} pole pingis`); break;
       case 'Connector': if (ConnectorArray[location.Index].WP !== workpiece.Id) fail(`WP${workpiece.Id} pole konnektoris`); break;
@@ -2578,19 +2721,18 @@ function CheckInvariants() {
     if ((machine.State === 'IDLE') !== (machine.WP === null)) fail(`pingi ${machine.Name} olek ${machine.State} ei klapi detailiga`);
   }
   Tracks.forEach((track, trackIndex) => {
+    track.Pallets.forEach(pallet => CheckPallet(track, pallet, fail));
     if (track.Discrete) { CheckCarts(track, fail); return; }
     if (track.StopCount < 0) fail(`rada ${track.Name} StopCount < 0`);
     track.Pallets.forEach((pallet, palletIndex) => {
       const position = (track.Offset + palletIndex * track.Length / track.Carts) % track.Length;
-      if (pallet.WP !== null) {
-        const location = SysWPArray[pallet.WP].Location;
-        if (location.Kind !== 'Pallet' || location.Track !== trackIndex || location.Pal !== palletIndex) fail(`alus ${palletIndex} detail vale asukohaga`);
-        // avatud konveier: koormaga alus ei jõua raja lõppu (ei hüppa algusesse)
-        if (!track.Closed && pallet.CheckedWP === pallet.WP && position < pallet.CheckedPosition - 1e-6) {
-          fail(`rada ${track.Name}: koormaga alus ${palletIndex} läbis avatud konveieri lõpu`);
-        }
+      const onBoard = PalletWPs(pallet);
+      // avatud konveier: koormaga alus ei jõua raja lõppu (ei hüppa algusesse)
+      if (!track.Closed && onBoard.some(workpieceId => pallet.CheckedWPs?.includes(workpieceId))
+          && position < pallet.CheckedPosition - 1e-6) {
+        fail(`rada ${track.Name}: koormaga alus ${palletIndex} läbis avatud konveieri lõpu`);
       }
-      pallet.CheckedWP = pallet.WP;
+      pallet.CheckedWPs = onBoard;
       pallet.CheckedPosition = position;
     });
     if (track.StopCount > 0) {
@@ -2611,6 +2753,31 @@ function CheckInvariants() {
   }
 }
 
+// [U] CheckPallet – aluse (käru) kohad (etapp 7c): detaile ja broneeringuid kokku kõige rohkem
+//     PlacesPerCart; iga detail viitab oma kohale ja tema praegune sõit on sellel rajal; broneeritud
+//     detail ootab alust või seda laaditakse. Kutsub: CheckInvariants.
+function CheckPallet(track, pallet, fail) {
+  const name = `rada ${track.Name} alus ${pallet.Index + 1}`;
+  if (pallet.Places.length !== track.PlacesPerCart) fail(`${name}: kohti ${pallet.Places.length}`);
+  const onBoard = PalletWPs(pallet);
+  if (onBoard.length + pallet.ReservedWPs.length > track.PlacesPerCart) fail(`${name}: ületäis`);
+  if (new Set([...onBoard, ...pallet.ReservedWPs]).size !== onBoard.length + pallet.ReservedWPs.length) fail(`${name}: detail kaks korda`);
+  pallet.Places.forEach((workpieceId, place) => {
+    if (workpieceId === null) return;
+    const location = SysWPArray[workpieceId].Location;
+    if (location.Kind !== 'Pallet' || location.Track !== track.Index || location.Pal !== pallet.Index || location.Place !== place) {
+      fail(`${name}: detail WP${workpieceId} vale asukohaga`);
+    }
+  });
+  for (const workpieceId of pallet.ReservedWPs) {
+    const workpiece = SysWPArray[workpieceId];
+    if (!['WAIT_PICKUP', 'LOADING'].includes(workpiece.State) || workpiece.Location.Kind === 'Pallet') {
+      fail(`${name}: broneeritud detail WP${workpieceId} ei oota alust`);
+    }
+    if (!track.Discrete && workpiece.State !== 'LOADING') fail(`${name}: broneeritud detaili WP${workpieceId} ei laadita`);
+  }
+}
+
 // [U] CheckCarts – diskreetse raja invariandid (DISAIN.md 9): igas tsoonis kõige rohkem üks käru
 //     ja käru on ainult enda broneeritud tsoonis; broneeritud tsoonid on käru kohal või tema teel;
 //     ühesuunalist lõiku läbitakse õiges suunas; koormaga käru sõidab detaili sõidu lõppjaama poole;
@@ -2628,15 +2795,29 @@ function CheckCarts(track, fail) {
       if (cart.Distance < -1e-6 || cart.Distance > edge.Length + 1e-6) fail(`${name}: väljaspool lõiku`);
       if (edge.OneWay !== 0 && cart.Dir !== edge.OneWay) fail(`${name}: sõidab ühesuunalisel lõigul vastu suunda`);
     }
-    if (cart.WP !== null) {
-      const workpiece = SysWPArray[cart.WP];
-      if (workpiece.Location.Kind !== 'Pallet' || workpiece.Location.Track !== track.Index || workpiece.Location.Pal !== cart.Index) {
-        fail(`${name}: detail WP${cart.WP} vale asukohaga`);
-      }
-      if (!cart.Stopped && cart.Goal !== StationArray[workpiece.Path[0].To].Node) fail(`${name}: koormaga käru ei sõida detaili sihtjaama`);
+    // peatuste nimekiri: igal peal oleval detailil mahalaadimine (kui see pole juba alanud), igal
+    // ootaval broneeritud detailil peale- ja selle järel mahalaadimine; muid peatusi pole
+    const stopIndex = (kind, workpieceId) => cart.StopList.findIndex(stop => stop.Kind === kind && stop.WP === workpieceId);
+    for (const workpieceId of PalletWPs(cart)) {
+      const workpiece = SysWPArray[workpieceId];
+      const drop = stopIndex('Drop', workpieceId);
+      if (workpiece.State === 'LOADING') continue;
+      if (drop < 0 || cart.StopList[drop].Station !== workpiece.Path[0].To) fail(`${name}: detailil WP${workpieceId} pole mahalaadimist sõidu lõppjaamas`);
     }
-    if (cart.ReservedWP !== null && !['WAIT_PICKUP', 'LOADING'].includes(SysWPArray[cart.ReservedWP].State)) {
-      fail(`${name}: broneeritud detail WP${cart.ReservedWP} ei oota käru`);
+    for (const workpieceId of cart.ReservedWPs) {
+      const workpiece = SysWPArray[workpieceId];
+      const pickup = stopIndex('Pickup', workpieceId);
+      const drop = stopIndex('Drop', workpieceId);
+      if (drop < 0 || cart.StopList[drop].Station !== workpiece.Path[0].To) fail(`${name}: broneeritud WP${workpieceId} pole mahalaadimist`);
+      if (workpiece.State === 'WAIT_PICKUP' && (pickup < 0 || pickup > drop || cart.StopList[pickup].Station !== workpiece.Path[0].From)) {
+        fail(`${name}: broneeritud WP${workpieceId} pealelaadimine puudub või on pärast mahalaadimist`);
+      }
+    }
+    for (const stop of cart.StopList) {
+      if (!cart.Places.includes(stop.WP) && !cart.ReservedWPs.includes(stop.WP)) fail(`${name}: peatus WP${stop.WP}, mis pole tema detail`);
+    }
+    if (!cart.Stopped && cart.StopList.length > 0 && cart.Goal !== StopNode(cart.StopList[0])) {
+      fail(`${name}: ei sõida peatuste nimekirja järgmisse jaama`);
     }
     const allowed = new Set([zone]);
     if (cart.Waiting !== null) cart.Waiting.forEach(item => allowed.add(item));
@@ -2661,6 +2842,11 @@ function CollectStats() {
     buffer.MaxFill = Math.max(buffer.MaxFill, buffer.Entries.length);
   }
   for (const track of Tracks) {
+    for (const pallet of track.Pallets) {
+      const load = PalletWPs(pallet).length;
+      track.LoadIntegral += load;
+      track.MaxLoad = Math.max(track.MaxLoad, load);
+    }
     if (track.Discrete) {
       for (const cart of track.Pallets) {
         const state = CartState(cart);
@@ -2747,12 +2933,13 @@ export function SimReport() {
     Tracks: Tracks.map(track => (track.Discrete
       ? {
         Name: track.Name, Discrete: true, Stops: track.Stops, Collisions: track.Collisions, Detours: track.Detours, Asides: track.Asides,
-        MaxWait: track.MaxWait,
+        MaxWait: track.MaxWait, Places: track.PlacesPerCart, AvgLoad: track.LoadIntegral / time / track.Carts, MaxLoad: track.MaxLoad, Pooled: track.Pooled,
         Carts: track.Pallets.map(cart => Object.fromEntries(['IDLE', 'EMPTY', 'LOADED', 'LOADING', 'WAIT_ZONE']
           .map(state => [state, (cart.StateTime[state] || 0) / time]))),
       }
       : { Name: track.Name, Closed: track.Closed, MovingShare: track.MovingTime / time,
-          StoppedShare: track.StoppedTime / time, Stops: track.Stops })),
+          StoppedShare: track.StoppedTime / time, Stops: track.Stops,
+          Places: track.PlacesPerCart, AvgLoad: track.LoadIntegral / time / track.Carts, MaxLoad: track.MaxLoad, Pooled: track.Pooled })),
     Connectors: ConnectorArray.map(connector => ({ Name: connector.Name, Transfers: connector.Transfers })),
     StorageCount: Storage !== null ? Storage.Count : null,
     StorageMaxParked: Storage !== null ? Storage.MaxParked : null,
@@ -2781,11 +2968,11 @@ function InitCarts(track, trackIndex) {
   const result = {
     ...track, Index: trackIndex, Discrete: true, Closed: null, Offset: 0, StopCount: 0, MovingTime: 0, StoppedTime: 0,
     Stops: 0, Stations: [], NodeStation: track.Nodes.map(() => -1), Holder: new Map(),
-    Collisions: 0, Detours: 0, Asides: 0, MaxWait: 0, CollisionPending: false,
+    Collisions: 0, Detours: 0, Asides: 0, MaxWait: 0, CollisionPending: false, LoadIntegral: 0, MaxLoad: 0, Pooled: 0,
     LastCollision: { Carts: [], Time: -10, Count: 0 },
   };
   result.Pallets = Array.from({ length: track.Carts }, (unused, cartIndex) => ({
-    Index: cartIndex, Track: trackIndex, WP: null, ReservedWP: null, Stopped: false,
+    Index: cartIndex, Track: trackIndex, Places: new Array(track.PlacesPerCart).fill(null), ReservedWPs: [], StopList: [], Stopped: false,
     Node: order[cartIndex], Edge: -1, Dir: 0, Distance: 0, Route: null, RouteEnd: -1, Goal: -1,
     Waiting: null, WaitSince: 0, AsideFailed: -1, StateTime: {},
   }));
@@ -2798,7 +2985,7 @@ function InitCarts(track, trackIndex) {
 function CartState(cart) {
   if (cart.Stopped) return 'LOADING';
   if (cart.Waiting !== null) return 'WAIT_ZONE';
-  if (cart.Route !== null) return cart.WP !== null ? 'LOADED' : 'EMPTY';
+  if (cart.Route !== null) return PalletWPs(cart).length > 0 ? 'LOADED' : 'EMPTY';
   return 'IDLE';
 }
 
@@ -2825,7 +3012,10 @@ export function SimInit(network, inputOptions = {}) {
     return {
       ...track, Closed: track.Closed !== false,
       Index: trackIndex, Offset: 0, StopCount: 0, MovingTime: 0, StoppedTime: 0, Stops: 0, Stations: [],
-      Pallets: Array.from({ length: track.Carts }, (unused, palletIndex) => ({ Index: palletIndex, WP: null, ReservedWP: null })),
+      LoadIntegral: 0, MaxLoad: 0, Pooled: 0,
+      Pallets: Array.from({ length: track.Carts }, (unused, palletIndex) => ({
+        Index: palletIndex, Places: new Array(track.PlacesPerCart).fill(null), ReservedWPs: [],
+      })),
     };
   });
   StationArray = Model.Stations.map((station, stationIndex) => ({ ...station, Index: stationIndex }));
@@ -2854,7 +3044,9 @@ export function SimInit(network, inputOptions = {}) {
     ? { ParkingReserve: PARKING_RESERVE, ...Model.Storage, Station: toCSStation, Count: 0, Parked: [], Reserved: 0, MaxParked: 0 }
     : null;
 
-  TotalPlaces = Tracks.reduce((sum, track) => sum + track.Carts * track.PlacesPerCart, 0)
+  // Ntm = aluste / kärude arv, mitte kohtade arv neil (7c: kohad tõid süsteemi detaile, mis ootasid
+  // FromCS-is – tsükliaeg kasvas, läbilaskevõime mitte; VALIDEERIMINE.md etapp 7c)
+  TotalPlaces = Tracks.reduce((sum, track) => sum + track.Carts, 0)
     + MachineArray.length
     + BufferArray.reduce((sum, buffer) => sum + buffer.Capacity, 0)
     + ConnectorArray.length;
