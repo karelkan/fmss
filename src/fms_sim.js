@@ -755,6 +755,14 @@ function CheckReachability(context, network, traces) {
 //     Legs – rada mööda sõidud (alus viib From-jaamast To-jaama), nende vahel konnektorid.
 //     Kutsub: CheckReachability, SimInit, testid. Sündmusi ei lisa.
 export function StationPaths(network) {
+  return network.Stations.map((station, source) => ShortestPaths(network, source));
+}
+
+// [U] ShortestPaths – lühimad teed ühest jaamast kõigisse (Dijkstra, vt StationPaths).
+//     connectorOpen(konnektori indeks) – kas konnektorit võib läbida (vaikimisi kõiki); nii
+//     leiab Depart lühima vaba tee (paralleelsed konnektorid). Tagastab Paths[to].
+//     Kutsuvad: StationPaths, FreePath, testid. Sündmusi ei lisa.
+export function ShortestPaths(network, source, connectorOpen = () => true) {
   const stations = network.Stations;
   const count = stations.length;
   const closed = trackIndex => network.Tracks[trackIndex].Closed !== false;
@@ -768,48 +776,44 @@ export function StationPaths(network) {
   };
   const partners = stationIndex => {
     const station = stations[stationIndex];
-    if (station.Kind !== 'Connector') return [];
+    if (station.Kind !== 'Connector' || !connectorOpen(station.Connector)) return [];
     return network.Connectors[station.Connector].Stations.filter(other => other !== stationIndex);
   };
 
-  const paths = [];
-  for (let source = 0; source < count; source++) {
-    const best = Array.from({ length: count }, () => null);   // { Length, Hops, Previous, Cross }
-    const done = new Array(count).fill(false);
-    best[source] = { Length: 0, Hops: 0, Previous: -1, Cross: false };
-    for (;;) {
-      let current = -1;
-      for (let i = 0; i < count; i++) {
-        if (done[i] || best[i] === null) continue;
-        if (current < 0 || CompareScores([best[i].Length, best[i].Hops], [best[current].Length, best[current].Hops]) < 0) current = i;
-      }
-      if (current < 0) break;
-      done[current] = true;
-      const relax = (next, length, cross) => {
-        const candidate = { Length: RoundPosition(best[current].Length + length), Hops: best[current].Hops + 1, Previous: current, Cross: cross };
-        if (best[next] === null || CompareScores([candidate.Length, candidate.Hops], [best[next].Length, best[next].Hops]) < 0) best[next] = candidate;
-      };
-      for (let next = 0; next < count; next++) {
-        const length = along(current, next);
-        if (length !== null && !done[next]) relax(next, length, false);
-      }
-      for (const next of partners(current)) if (!done[next]) relax(next, 0, true);
+  const best = Array.from({ length: count }, () => null);   // { Length, Hops, Previous, Cross }
+  const done = new Array(count).fill(false);
+  best[source] = { Length: 0, Hops: 0, Previous: -1, Cross: false };
+  for (;;) {
+    let current = -1;
+    for (let i = 0; i < count; i++) {
+      if (done[i] || best[i] === null) continue;
+      if (current < 0 || CompareScores([best[i].Length, best[i].Hops], [best[current].Length, best[current].Hops]) < 0) current = i;
     }
-    paths.push(best.map((entry, target) => {
-      if (target === source) {
-        return closed(stations[source].Track)
-          ? { Length: 0, Legs: [{ Track: stations[source].Track, From: source, To: source }] }
-          : null;
-      }
-      if (entry === null) return null;
-      const legs = [];
-      for (let node = target; best[node].Previous >= 0; node = best[node].Previous) {
-        if (!best[node].Cross) legs.unshift({ Track: stations[node].Track, From: best[node].Previous, To: node });
-      }
-      return { Length: entry.Length, Legs: legs };
-    }));
+    if (current < 0) break;
+    done[current] = true;
+    const relax = (next, length, cross) => {
+      const candidate = { Length: RoundPosition(best[current].Length + length), Hops: best[current].Hops + 1, Previous: current, Cross: cross };
+      if (best[next] === null || CompareScores([candidate.Length, candidate.Hops], [best[next].Length, best[next].Hops]) < 0) best[next] = candidate;
+    };
+    for (let next = 0; next < count; next++) {
+      const length = along(current, next);
+      if (length !== null && !done[next]) relax(next, length, false);
+    }
+    for (const next of partners(current)) if (!done[next]) relax(next, 0, true);
   }
-  return paths;
+  return best.map((entry, target) => {
+    if (target === source) {
+      return closed(stations[source].Track)
+        ? { Length: 0, Legs: [{ Track: stations[source].Track, From: source, To: source }] }
+        : null;
+    }
+    if (entry === null) return null;
+    const legs = [];
+    for (let node = target; best[node].Previous >= 0; node = best[node].Previous) {
+      if (!best[node].Cross) legs.unshift({ Track: stations[node].Track, From: best[node].Previous, To: node });
+    }
+    return { Length: entry.Length, Legs: legs };
+  });
 }
 
 // =====================================================================
@@ -986,25 +990,29 @@ function PathConnectors(path) {
   return path.Legs.slice(0, -1).map(leg => ConnectorArray[StationArray[leg.To].Connector]);
 }
 
-// [U] PathFree – kas jaamast from jaama to on tee ja selle konnektorid on vabad.
-function PathFree(fromStation, toStation) {
-  const path = TransportPaths[fromStation][toStation];
-  return path !== null && PathConnectors(path).every(CanReserveConnector);
+// [U] FreePath – lühim tee jaamast from jaama to, mille kõik konnektorid on vabad (paralleelsetest
+//     konnektoritest valitakse vaba), või null. Kutsuvad: Depart, DetectDeadlock.
+function FreePath(fromStation, toStation) {
+  if (TransportPaths[fromStation][toStation] === null) return null;
+  return ShortestPaths(Model, fromStation, connectorIndex => CanReserveConnector(ConnectorArray[connectorIndex]))[toStation];
 }
 
-// [U] Depart – detailil on sihtkoht broneeritud: broneerib tee konnektorid (kõik korraga, nii
-//     ei jää detail konnektoris järgmist ootama) ja detail hakkab alust ootama (WAIT_PICKUP).
-//     Kui mõni konnektor on kinni, ootab detail oma kohal (WAIT_DEST, sihtkoht jääb) ja Planner
-//     proovib uuesti. Tagastab, kas õnnestus. Kutsuvad: Planner, OutSysProc, LoadProc, DetectDeadlock.
+// [U] Depart – detailil on sihtkoht broneeritud: valib lühima vaba tee (FreePath), broneerib selle
+//     konnektorid (kõik korraga, nii ei jää detail konnektoris järgmist ootama) ja detail hakkab
+//     alust ootama (WAIT_PICKUP). Kui vaba teed pole (konnektorid kinni), ootab detail oma kohal
+//     (WAIT_DEST, sihtkoht jääb) ja Planner proovib uuesti. Tagastab, kas õnnestus.
+//     Kutsuvad: Planner, OutSysProc, LoadProc, DetectDeadlock.
 function Depart(workpiece) {
-  const path = TransportPaths[CurrentStationOf(workpiece)][workpiece.Destination.Station];
-  if (path === null) throw new Error(`Depart: WP${workpiece.Id} sihtkohta pole teed`);
-  const connectors = PathConnectors(path);
-  if (!connectors.every(CanReserveConnector)) {
+  const fromStation = CurrentStationOf(workpiece);
+  if (TransportPaths[fromStation][workpiece.Destination.Station] === null) {
+    throw new Error(`Depart: WP${workpiece.Id} sihtkohta pole teed`);
+  }
+  const path = FreePath(fromStation, workpiece.Destination.Station);
+  if (path === null) {
     if (workpiece.State !== 'WAIT_DEST') SetWPState(workpiece, 'WAIT_DEST');
     return false;
   }
-  for (const connector of connectors) connector.Reserved++;
+  for (const connector of PathConnectors(path)) connector.Reserved++;
   workpiece.Path = path.Legs.map(leg => ({ ...leg }));
   SetWPState(workpiece, 'WAIT_PICKUP');
   return true;
@@ -1613,7 +1621,7 @@ function DetectDeadlock() {
   if (deadlocked.length > 0) {
     if (StorageFree() && movable.length > 0) {
       const workpiece = movable[0];
-      if (PathFree(CurrentStationOf(workpiece), Storage.Station)) {
+      if (FreePath(CurrentStationOf(workpiece), Storage.Station) !== null) {
         Storage.Reserved++;
         workpiece.Destination = { Kind: 'ToCS', Station: Storage.Station, Park: true };
         Depart(workpiece);

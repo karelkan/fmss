@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState, StationPaths } from '../src/fms_sim.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, StationPaths, ShortestPaths } from '../src/fms_sim.js';
 import { TrackGeometry, TrackPoint } from '../src/anima.js';
 
 const CHECKED = { CheckInvariants: true };
@@ -125,6 +125,78 @@ test('G: 8 h täiskoormusel ilma ummikuta, iga detail läbib konnektorit kaks ko
   assert.ok(report.ThroughputPerHour > 9, `läbilaskevõime ${report.ThroughputPerHour}`);   // pink: 3600 / 320 = 11,25
   const transfers = report.Connectors[0].Transfers;
   assert.ok(transfers >= 2 * report.Completed && transfers <= 2 * report.Created, `ülekandeid ${transfers}`);
+});
+
+// ---------------------------------------------------------------------
+// P – kaks silmust, kaks paralleelset konnektorit (CON1 (3, 3), CON2 (3, 5)); 7a ootel töö
+//   rada 1 (vasakul, vastupäeva): FromCS (1, 6), CON2, CON1, SysOut (1, 2)
+//   rada 2 (paremal, päripäeva):  BUF1 (6, 2), CON2, CON1 (alt üles vasakul küljel)
+//   Mõlema konnektori kaudu on tee sama pikk (sümmeetria), seega kumbki sobib.
+// ---------------------------------------------------------------------
+function LayoutP({ Carts = 3, Kl = 0.85, Capacity = 2 } = {}) {
+  return {
+    Meta: { Name: 'P – paralleelsed konnektorid', Version: 1 },
+    Scale: 100,
+    Layout: {
+      Dim: { X: 8, Y: 9 },
+      Cells: Cells([
+        [6, 0, 'MachToolDown', 1], [6, 1, 'InOutBuf', 1],
+        [1, 1, 'SysOut'], [1, 2, 'TeeN', 1],
+        [0, 2, 'ArcSE', 1], [2, 2, 'ArcSW', 1],
+        [0, 3, 'VertTr', 1], [2, 3, 'TeeE', 1], [3, 3, 'HorCon'], [4, 3, 'HorTr', null, DOT],
+        [0, 4, 'VertTr', 1, { Dir: 'S' }], [2, 4, 'VertTr', 1],
+        [0, 5, 'VertTr', 1], [2, 5, 'TeeE', 1], [3, 5, 'HorCon'], [4, 5, 'HorTr', null, DOT],
+        [0, 6, 'ArcNE', 1], [1, 6, 'TeeS', 1], [2, 6, 'ArcNW', 1],
+        [1, 7, 'VertTr', null, DOT], [1, 8, 'FromCS'],
+        [5, 2, 'ArcSE', 2], [6, 2, 'TeeN', 2], [7, 2, 'ArcSW', 2],
+        [5, 3, 'TeeW', 2], [7, 3, 'VertTr', 2, { Dir: 'S' }],
+        [5, 4, 'VertTr', 2], [7, 4, 'VertTr', 2],
+        [5, 5, 'TeeW', 2], [7, 5, 'VertTr', 2],
+        [5, 6, 'ArcNE', 2], [6, 6, 'HorTr', 2], [7, 6, 'ArcNW', 2],
+      ]),
+    },
+    EdgeLengths: [],
+    Tracks: [Track('Vasak', { Carts }), Track('Parem', { Carts })],
+    Machines: [Machine('MT1', ['treimine'])],
+    Buffers: [Buffer(Capacity)],
+    Storage: null,
+    Workpieces: [{ Name: 'Võll', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [OneOp('treimine', 120)] }] }],
+    Sim: { Seed: 1, Duration: 28800, Kl, StallTime: 600 },
+  };
+}
+
+test('P: paralleelsed konnektorid – kinnise konnektori asemel leitakse vaba kõrvaltee', () => {
+  const network = NetworkOf(LayoutP());
+  assert.deepEqual(network.Connectors.map(connector => connector.Name), ['CON1', 'CON2']);
+  const fromCS = network.Stations.findIndex(station => station.Kind === 'FromCS');
+  const buffer = network.Stations.findIndex(station => station.Kind === 'Buffer');
+  const through = path => path.Legs.slice(0, -1).map(leg => network.Stations[leg.To].Name);
+  const free = ShortestPaths(network, fromCS)[buffer];
+  const used = through(free);
+  assert.equal(used.length, 1);
+  const other = used[0] === 'CON1' ? 'CON2' : 'CON1';
+  const usedIndex = network.Connectors.findIndex(connector => connector.Name === used[0]);
+  const detour = ShortestPaths(network, fromCS, connectorIndex => connectorIndex !== usedIndex)[buffer];
+  assert.deepEqual(through(detour), [other]);
+  assert.equal(detour.Length, free.Length);   // sümmeetria: sama pikk
+  assert.equal(ShortestPaths(network, fromCS, () => false)[buffer], null);   // mõlemad kinni
+});
+
+test('P: täiskoormusel kasutatakse mõlemat konnektorit ja läbilaskevõime kasvab', () => {
+  const run = model => SimRun(NetworkOf(model), CHECKED);
+  const both = run(LayoutP());
+  // võrdlus: sama joonis ühe konnektoriga (CON2 asemel rada)
+  const single = LayoutP();
+  single.Layout.Cells = single.Layout.Cells.filter(cell => !(cell.Y === 5 && (cell.X === 3 || cell.X === 4)));
+  single.Layout.Cells.find(cell => cell.X === 2 && cell.Y === 5).T = 'VertTr';
+  single.Layout.Cells.find(cell => cell.X === 5 && cell.Y === 5).T = 'VertTr';
+  const one = run(single);
+  assert.equal(both.Deadlock, false);
+  assert.equal(one.Deadlock, false);
+  assert.ok(both.Connectors.every(connector => connector.Transfers > 0), JSON.stringify(both.Connectors));
+  const transfers = both.Connectors.reduce((sum, connector) => sum + connector.Transfers, 0);
+  assert.ok(transfers >= 2 * both.Completed, `ülekandeid ${transfers}`);
+  assert.ok(both.Completed > one.Completed, `kahe konnektoriga ${both.Completed}, ühega ${one.Completed}`);
 });
 
 // ---------------------------------------------------------------------

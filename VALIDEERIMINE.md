@@ -206,3 +206,28 @@ Puhvri mahu ja konnektori mõju stsenaariumis S (seeme 1):
 
 **Järeldus struktuuri kohta**: ristmarsruutide ja ühekohaliste **eraldi** sisse- ja väljaminevate puhvritega (läbiv pink) ei piisa ummiku vältimisest (`ReserveNextBeforeStart`): kumbki sissetulev detail ootab teise pingi sissetulevat kohta. Kahesuunaliste puhvritega pargiti seetõttu palju (5 seemet: 14–36 parkimist 19–49 valmis detaili kohta, kahel seemnel lõpuks ummik); ühesuunalistega peatub simulatsioon kohe. Tugevam vältimine (nt sissetuleva koha broneerimine alles siis, kui detaili järgmise pingi koht on samuti saadaval) on võimalik hilisem täiendus.
 
+
+---
+
+# Etapp 7b: diskreetsed rajad (AGV-d)
+
+## Paralleelsed konnektorid (7a ootel töö)
+
+**Leid** (7a): `Depart` kasutas alati `TransportPaths`-i ühte teed. Kui sama kahe raja vahel oli mitu konnektorit ja tee konnektor oli kinni, jäi detail ootama, kuigi kõrvalkonnektor oli vaba.
+
+**Parandus**: `Depart` arvutab tee teele minnes uuesti (`FreePath` → `ShortestPaths` kinniste konnektoriteta). Testid ([test/network.test.js](test/network.test.js), „P“): kaks silmust, kaks paralleelset konnektorit, mõlema kaudu sama pikk tee.
+
+| Test | Tulemus |
+|---|---|
+| Kinnise konnektori asemel leitakse teine, sama pikk tee; mõlemad kinni → teed pole | ✔ |
+| 8 h täiskoormusel (3 alust kummalgi rajal) kasutatakse mõlemat konnektorit, iga detail ületab 2 korda; varasemad testid (G, G2, S) samad | ✔ |
+
+Mõju (seeme 1, pink 120 s, 8 h):
+
+| Puhvri maht | Kaks konnektorit: valmis / pink | Üks konnektor: valmis / pink |
+|---|---|---|
+| 1 | 117 / 57 % | 80 / 39 % |
+| 2 | 204 / 100 % | 137 / 67 % |
+| 3 | 204 / 100 % | 137 / 68 % |
+
+Ühe konnektoriga oli konnektor pudelikael (see on 7a leid 2: konnektor on broneeritud kogu tee ajaks); teine konnektor kaotab selle. Broneerimine alles lähenedes jääb hilisemaks.

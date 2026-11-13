@@ -101,8 +101,8 @@ Originaalis: „Rajad on seotud konnektorite, tööpinkide või puhvrite kaudu�
 - **Mitu rada** **[O]**: iga raja number `N` on oma pidev konveier (silmus või avatud). Rajad on ühendatud ainult **konnektoritega**; kaks rada, mis puutuvad ilma konnektorita, on viga.
 - **Konnektor** **[U]** (osa 10.2): kahe raja ülekandekoht, mis **mahutab ühe detaili** (nullmahutavusega puhver nõuaks, et mõlema raja alused oleksid korraga kohal). Kummalgi küljel on üks rada: raja ots (`HorCon` W/E, `VertCon` N/S küljel) või punktiir hargnemisest. Kummalgi rajal on konnektori jaam. Andmeid pole: laadimisaeg tuleb rajalt (`LoadTime`), nimi `CON1`, `CON2` … joonise järjekorras.
 - **Avatud konveier** **[U]** (osa 10.1): rada, mis ei sulgu. Alused liiguvad nagu silmusel, aga raja lõpust lähevad nad (tühjalt) **otse algusesse** tagasi – nagu lindikonveier, mille tagasitee pole joonisel. Pikkus = raja pikkus. Jaamad on ikoonide keskel, seega mitte kunagi päris otstes.
-- **Transporditee** (`StationPaths`) **[U]**: lühim tee jaamast jaama (Dijkstra, viigi korral vähem sõlmi): rada mööda liikumissuunas, konnektori kaudu teisele rajale (pikkus 0). Avatud konveieril ainult **allavoolu**. Tee = sõidud (`Legs`: rada, algus- ja lõppjaam), nende vahel konnektorid. Arvutatakse `Enumerate`-s (kontroll) ja `SimInit`-is (`TransportPaths`).
-- **Teele minek** (`Depart`) **[U]**: kui detailil on sihtkoht broneeritud (osa 5.2), broneeritakse **kõik tee konnektorid korraga**. Siis ei jää detail kunagi konnektorisse järgmist ootama (ringootamist pole) ja koormaga alus ei pea avatud konveieri lõpust mööda sõitma. Kui mõni konnektor on kinni, jääb detail oma kohale (`WAIT_DEST`, sihtkoht jääb) ja Planner proovib igal kutsel uuesti.
+- **Transporditee** (`StationPaths`) **[U]**: lühim tee jaamast jaama (Dijkstra, viigi korral vähem sõlmi): rada mööda liikumissuunas, konnektori kaudu teisele rajale (pikkus 0). Avatud konveieril ainult **allavoolu**. Tee = sõidud (`Legs`: rada, algus- ja lõppjaam), nende vahel konnektorid. Arvutatakse `Enumerate`-s (kontroll) ja `SimInit`-is (`TransportPaths`); ühe lähtejaama teed annab `ShortestPaths`, millele saab öelda, milliseid konnektoreid läbida ei tohi.
+- **Teele minek** (`Depart`) **[U]**: kui detailil on sihtkoht broneeritud (osa 5.2), valitakse **lühim vaba tee** (`FreePath`: kinnised konnektorid jäetakse välja – paralleelsetest konnektoritest võetakse vaba, etapp 7b) ja broneeritakse **kõik selle konnektorid korraga**. Siis ei jää detail kunagi konnektorisse järgmist ootama (ringootamist pole) ja koormaga alus ei pea avatud konveieri lõpust mööda sõitma. Kui vaba teed pole, jääb detail oma kohale (`WAIT_DEST`, sihtkoht jääb) ja Planner proovib igal kutsel uuesti. Sihtkoha valik (`FindMach`) kasutab endiselt lühimat teed sõltumata konnektorite seisust.
 - **Sõit** **[T]**: alus peatub mahalaadimiseks sõidu lõppjaamas (`Path[0].To`): sihtkohas või konnektoris. Konnektoris jääb detail `WAIT_PICKUP`-olekusse ja järgmise raja alus võtab ta sealt nagu puhvrist. Uus sündmuse objekt `Connector` (`Load` aluselt konnektorisse ja konnektorist alusele).
 - **Valik** **[T]**: `FindMach` arvestab ainult pinke, kuhu tee viib, ja „lähim“ on tee pikkus (ühe silmuse korral sama mis varem). Ummiku tuvastus (`FindDeadlockedWorkpieces`) arvestab samuti ainult kättesaadavaid pinke; tee ootel detail (konnektor kinni) loetakse liikuvaks, sest konnektor vabaneb alati.
 - **Koormamine** **[T]**: konnektor on üks koht `Kl` valemis (`Ntm + Nmt + Nbuf + Ncon`).
@@ -552,7 +552,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `DetectOpenCons`, `FindConflicts` | andmekontroll: vabad otsad; andmete kooskõla (osa 2.2) | [O] |
 | `TraceTrack`, `WalkTrack`, `FindStations`, `FollowDotLink` | rada suunanoole järgi (silmus või avatud); ikoonide läbimine kuni otsa / sulgumiseni; jaamad hargnemistel ja konnektori kõrval raja otsas; punktiirühenduse järgimine | [U] / [U] / [U] / [T] |
 | `PartKey` | raja osa võti (sillal lahter + telg) | [U] |
-| `CheckReachability`, `StationPaths` | kättesaadavuse kontroll (SysOut, ToCS, marsruudi pingid); lühimad teed jaamade vahel üle konnektorite (osa 2.3) | [U] |
+| `CheckReachability`, `StationPaths`, `ShortestPaths` | kättesaadavuse kontroll (SysOut, ToCS, marsruudi pingid); lühimad teed jaamade vahel üle konnektorite; ühest jaamast, valitud konnektoriteta (osa 2.3) | [U] |
 | `CheckObjects`, `LinkMachines` | puhvrite, lao ja väljundi ühendused; pingi ja puhvri seos | [U] / [T] |
 | `MeasureTrack`, `BuildNetwork` | lõigud, pikkused, asukohad; võrgu koostamine | [U] |
 | `EnumError`, `EnumWarning`, `Neighbor`, `OtherPort`, `ObjectName`, `CellKey`, `CellPath`, `RoundPosition` | `Enumerate` abiprotseduurid | [U] |
@@ -565,7 +565,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ProgTM` | käru teekonna arvutamine | [O] |
 | `ShortestPath` | lühim tee rajavõrgus (Dijkstra) | [U] |
 | `ReserveSlot`, `ReleaseSlot` | koha broneerimine ja vabastamine | [U] |
-| `Depart`, `PathConnectors`, `PathFree`, `CanReserveConnector` | teele minek: tee konnektorite broneerimine korraga; tee konnektorid; kas tee on vaba; kas konnektor on vaba (osa 2.3) | [U] |
+| `Depart`, `PathConnectors`, `FreePath`, `CanReserveConnector` | teele minek: tee konnektorite broneerimine korraga; tee konnektorid; lühim tee vabade konnektoritega (paralleelsed konnektorid, 7b); kas konnektor on vaba (osa 2.3) | [U] |
 | `ReserveZone`, `ReleaseZone` | tsooni broneerimine ja vabastamine | [U] |
 | `DetectDeadlock` | ummiku lahendamine (parkimine) ja varukontroll | [U] |
 | `FindDeadlockedWorkpieces` | ummikus olevad detailid (püsipunkt üle puhvrite) | [U] |
