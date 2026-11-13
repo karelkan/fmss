@@ -5,7 +5,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { CheckModel, IconTypes } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState, StationPaths, DriveCart } from '../src/fms_sim.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport, StationPaths, DriveCart } from '../src/fms_sim.js';
+import { EdgePoint, NodePoint, CartPosition, CartPoint, InterpolateCart, WorkpiecePlaces } from '../src/anima.js';
 
 const CHECKED = { CheckInvariants: true };
 const DOT = { Dot: true };
@@ -389,6 +390,55 @@ test('N: näidismudel AGV-dega – kahesuunalisel ringil 2 käru töötab, 3 kä
   const three = SimRun(NetworkOf(DemoDiscrete({ Carts: 3 })), CHECKED);
   assert.equal(three.Deadlock, true);
   assert.match(three.DeadlockReason, /ootavad kärud üksteist/);
+});
+
+// ---------------------------------------------------------------------
+// Animaator (arvutusosa, DISAIN.md 14): käru punkt raja graafis
+// ---------------------------------------------------------------------
+
+test('Animaator: lõigu punktid on pidevad, otsad on sõlmede punktides, jaam hargnemisikooni keskel', () => {
+  const distance = (a, b) => Math.hypot(a.X - b.X, a.Y - b.Y);
+  for (const network of [NetworkOf(LayoutE4()), NetworkOf(LayoutF()), NetworkOf(LayoutR()), NetworkOf(LayoutM())]) {
+    const track = network.Tracks.find(item => item.Mode === 'Discrete');
+    for (const edge of track.Edges) {
+      assert.ok(distance(EdgePoint(edge, 0), NodePoint(track, edge.From)) < 1e-6, `${network.Name}: lõigu algus`);
+      assert.ok(distance(EdgePoint(edge, edge.Length), NodePoint(track, edge.To)) < 1e-6, `${network.Name}: lõigu lõpp`);
+      const steps = 400;
+      for (let i = 1; i <= steps; i++) {
+        const gap = distance(EdgePoint(edge, edge.Length * (i - 1) / steps), EdgePoint(edge, edge.Length * i / steps));
+        assert.ok(gap < 0.05, `${network.Name}: hüpe ${gap} lõigul ${edge.From}-${edge.To}`);
+      }
+    }
+    for (const station of network.Stations.filter(item => item.Node !== undefined)) {
+      const point = NodePoint(track, station.Node);
+      assert.ok(Math.abs(point.X - station.Junction.X - 0.5) < 1e-6 && Math.abs(point.Y - station.Junction.Y - 0.5) < 1e-6);
+    }
+  }
+});
+
+test('Animaator: käru liigub sekundi sees sujuvalt; sammhaaval lugedes on aruanne sama', () => {
+  const network = NetworkOf(LayoutR({ Carts: 3 }));
+  const short = { ...network, Sim: { ...network.Sim, Duration: 3600 } };
+  const expected = SimRun(short);
+  SimInit(short, CHECKED);
+  const maxStep = network.Tracks[0].Speed / network.Scale;   // ikooni sekundis
+  while (!SimState().SIMULATION_DONE) {
+    const track = SimState().Tracks[0];
+    const before = track.Pallets.map(CartPosition);
+    SimStep();
+    track.Pallets.forEach((cart, cartIndex) => {
+      let previous = InterpolateCart(track, before[cartIndex], CartPosition(cart), 0);
+      for (let k = 1; k <= 10; k++) {
+        const point = InterpolateCart(track, before[cartIndex], CartPosition(cart), k / 10);
+        assert.ok(Math.hypot(point.X - previous.X, point.Y - previous.Y) <= maxStep / 10 * 1.6 + 1e-6
+          || cart.Edge < 0 && before[cartIndex].Edge === undefined, 'käru hüppab');
+        previous = point;
+      }
+      assert.deepEqual(InterpolateCart(track, before[cartIndex], CartPosition(cart), 1), CartPoint(track, CartPosition(cart)));
+    });
+    WorkpiecePlaces(SimState());   // detailide kohad (kärul) arvutatakse ilma veata
+  }
+  assert.deepEqual(SimReport(), expected);
 });
 
 // Invariantide kontroll: meelega tehtud vead tabatakse kohe.

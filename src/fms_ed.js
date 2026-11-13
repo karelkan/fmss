@@ -453,7 +453,8 @@ export function DeleteTrack(model, number) {
 }
 
 // [U] SegmentCells – raja lõik, kuhu lahter (x, y) kuulub: järjestikused sirged ja kaared kahe
-//     hargnemise (või ristmiku, raja otsa) vahel – nagu Enumerate-i MeasureTrack-is. Tagastab
+//     hargnemise (või ristmiku, raja otsa) vahel – nagu Enumerate-i MeasureTrack-is (diskreetsel
+//     rajal on ots sõlm: otsalahtrist pool – MeasureGraph). Tagastab
 //     { Cells: [[x, y] …] raja järjekorras, Units – pikkus ikoonides koos hargnemiste pooltega }
 //     või null (lahter pole lõigu sisemine: hargnemine, punktiir, objekt). Kutsub: Transport-vorm.
 export function SegmentCells(model, x, y) {
@@ -465,6 +466,7 @@ export function SegmentCells(model, x, y) {
   const sides = [];
   let units = 0;
   const unitOf = cell => (IconTypes[cell.T].Arc ? Math.PI / 4 : 1);
+  const discrete = model.Tracks[start.N - 1]?.Mode === 'Discrete';
   const seen = new Set([CellKey(start.X, start.Y)]);
   for (const port of CellPorts(start)) {
     const cells = [];
@@ -474,7 +476,11 @@ export function SegmentCells(model, x, y) {
       const step = DIRECTIONS[exit];
       const next = grid.get(CellKey(cell.X + step.DX, cell.Y + step.DY));
       if (!next || IconTypes[next.T].Kind !== 'Track' || next.Dot || CellTrack(next, step.Opposite) !== start.N
-          || !CellPorts(next).includes(step.Opposite)) break;
+          || !CellPorts(next).includes(step.Opposite)) {
+        // diskreetse raja ots on sõlm: lõik lõpeb otsalahtri keskel (DISAIN.md 11.1)
+        if (discrete) units -= unitOf(cell) / 2;
+        break;
+      }
       if (!isInner(next)) { units += 0.5; break; }   // hargnemine: pool sellest kuulub lõiku
       const crossOver = IconTypes[next.T].CrossOver;
       const key = crossOver ? `${CellKey(next.X, next.Y)},${step.Opposite === 'N' || step.Opposite === 'S' ? 'NS' : 'WE'}` : CellKey(next.X, next.Y);

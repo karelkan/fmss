@@ -595,3 +595,55 @@ test('Sild: CheckModel nõuab N2 ainult sillal', () => {
   CellAt(model, 1, 1).T = 'CrossOver';
   assert.ok(CheckModel(model).some(error => error.Path.endsWith('.N2')));
 });
+
+// Stsenaarium E4 (test/agv.test.js) redaktoriga: diskreetne rada (AGV), möödasõidurada kahe
+// hargnemise vahel, harudel vastassuunalised nooled (ühesuunalised lõigud), jaamad punktiirita.
+test('Diskreetne rada redaktoriga: möödasõidurada, raja-harud ja ühesuunalised nooled (E4)', () => {
+  const model = Blank(9, 4);
+  assert.equal(LayPath(model, Cells([0, 2], [4, 2]), { Track: 1 }), 0);
+  assert.equal(LayPath(model, Cells([4, 2], [4, 1], [6, 1], [6, 2], [8, 2]), { Track: 1 }), 0);
+  assert.equal(LayPath(model, Cells([4, 2], [4, 3], [6, 3], [6, 2]), { Track: 1 }), 0);
+  PlaceIcon(model, 3, 0, Item('MachToolDown'));
+  PlaceIcon(model, 3, 1, Item('InOutBuf'));
+  PlaceIcon(model, 2, 3, Item('FromCS'));
+  PlaceIcon(model, 7, 3, Item('SysOut'));
+  for (const [x, y] of [[2, 3], [3, 1], [7, 3]]) {
+    assert.equal(LayPath(model, Cells([x, y], [x, 2]), { Dot: true }), 0, `(${x}, ${y})`);
+  }
+  CycleDirection(model, 5, 1);                         // ülemine haru: E
+  CycleDirection(model, 5, 3);
+  CycleDirection(model, 5, 3);                         // alumine haru: E -> W
+  const expected = [
+    [4, 1, 'ArcSE'], [5, 1, 'HorTr', 'E'], [6, 1, 'ArcSW'],
+    [0, 2, 'HorTr'], [1, 2, 'HorTr'], [2, 2, 'TeeS'], [3, 2, 'TeeN'], [4, 2, 'TeeW'],
+    [6, 2, 'TeeE'], [7, 2, 'TeeS'], [8, 2, 'HorTr'],
+    [4, 3, 'ArcNE'], [5, 3, 'HorTr', 'W'], [6, 3, 'ArcNW'],
+  ];
+  for (const [x, y, type, dir] of expected) {
+    const cell = CellAt(model, x, y);
+    assert.equal(cell.T, type, `(${x}, ${y})`);
+    assert.equal(cell.N, 1, `(${x}, ${y}) N`);
+    assert.equal(cell.Dir, dir, `(${x}, ${y}) Dir`);
+  }
+  // pideva rajana on haru viga, diskreetsena korras
+  model.Workpieces = [{ Name: 'Võll', Priority: 1, Batch: 1, Routes: [{ Priority: 1, Ops: [{ Op: OPERATIONS[0], Mean: 200, Dev: 0 }] }] }];
+  model.Storage = null;
+  assert.ok(ModelProblems(model).Errors.length > 0);
+  model.Tracks[0].Mode = 'Discrete';
+  model.Tracks[0].Carts = 2;
+  assert.deepEqual(ModelProblems(model).Errors, []);
+  const network = Enumerate(model).Network;
+  assert.deepEqual(network.Tracks[0].Nodes.filter(node => node.Junction).map(node => [node.X, node.Y]), [[4, 2], [6, 2]]);
+  assert.deepEqual(network.Tracks[0].Edges.map(edge => edge.OneWay).filter(dir => dir !== 0).length, 2);
+  const report = SimRun({ ...network, Sim: { ...network.Sim, Duration: 3600 } }, { CheckInvariants: true });
+  assert.equal(report.Deadlock, false);
+  assert.ok(report.Completed > 0);
+  // metrokaart: raja otsa lõik (ots on sõlm – pool ikooni) ja selle pikkus nagu Enumerate-is
+  const segment = SegmentCells(model, 1, 2);
+  assert.deepEqual(segment.Cells, [[0, 2], [1, 2]]);
+  assert.equal(segment.Units, 2);                       // 0,5 (ots) + 1 + 0,5 (FromCS jaam)
+  SetEdgeLength(model, segment.Cells, 1000);
+  assert.deepEqual(ModelProblems(model).Errors, []);
+  const stretched = Enumerate(model).Network.Tracks[0].Edges.find(edge => edge.Stretched);
+  assert.equal(stretched.Length, 1000);
+});

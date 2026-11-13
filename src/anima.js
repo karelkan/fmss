@@ -17,7 +17,7 @@
 // vaade (View): ikooni laius CW ja kõrgus CH pikslites. EGA-s on CH < CW, sest EGA pikslid on
 // kõrged – nii on ikoon ekraanil ruudukujuline.
 
-import { IconTypes } from './fms_glb.js';
+import { IconTypes, DIRECTIONS, CellTrack } from './fms_glb.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
 import { SimInit, SimStep, SimState, SimReport } from './fms_sim.js';
@@ -141,6 +141,64 @@ export function PalletPosition(track, palletIndex, offset) {
 // [U] InterpolateOffset – konveieri nihe eelmise ja praeguse sekundi vahel (sujuv liikumine).
 export function InterpolateOffset(previous, current, length, fraction) {
   return Modulo(previous + Modulo(current - previous, length) * fraction, length);
+}
+
+// [U] EdgePoint – punkt diskreetse raja lõigul: kaugus lõigu From-sõlmest (cm) -> punkt
+//     ruudustikus (lõigu ikoonid Enumerate-st: F0 … F1 osa ikoonist). Kutsuvad: CartPoint, DrawZones.
+export function EdgePoint(edge, distance) {
+  const point = Math.min(Math.max(distance, 0), edge.Length);
+  let piece = edge.Cells[edge.Cells.length - 1];
+  for (const candidate of edge.Cells) {
+    if (point <= candidate.Start + candidate.Length + 1e-9) { piece = candidate; break; }
+  }
+  const local = piece.Length > 0 ? Math.min(1, Math.max(0, (point - piece.Start) / piece.Length)) : 0;
+  return CellPathPoint(piece, piece.F0 + (piece.F1 - piece.F0) * local);
+}
+
+// [U] NodePoint – diskreetse raja sõlme punkt (ikooni keskel, kaare otsal kaare keskel).
+export function NodePoint(track, nodeIndex) {
+  return CellPathPoint(track.Nodes[nodeIndex], 0.5);
+}
+
+// [U] CartPosition – käru asukoht koopiana: { Node } või { Edge, Dir, Distance }.
+export function CartPosition(cart) {
+  return cart.Edge >= 0 ? { Edge: cart.Edge, Dir: cart.Dir, Distance: cart.Distance } : { Node: cart.Node };
+}
+
+// [U] CartPoint – käru punkt ruudustikus (Distance on käru sõidusuunas).
+export function CartPoint(track, position) {
+  if (position.Edge === undefined) return NodePoint(track, position.Node);
+  const edge = track.Edges[position.Edge];
+  return EdgePoint(edge, position.Dir > 0 ? position.Distance : edge.Length - position.Distance);
+}
+
+// [U] InterpolateCart – käru punkt eelmise ja praeguse sekundi vahel (sujuv liikumine): sama lõik
+//     (ka ümber pöörates), lõigult sõlme, sõlmest lõigule või lõigult järgmisele lõigule läbi sõlme;
+//     muidu praegune punkt.
+export function InterpolateCart(track, previous, current, fraction) {
+  if (!previous || fraction >= 1) return CartPoint(track, current);
+  const far = position => (position.Dir > 0 ? track.Edges[position.Edge].To : track.Edges[position.Edge].From);
+  const near = position => (position.Dir > 0 ? track.Edges[position.Edge].From : track.Edges[position.Edge].To);
+  const along = (position, distance) => CartPoint(track, { ...position, Distance: distance });
+  const onEdge = position => position.Edge !== undefined;
+  if (onEdge(previous) && onEdge(current) && previous.Edge === current.Edge) {
+    // sama lõik; ümber pöörates loetakse eelmine kaugus uues suunas
+    const start = previous.Dir === current.Dir ? previous.Distance : track.Edges[current.Edge].Length - previous.Distance;
+    return along(current, start + (current.Distance - start) * fraction);
+  }
+  if (onEdge(previous) && !onEdge(current) && far(previous) === current.Node) {
+    const length = track.Edges[previous.Edge].Length;
+    return along(previous, previous.Distance + (length - previous.Distance) * fraction);
+  }
+  if (!onEdge(previous) && onEdge(current) && near(current) === previous.Node) {
+    return along(current, current.Distance * fraction);
+  }
+  if (onEdge(previous) && onEdge(current) && far(previous) === near(current)) {
+    const rest = track.Edges[previous.Edge].Length - previous.Distance;
+    const travelled = (rest + current.Distance) * fraction;
+    return travelled < rest ? along(previous, previous.Distance + travelled) : along(current, travelled - rest);
+  }
+  return CartPoint(track, current);
 }
 
 // =====================================================================
@@ -331,7 +389,7 @@ function CellBox(view, cell, insetX, insetTop, insetBottom = insetTop) {
 }
 
 // Raja ikooni joon (sirge, kaar, hargnemine, ristmik, sild, punktiir). role2 – sillal N–S raja värv.
-function DrawTrackIcon(theme, view, cell, role, role2 = role) {
+function DrawTrackIcon(theme, view, cell, role, role2 = role, branchTrack = false) {
   const icon = IconTypes[cell.T];
   const dotted = Boolean(cell.Dot) || icon.Kind === 'Connector';
   const lineRole = cell.Dot ? 'DotLink' : role;
@@ -369,7 +427,11 @@ function DrawTrackIcon(theme, view, cell, role, role2 = role) {
   } else {
     line(icon.Ports[0], icon.Ports[1]);
   }
-  if (icon.Branch) line(icon.Branch, 'C', { Width: options.Width, Dash: DashPattern(view) }, 'DotLink');
+  // haru: punktiirühendus (jaam) või raja-haru (diskreetne rada, 7b) – pidev joon
+  if (icon.Branch) {
+    if (branchTrack) line(icon.Branch, 'C');
+    else line(icon.Branch, 'C', { Width: options.Width, Dash: DashPattern(view) }, 'DotLink');
+  }
   if (icon.Kind === 'Connector' && !dotted) return;
   if (icon.Kind === 'Connector') {   // konnektor: väike kast keskel (etapp 7)
     const box = CellBox(view, cell, 0.38, 0.38);
@@ -406,7 +468,7 @@ export function DrawIcon(theme, view, cell, label = '', style = {}) {
   switch (icon.Kind) {
     case 'Track':
     case 'Connector':
-      DrawTrackIcon(theme, view, cell, style.TrackRole ?? 'Track', style.TrackRole2 ?? style.TrackRole ?? 'Track');
+      DrawTrackIcon(theme, view, cell, style.TrackRole ?? 'Track', style.TrackRole2 ?? style.TrackRole ?? 'Track', style.BranchTrack);
       if (cell.Dir) DrawDirectionArrow(theme, view, cell);
       break;
     case 'Machine': {
@@ -455,6 +517,19 @@ function ObjectLabel(model, cell) {
   return '';
 }
 
+// [U] BranchIsTrack – kas hargnemise haru on sama raja rada (raja-haru diskreetsel rajal, 7b),
+//     mitte punktiirühendus. grid: 'x,y' -> lahter.
+function BranchIsTrack(grid, cell) {
+  const branch = IconTypes[cell.T]?.Branch;
+  if (!branch || cell.Dot) return false;
+  const step = DIRECTIONS[branch];
+  const next = grid.get(`${cell.X + step.DX},${cell.Y + step.DY}`);
+  if (!next || next.Dot || IconTypes[next.T]?.Kind !== 'Track') return false;
+  const icon = IconTypes[next.T];
+  const ports = icon.Branch ? [...icon.Ports, icon.Branch] : icon.Ports;
+  return ports.includes(step.Opposite) && CellTrack(next, step.Opposite) === cell.N;
+}
+
 // [U] DrawLayout – kogu ruudustik: taust, ruudustiku punktid, ikoonid.
 //     style.MachineRole(cell) – pingi värv olekust; style.TrackRole – raja värv (roll või
 //     funktsioon raja numbrist, iga raja jaoks oma; sillal kaks rada); style.Grid: false – ilma ruudustiku punktideta
@@ -469,8 +544,10 @@ export function DrawLayout(theme, view, model, style = {}) {
   }
   const cells = [...model.Layout.Cells].sort((first, second) =>
     Number(IconTypes[first.T]?.Kind !== 'Track') - Number(IconTypes[second.T]?.Kind !== 'Track'));
+  const grid = new Map(model.Layout.Cells.map(cell => [`${cell.X},${cell.Y}`, cell]));
   for (const cell of cells) {
     DrawIcon(theme, view, cell, ObjectLabel(model, cell), {
+      BranchTrack: BranchIsTrack(grid, cell),
       TrackRole: typeof style.TrackRole === 'function' ? style.TrackRole(cell.Dot ? undefined : cell.N) : style.TrackRole,
       TrackRole2: typeof style.TrackRole === 'function' ? style.TrackRole(cell.N2 ?? (cell.Dot ? undefined : cell.N)) : style.TrackRole,
       MachineRole: style.MachineRole ? style.MachineRole(cell) : undefined,
@@ -546,6 +623,10 @@ function PlacePoint(anim, state, scene, place) {
 function BuildScene(anim, state) {
   const time = Math.max(0, state.SYSTEM_TIME - 1 + anim.Fraction);
   const palletPoints = state.Tracks.map((track, trackIndex) => {
+    if (track.Discrete) {
+      return track.Pallets.map((cart, cartIndex) =>
+        InterpolateCart(track, anim.PrevCarts[trackIndex]?.[cartIndex], CartPosition(cart), anim.Fraction));
+    }
     const offset = InterpolateOffset(anim.PrevOffsets[trackIndex] ?? track.Offset, track.Offset, track.Length, anim.Fraction);
     return track.Pallets.map((pallet, palletIndex) =>
       TrackPoint(anim.Geometry[trackIndex], PalletPosition(track, palletIndex, offset)));
@@ -564,8 +645,10 @@ function Transport(theme, view, anim, state, scene) {
       const y = Math.round(point.Y - widthY / 2);
       theme.RoundRect(x, y, Math.round(widthX), Math.round(widthY), view.Ega ? 0 : 2, 'Pallet');
       const reserved = pallet.ReservedWP !== null;
-      theme.StrokeRect(x, y, Math.round(widthX), Math.round(widthY), reserved ? 'PalletReserved' : 'PalletFrame',
-        { Width: reserved && !view.Ega ? 1.5 : 1, Radius: view.Ega ? 0 : 2 });
+      const waiting = track.Discrete && pallet.Waiting !== null;   // käru ootab tsooni (7b)
+      const role = waiting ? 'TrackStopped' : reserved ? 'PalletReserved' : 'PalletFrame';
+      theme.StrokeRect(x, y, Math.round(widthX), Math.round(widthY), role,
+        { Width: (reserved || waiting) && !view.Ega ? 1.5 : 1, Radius: view.Ega ? 0 : 2 });
     });
   });
 }
@@ -690,6 +773,35 @@ function DrawConnectors(theme, view, anim, state) {
   });
 }
 
+// [U] DrawZones – diskreetse raja broneeritud tsoonid, kuhu käru pole veel jõudnud (plokk): lõik
+//     katkendjoonena, sõlm ringina (DISAIN.md 11.5).
+function DrawZones(theme, view, state) {
+  const dash = view.Ega ? [2, 2] : [view.CW * 0.08, view.CW * 0.06];
+  const width = view.Ega ? 1 : Math.max(1.5, view.CW * 0.06);
+  for (const track of state.Tracks) {
+    if (!track.Discrete) continue;
+    for (const [zone, holder] of track.Holder) {
+      const cart = track.Pallets[holder];
+      const current = cart.Edge >= 0 ? `E${cart.Edge}` : `N${cart.Node}`;
+      if (zone === current) continue;
+      const index = Number(zone.slice(1));
+      if (zone[0] === 'N') {
+        const point = ToScreen(view, NodePoint(track, index));
+        theme.Ellipse(point.X, point.Y, view.CW * 0.22, view.CH * 0.22, 'SlotReserved', { Fill: false, Width: width, Dash: dash });
+        continue;
+      }
+      const edge = track.Edges[index];
+      const steps = Math.max(2, Math.ceil(edge.Cells.length * 4));
+      let previous = ToScreen(view, EdgePoint(edge, 0));
+      for (let i = 1; i <= steps; i++) {
+        const point = ToScreen(view, EdgePoint(edge, edge.Length * i / steps));
+        theme.Line(previous.X, previous.Y, point.X, point.Y, 'SlotReserved', { Width: width, Dash: dash });
+        previous = point;
+      }
+    }
+  }
+}
+
 // [O] Animator – kogu pilt: rajad, pingid (olek), puhvrid, laod, konnektorid, alused, detailid,
 //     esiletõstmine. Iga raja värv oma seisu järgi (seisab, kui mõni laadimine käib).
 function Animator(theme, view, anim, state, scene) {
@@ -706,6 +818,7 @@ function Animator(theme, view, anim, state, scene) {
   DrawBufferSlots(theme, view, anim, state);
   DrawStorages(theme, view, anim, state);
   DrawConnectors(theme, view, anim, state);
+  DrawZones(theme, view, state);
   Transport(theme, view, anim, state, scene);
 
   const points = new Map();   // detaili Id → punkt (esiletõstmiseks)
@@ -757,9 +870,17 @@ function SimStatus(anim, state) {
   else if (anim.Running && anim.Max) mode = Texts.AnimModeMax;
   else if (anim.Running) mode = Texts.AnimModeRun;
   const time = Math.max(1, state.SYSTEM_TIME);
-  const tracks = state.Tracks.map(track => (track.StopCount > 0
-    ? FormatText(Texts.AnimTrackStopped, { Name: track.Name, Count: track.StopCount })
-    : FormatText(Texts.AnimTrackMoving, { Name: track.Name })));
+  const tracks = state.Tracks.map(track => {
+    if (track.Discrete) {
+      const moving = track.Pallets.filter(cart => cart.Route !== null && cart.Waiting === null && !cart.Stopped).length;
+      const waiting = track.Pallets.filter(cart => cart.Waiting !== null).length;
+      return FormatText(waiting > 0 ? Texts.AnimTrackCartsWaiting : Texts.AnimTrackCarts,
+        { Name: track.Name, Moving: moving, Count: track.Pallets.length, Waiting: waiting });
+    }
+    return track.StopCount > 0
+      ? FormatText(Texts.AnimTrackStopped, { Name: track.Name, Count: track.StopCount })
+      : FormatText(Texts.AnimTrackMoving, { Name: track.Name });
+  });
   return FormatText(Texts.AnimStatus, {
     Time: ClockText(state.SYSTEM_TIME), Duration: ClockText(anim.Network.Sim.Duration),
     Speed: anim.Max ? Texts.AnimModeMax : SpeedText(anim.Speed), Mode: mode,
@@ -842,8 +963,11 @@ function DrawControlBar(theme, desktop, anim, state) {
 
 // Sündmuse kaardi tekst: „Load WP12“.
 const CardLabel = event => (event.WP !== null ? `${event.Event} WP${event.WP}` : event.Event);
-const EventRole = event => (['InSys', 'Load', 'Turn', 'Process', 'MoveZ', 'StopMov', 'OutSys'].includes(event.Event)
-  ? `Event${event.Event}` : 'EventOther');
+const EventRole = event => {
+  if (event.Event === 'Collision') return 'Deadlock';   // kärud ootavad üksteist (7b)
+  return ['InSys', 'Load', 'Turn', 'Process', 'MoveZ', 'StopMov', 'OutSys'].includes(event.Event)
+    ? `Event${event.Event}` : 'EventOther';
+};
 
 // [U] DrawEventStrip – Event List ekraanil (kaasaegne): ajatelg alates SYSTEM_TIME-st, sündmused
 //     kaartidena; lisandunud kaart libiseb kohale, töödeldu kaob vasakule. L – ahelloendi vaade.
@@ -1009,7 +1133,13 @@ function AnimatorPainter(theme, desktop) {
 // Üks simulatsiooni sekund; konveieri eelmine nihe jääb meelde sujuva liikumise jaoks.
 function StepSimulation(anim) {
   anim.PrevOffsets = SimState().Tracks.map(track => track.Offset);
+  anim.PrevCarts = CartPositions();
   SimStep();
+}
+
+// [U] CartPositions – diskreetsete radade kärude asukohad (eelmine sekund sujuvaks liikumiseks).
+function CartPositions() {
+  return SimState().Tracks.map(track => (track.Discrete ? track.Pallets.map(CartPosition) : null));
 }
 
 // [U] AdvanceSimulation – kaadri jagu simulatsiooni: kiirus × möödunud aeg (time mapping).
@@ -1229,12 +1359,12 @@ export function StartAnimator({ Model: model, Network: network, OnSummary: onSum
   const stationCell = kind => network.Stations.find(station => station.Kind === kind)?.Cell ?? null;
   AnimState = {
     Model: model, Network: network, OnSummary: onSummary, OnExit: onExit,
-    Geometry: network.Tracks.map((track, trackIndex) => TrackGeometry(network, trackIndex)),
+    Geometry: network.Tracks.map((track, trackIndex) => (track.Mode === 'Discrete' ? null : TrackGeometry(network, trackIndex))),
     MachineIndex: new Map(network.Machines.map((machine, machineIndex) => [`${machine.Cell.X},${machine.Cell.Y}`, machineIndex])),
     TrackIndex: new Map(network.Tracks.map((track, trackIndex) => [track.ModelIndex, trackIndex])),   // mudeli rada -> võrgu rada
     StationCells: { FromCS: stationCell('FromCS'), ToCS: stationCell('ToCS'), SysOut: stationCell('SysOut') },
     Running: false, Max: false, Finished: false, Speed: DEFAULT_SPEED,
-    Accumulator: 0, Fraction: 1, PrevOffsets: SimState().Tracks.map(track => track.Offset),
+    Accumulator: 0, Fraction: 1, PrevOffsets: SimState().Tracks.map(track => track.Offset), PrevCarts: CartPositions(),
     FrameRequest: 0, LastFrame: 0,
     Theme: null, View: null, Controls: [], DragSlider: false, HoverControl: null, HoverEvent: null,
     Cards: new Map(), Leaving: [], LastEvents: [], CardRects: [], CardsMoving: false, CardsPainted: null, ListView: false,

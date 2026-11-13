@@ -610,6 +610,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `StartAnimator`, `StopAnimator`, `AnimatorActive` | avamine (SimInit, pausil), sulgemine, kas avatud | [U] |
 | `TrackGeometry`, `TrackPoint`, `CellPathPoint`, `ArcCorner` | raja ikoonid asukohtadega; asukoht rajal → punkt ruudustikus; punkt ikooni sees; kaare keskpunkt | [U] |
 | `PalletPosition`, `InterpolateOffset` | aluse asukoht (sama valem mis `MinuteMan`-is); nihe kahe sekundi vahel | [T] / [U] |
+| `EdgePoint`, `NodePoint`, `CartPosition`, `CartPoint`, `InterpolateCart`, `CartPositions` | diskreetse raja punkt lõigul; sõlme punkt; käru asukoht (koopia); käru punkt; käru punkt kahe sekundi vahel; kõigi kärude eelmine asukoht (7b) | [U] |
+| `DrawZones`, `BranchIsTrack` | broneeritud plokk (katkendjoon, ring); kas hargnemise haru on rada (pidev joon) või punktiirühendus (7b) | [U] |
 | `WorkpiecePlaces`, `PlacePoint`, `BuildScene` | kus iga detail joonistatakse (ka laadimisel liikumas); koha punkt; kaadri andmed | [U] |
 | `EventListArray`, `DiffEventList`, `EventAxisX`, `EVENT_TICKS`, `EventCardLayout`, `RelatedObjects` | Event List massiivina; lisandunud ja töödeldud kirjed; ajatelg ja selle märgid (kellaajana); kaartide veerud; kaardiga seotud objektid | [U] |
 | `SPEED_STEPS`, `MAX_SPEED`, `SpeedFromSlider`, `SliderFromSpeed`, `NextSpeed`, `SpeedText`, `ClockText` | kiiruse skaala (×1 … ×1000) ja vormindus; aeg h:mm:ss | [U] |
@@ -687,17 +689,19 @@ Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinki
 | konveier | rada; seisab → teine värv (iga rada eraldi, 7a), olekureal „seisab (n)“ = käivaid laadimisi; avatud konveieril lähevad alused lõpust algusesse |
 | konnektor (7a) | kast raja vahel; detail sees; broneeritud (detail tuleb) – kontuur ümber kasti |
 | alus | ruut raja peal; broneeritud (detail tuleb peale) – teine raam |
+| AGV käru (7b) | ruut raja graafis (`CartPoint`), liigub sujuvalt ka sõlme kaudu ja ümber pöörates (`InterpolateCart`); ootab tsooni – oranž / pruun raam; broneeritud plokk, kuhu käru pole veel jõudnud – lõik katkendjoonena, sõlm ringina (`DrawZones`); raja-haru on pidev joon, punktiirühendus punktiir |
 | detail | ring tüübi värviga (16 tüüpi); ummiku tõttu kesklattu saadetav – punane ring |
 | tööpink | keha värv olekust; täht: L laadimine, H häälestus, T töötlemine, M mahalaadimine (R rike – etapp 8) |
 | puhver | kohad lahtritena: detail (nool pingi poole – sissetulev, raja poole – väljaminev), broneeritud (kontuur), vaba |
 | FromCS / ToCS / SysOut | ootavad detailid (4 + arv); täituvus valmis + pargitud + broneeritud / mahutavus; lahkunute arv |
-| SimStatus | aeg / kestus, kiirus, olek, detailid süsteemis ja valmis, tk/h, konveier |
+| SimStatus | aeg / kestus, kiirus, olek, detailid süsteemis ja valmis, tk/h, konveier; diskreetsel rajal „AGV liigub 2/3“ või „AGV ootab 1/3“ |
 
 EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 värviga (Bresenham, ilma silumiseta).
 
 **Ainult kaasaegses välimuses** **[U]**:
 - **Event List riba**: ajatelg (logaritmiline, nüüd … +1 h) alates nähtavast ajast, märgid kellaajana h:mm:ss nagu üleval (nüüd, +10 s, +1 min, +10 min, +1 h; arvutus jääb sekundites); sündmused kaartidena (värv tüübi järgi, nt `Load WP12`), sama aja sündmused ühes veerus FIFO järjekorras (3 rida, ülejäänu „+n“). Lisandunud kaart libiseb kohale, töödeldud kaob vasakule (`DiffEventList` – kirjeid võrreldakse viite järgi). Kaardile osutades tõstetakse esile seotud pink / puhver / jaam / alus / detail ja olekureale tuleb sündmuse aeg. `L` – ahelloendi vaade (kastid `Event`, `WP`, `Time` (h:mm:ss) ja `Next`-nooled, `FirstAtMoment` … `nil`). Kiirusel üle ×50 ja max-režiimis ainult arvud.
 - Pingi spindel pöörleb töötlemisel, häälestusel pöörleb aeglaselt hammasratas.
+- `Collision` (7b) on Event Listis punase kaardina.
 
 ---
 
@@ -715,6 +719,8 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 - **Suunanool** **[O]**: klõps raja sirgel või kaarel – puudub → üks suund → teine → puudub. Kui ikoon muutub (nt sirgest saab hargnemine), kaob nool, mis enam ei sobi.
 - **Muu**: vali / liiguta – lohista ikoon tühja lahtrisse; `T` – aktiivne rada (uute rajaikoonide `N`; viimane valik on uus rada); `G` – ruudustiku mõõdud (kuni 41 × 23, välja jäävad ikoonid kustutatakse küsimusega); Ctrl-Z / Ctrl-Y – Undo / Redo (100 sammu, kogu mudeli hetktõmmised); Esc – töölauale.
 - Mudel muutub kohapeal (`CurrentModel`). Salvestamata muudatus on töölaual näha ja Load / Pick / New / Quit küsivad enne kinnitust (`ConfirmDiscard`).
+
+**Diskreetne rada** (7b) **[U]**: redaktor joonistab samamoodi; rada lohistades tekivad raja-harud (hargnemine) ja ristmikud (`Cruise`), mis on diskreetsel rajal lubatud (`Mode` = `Discrete` Transport-vormis). Suunanool lõigul teeb lõigu ühesuunaliseks. Metrokaardi lõik (`SegmentCells`) lõpeb diskreetse raja otsas otsalahtri keskel (pool ikooni), nagu `MeasureGraph`-is.
 
 **View** **[O]**: kogu mudel korraga, ilma ruudustiku punktideta; ainult vaatamiseks (Esc).
 

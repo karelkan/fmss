@@ -281,4 +281,15 @@ Teine käru annab +27 %, kolmas peaaegu mitte midagi: kõik sõidud läbivad sam
 5. **Ühesuunaline ring jäi tihedalt kinni** (4 käru 5 sõlmel): plokk nõudis koos sõlmega järgmist lõiku, nii et kärud ei saanud tühja sõlme oodata. Ühesuunalise lõigu ees on nüüd plokk ainult sõlm; ühesuunalise lõigu lõpus võib oodata ka siis, kui järgmine sõlm on tee lõpp. Tulemus: 5 käru 5 sõlmel töötab.
 6. **Lõputu ringlemine** (näidismudel, 3 käru, kahesuunaline ring): igal sekundil `Collision` ja ümbersõit, mis ei aidanud (26 599 korda 8 h jooksul). Parandus: kui ring (mõne samaga kärudest) kordub kohe, ümbersõitu ei proovita; 10 korda järjest → ummik ja selge teade. **Järeldus struktuuri kohta**: kahesuunalisel ringil, kus pole möödumiskohti, ei leia kohalikud reeglid 3 käru korral lahendust, mis vajaks mitme sammu plaani – selline paigutus sobib kuni kahele kärule; suunanooled (ühesuunaline ring) või möödasõidurajad lahendavad selle.
 
+### Animaator ja redaktor
+
+| Test | Tulemus |
+|---|---|
+| **Lõigu geomeetria** (E4, F, R, M) – lõigu otsad on sõlmede punktides, 400 punkti lõigul ilma hüpeteta; jaam hargnemisikooni keskel | ✔ |
+| **Sujuv liikumine** – R 1 h sammhaaval: käru punkt sekundi sees ei hüppa (ka sõlme kaudu ja ümber pöörates), lõpp on käru tegelik koht; aruanne sama mis `SimRun`-iga | ✔ |
+| **Redaktor** – E4 tühjast ruudustikust (kolm lohistamist, objektid, punktiirid, kaks noolt): samad lahtrid kui testis; pideva rajana viga (haru), diskreetsena korras; simulatsioon käib; metrokaart raja otsa lõigule (`SegmentCells` = 2 ikooni) annab sama lõigu pikkuse `Enumerate`-s | ✔ |
+| **Brauseris** (käsitsi): EGA – R, E4 (möödasõidurada: harude nooled, ootav käru pruuni raamiga haru lõpus, raja-harud pideva joonena), M (konveier + konnektor + AGV, detail konnektorist kärule), kokkuvõte (AGV kahel real); kaasaegne – F (broneeritud plokk: ristmik ja haru katkendjoone ja ringidega, ootavad kärud oranži raamiga, olek klapib simulaatoriga), redaktor (F, „kontroll korras“), lohistades uus parkimisharu ristmiku harust → pidev joon, kontroll korras, 8 h max: 250 valmis, 0 `Collision`-it; konsoolis vigu pole | ✔ |
+
+**Leid** (brauseris): hargnemise haru joonistati alati punktiirina – diskreetse raja raja-haru nägi välja nagu punktiirühendus. Parandus: `BranchIsTrack` (haru naaber on sama raja rajaikoon → pidev joon). **Leid**: EGA-s jäi AGV kokkuvõtte rida ja olekurea „ootab“ ekraanist välja – kokkuvõte kahel real, olekureal ootajatega „AGV ootab 1/3“. **Leid**: diskreetse raja otsalahter on sõlm, redaktor luges selle lõigu metrokaardis terveks ikooniks – `SegmentCells` ja `MeasureGraph` nüüd kooskõlas.
+
 **Mida see EI kontrolli:** tsoonide tükeldamist (`ZoneLength`), parkimiskohti, kärude kiirendust ja pikkust (käru on punkt), mitut detaili kärul (7c), rikkeid (8).

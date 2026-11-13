@@ -517,11 +517,16 @@ function MeasureGraph(context, trace, links) {
     const keys = entry.Cells.every(pair => Array.isArray(pair) && pair.length === 2)
       ? entry.Cells.map(pair => CellKey(pair[0], pair[1])) : null;
     if (keys !== null && keys.length > 0 && !keys.every(key => ownKeys.has(key))) return;   // teise raja kirje
+    // lõigu lahtrid: sisemised ja raja otsa sõlm (kahe küljega ikoon – redaktori SegmentCells loeb selle lõiku)
+    const edgeKeys = candidate => {
+      const result = new Set(candidate.Edge.Inner.map(item => CellKey(item.Cell.X, item.Cell.Y)));
+      for (const node of [trace.Nodes[candidate.Edge.From], trace.Nodes[candidate.Edge.To]]) {
+        if (AllPorts(node.Cell).length === 2) result.add(CellKey(node.Cell.X, node.Cell.Y));
+      }
+      return result;
+    };
     const found = keys !== null && keys.length > 0
-      ? edges.find(candidate => {
-        const innerKeys = new Set(candidate.Edge.Inner.map(item => CellKey(item.Cell.X, item.Cell.Y)));
-        return keys.every(key => innerKeys.has(key));
-      })
+      ? edges.find(candidate => keys.every(key => edgeKeys(candidate).has(key)))
       : undefined;
     context.EdgeLengthsUsed.add(i);
     if (found === undefined) { EnumError(context, path, Texts.EnumEdgeNotFound); return; }

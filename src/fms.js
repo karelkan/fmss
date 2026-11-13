@@ -346,7 +346,17 @@ function SimSummaryLines(report, warnings) {
     ...limited(report.Buffers, (buffer) => FormatText(Texts.SimBuffer, {
       Name: buffer.Name, Avg: Decimal(buffer.AvgFill), Capacity: buffer.Capacity, Max: buffer.MaxFill,
     })),
-    ...report.Tracks.map((track) => FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops })),
+    ...report.Tracks.flatMap((track) => {
+      if (!track.Discrete) return [FormatText(Texts.SimTrack, { Name: track.Name, Moving: Percent(track.MovingShare), Stops: track.Stops })];
+      const average = (state) => track.Carts.reduce((sum, cart) => sum + cart[state], 0) / track.Carts.length;
+      return [
+        FormatText(Texts.SimCarts, { Name: track.Name, Count: track.Carts.length, Collisions: track.Collisions }),
+        FormatText(Texts.SimCartsShares, {
+          Loaded: Percent(average('LOADED')), Empty: Percent(average('EMPTY')),
+          Loading: Percent(average('LOADING')), Waiting: Percent(average('WAIT_ZONE')),
+        }),
+      ];
+    }),
     ...report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector)),
   );
   if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
