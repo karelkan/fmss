@@ -81,6 +81,15 @@ export function SaveModel(model, fileName) {
   RememberModel(fileName, text);
 }
 
+// [U] SaveText – tekstifaili allalaadimine (aruanne, Output → File). Kutsub: fms.js.
+export function SaveText(text, fileName) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  link.download = fileName;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+}
+
 // [O] RecentModels – viimati kasutatud mudelid (Pick): [{ File, Text }], uusim ees.
 export function RecentModels() {
   try {

@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -301,7 +301,7 @@ Kui teine alus jõuab samal hetkel täpselt jaama (nihe 0), saab ta märke `Arri
 - Rikked (etapp 8) **[U]**: pingi kohta `DOWN` osakaal (`DownShare`) ja rikete arv (`Crashes`); rakendatus ei sisalda rikkeaega. Süsteemis `Crashes`, `Scrapped`; aegreas `DownMachines`, `Scrapped`. Praak ei lähe valmis detailide, läbilaskevõime ega tsükliaja hulka.
 - Süsteem: läbilaskevõime (detaili tunnis), keskmine ja suurim detailide arv süsteemis, kesklattu pargitud.
 - **Aegrida** (`Stats.Timeline`, Dynamic-aruande jaoks, etapp 9) **[U]**: iga `SampleInterval` sekundi järel (vaikimisi 60, ka algus ja lõpp) detailid süsteemis, valmis, hõivatud pingid, puhvrite täituvus.
-- Kõik tuleb `SimReport`-ist; menüü *Simulate* näitab sellest lühikokkuvõtet (etapp 4), täielikud aruanded tulevad etapis 9.
+- Kõik tuleb `SimReport`-ist; menüü *Simulate* näitab sellest lühikokkuvõtet (etapp 4), täielikud aruanded on menüüs *Report* (etapp 9, osa 18).
 
 ---
 
@@ -599,10 +599,11 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | Nimi | Roll | |
 |---|---|---|
 | `Texts`, `FormatText` | kõik kasutajale näidatavad tekstid (`fms_lng.js`); kohatäidete `{Nimi}` asendus | [O] / [U] |
-| `EnvironmentOptions`, `LoadOptions`, `SaveOptions` | keskkonna seaded (teema, värvid) brauseri mälus (`fms_opt.js`, originaalis `FMSS.CFG`) | [O] |
+| `EnvironmentOptions`, `LoadOptions`, `SaveOptions` | keskkonna seaded (teema, värvid; aruande väljund ja teemad – etapp 9) brauseri mälus (`fms_opt.js`, originaalis `FMSS.CFG`) | [O] |
 | `DemoModels` | kaasas olevad näidismudelid (`models/`) | [U] |
 | `ParseModelText`, `ModelFileName` | failisisust kontrollitud mudel; mudeli nimest failinimi | [U] |
 | `LoadDemoModel`, `ChooseLocalFile`, `SaveModel` | Load (näidis / fail arvutist), Save (allalaadimine) | [O] |
+| `SaveText` | tekstifaili allalaadimine (aruanne, etapp 9) | [U] |
 | `RecentModels`, `RememberModel` | Pick – 10 viimast mudelit brauseri mälus | [O] / [U] |
 | `ROW_HEIGHT`, `EGA_WIDTH`, `EGA_HEIGHT`, `EgaPalette` | tekstirea kõrgus; EGA ekraan 640 × 350; 16 värvi | [U] / [O] |
 | `CreateEgaTheme`, `CreateModernTheme`, `LoadEgaFont` | välimused; EGA pikslifondi laadimine | [U] |
@@ -621,7 +622,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `BuildMainMenu`, `NotYet`, `DrawDesktop`, `AcceptLoadedModel`, `Main` | peamenüü; „tuleb etapis N“ punkt; töölaud; laaditud mudeli vastuvõtt; peaprogramm | [O] / [U] |
 | `MenuSimulate`, `SimSummaryLines` | Simulate: kontroll, animaator (osa 14), lõpus kokkuvõte dialoogis | [O] / [U] |
 | `SIM_SHOWN_ERRORS`, `SIM_SHOWN_OBJECTS`, `CheckLine`, `Percent`, `Decimal` | kokkuvõtte piirid ja vormindus (%, koma); `ClockText` (h:mm:ss) on `anima.js`-is | [U] |
-| `DesktopView`, `SetDesktopView`, `POINTER_CAPTURED`, `HandleWheel`, `InsideDesktop` | töölaua vaade (animaator): joonistaja, klahvid, hiir; lohistamine; hiire ratas | [U] |
+| `DesktopView`, `SetDesktopView`, `GetDesktopView`, `POINTER_CAPTURED`, `HandleWheel`, `InsideDesktop` | töölaua vaade (animaator, aruanne): joonistaja, klahvid, hiir; praegune vaade (aruanne taastab selle); lohistamine; hiire ratas | [U] |
 | abiprotseduurid | `MenuItems`, `SelectedItem`, `DropdownItems`, `DrawMenuBar`, `DrawDropdown`, `DrawStatusLine`, `MoveInDropdown`, `HandleMenuKey`, `OpenDialog`, `CloseDialog`, `DrawDialog`, `HandleDialogKey`, `HandleDialogPointer`, `MenuLoad`, `MenuPick`, `MenuNew`, `MenuSave`, `MenuWriteAs`, `AskQuit`, `ShowHelp` – vt kommentaarid `src/windows.js`-is ja `src/fms.js`-is | [U] |
 
 **Animaator** (`src/anima.js`, etapp 5, osa 14)
@@ -679,6 +680,25 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `MenuNewTrack`, `MenuNewWorkpiece`, `MenuCopyWorkpiece`, `MenuFlushWorkpiece`, `ItemNumber` | Transport → Uus rada; Workpiece data → Uus / Copy / Flush; menüü number 1 … 9, A … | [U] |
 | `FormBox`, `FormLayout`, `DrawForm`, `HandleFormKey`, `HandleFormPointer`, `PressFormButton`, `ChangeField`, `FieldWidth`, `LabelWidth`, `FieldText` | vormidialoog (`windows.js`): tekst, arv, valik, märkeruut, silt; Tab / nooled / hiir; vead välja juures; koht nii, et objekt jääb näha | [U] |
 | abiprotseduurid ja konstandid | `LayoutGrid`, `InsideGrid`, `CellAt`, `SegmentEnd`, `ClampCursor`, `ClampScroll`, `GridView`, `CellUnder`, `ScrollArrows`, `DrawToolGlyph`, `DrawPaletteItem`, `DEFAULT_TRACK`, `DEFAULT_MACHINE`, `DEFAULT_BUFFER`, `DEFAULT_STORAGE` – vt päisekommentaarid | [U] |
+
+**Aruanded** (`src/fms_rep.js`, etapp 9, osa 18)
+
+| Nimi | Roll | |
+|---|---|---|
+| `fms_rep.js` | aruannete generaator (originaalis `FMS_REP1.PAS`) | [O] |
+| `StaticReport`, `DynamicReport` | Static (algne seis ja lõppseis), Dynamic (kogutud statistika) valitud teemadega | [O] |
+| `STATIC_TOPICS`, `DYNAMIC_TOPICS`, `ChooseTopics`, `ReportTopics` | teemad; teemade valik vormis ja seadetest (`fms.js`) | [O] / [O] / [O] / [U] |
+| `OutputReport`, `ShowReport`, `ReportText` | Output: ekraanile (kerimisega vaade) või faili (tekst) | [O] |
+| `MenuStaticReport`, `MenuDynamicReport`, `ChangeReportOutput` | Report → Static, Dynamic, Output → Display / File (`fms.js`) | [O] |
+| `FullReport`, `SaveReportAs`, `ReportFileName` | kokkuvõtte nupp „Aruanne“ (Static + Dynamic); failinime küsimine ja allalaadimine; vaikimisi nimi `mudel-static.txt` | [U] |
+| `LastReport`, `KeepReport`, `LastSimulation`, `ForgetReport` | viimane simulatsioon (aruanne, lõppseis, mudel JSON-ina, failinimi); meelde jätmine; lugemine; unustamine (testid) | [U] |
+| `CaptureEndState` | lõppseis `SimState`-ist: pinkide olek ja detail, puhvrite sisu, alustel ja konnektorites olevad detailid, keskladu, detailid asukoha ja tüübi järgi | [U] |
+| `CycleStats` | tsükliaeg ja selle osad (keskmine, lühim, pikim, osade keskmised ja osakaalud; originaali ptk 8.5) | [U] |
+| `TimelineStep`, `TimelineRows`, `TIMELINE_STEPS`, `TIMELINE_MAX_ROWS` | aegrea samm aruandes (kuni 100 rida); valitud punktid | [U] |
+| `ReportView`, `ReportActive`, `CloseReport`, `ReportLayout`, `ReportPainter`, `DrawReportLine`, `ReportInput`, `ScrollReport` | aruande vaade töölaual: olek; kas ees; sulgemine (eelmine vaade tagasi); paigutus; joonistamine (EGA – märgid, kaasaegne – joon ja tulbad ristkülikutena); klahvid, ratas, kerimisriba | [U] |
+| `REPORT_WIDTH`, `BAR_WIDTH`, `SHARE_BAR_WIDTH`, `WHEEL_LINES` | rea suurim laius (74 märki – mahub EGA aknasse); tulpade pikkus; ratta samm | [U] |
+| `TableLines`, `WrapLines`, `LineText`, `Percent`, `Decimal` | püsilaiusega tabel; loetelu murdmine; rea tekst; vormindus (protsent, koma) | [U] |
+| abiprotseduurid | `StatusText`, `DeadlockLines`, `HeaderLines`, `TrackKind`, `StaticModel` … `StaticCrashes`, `DynamicCycle` … `DynamicEvents`, `ClampTop` – vt päisekommentaarid | [U] |
 
 ---
 
@@ -798,3 +818,38 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 - **Kestuse jaotus** (`Sim.Distribution`, `SampleDuration`) **[U]**: `Uniform` – ühtlane `Mean ± Dev` (vaikimisi, nagu enne); `Triangular` – kahe ühtlase juhuarvu summa (tipp `Mean` juures, otsad `Mean ± Dev`, σ² = Dev²/6); `Normal` – σ = `Dev`, väljaspool `Mean ± 3σ` võetakse uus (Box–Muller). Kehtib operatsioonidele ja remondile; laadimis- ja häälestusajad on kindlad (originaalis on kõrvalekalle ainult operatsioonil).
 - **Animaator**: rikkes pink punane, täht R, praak pingis ristiga; olekureal „rikkes n praak m“ (kui mudelis on rikkeid – alati, et EGA rida ei hüppaks); Event Listis `Crash` / `Repair` punased. **Kokkuvõte**: rida „Rikkeid n, praak m“ ja pingi real „rikkes x %“.
 - **Redaktor**: pingi vormis rikete vahe ja remont ± kõrvalekalle (+ selgitus), Model data vormis kõrvalekalde jaotus.
+
+---
+
+## 18. Aruanded (etapp 9) **[O + U]**
+
+Originaalis (originaal.md 8.3, ptk 6.5 lk 62): moodul `FMS_REP1.PAS`, menüü *Report* – **Static** (süsteemi komponentide parameetrid), **Dynamic** (dünaamilised parameetrid ja simulatsiooni käigus kogutud statistika); mõlemas **valib kasutaja teemad**; **Output** – ekraanile või kasutaja antud nimega faili. Tsükliaeg ja osakaalud: originaal.md 8.5. **[O]** Teostus: `src/fms_rep.js`, menüü `src/fms.js`, testid `test/report.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9.
+
+- **Static = algne seis + lõppseis** **[U, kasutaja otsus]**: iga teema all kõigepealt komponentide parameetrid (mudelifailist ja `Enumerate` võrgust – saadaval ka ilma simulatsioonita), siis lõppseis viimasest simulatsioonist (objekti olek lõpus ja tema statistika).
+- **Dynamic** – kogu süsteemi statistika simulatsiooni käigus.
+
+| Static teema | Algne seis | Lõppseis |
+|---|---|---|
+| Mudel ja seaded | ruudustik, mõõtkava, kestus, seeme, `Kl`, seisuaeg, jaotus, aegrea samm, objektide arv | aeg ja olek, sisse / valmis / praak / süsteemis, detailid asukoha järgi |
+| Rajad ja konnektorid | liik, pikkus, kiirus, alused / kärud, kohti, laadimisaeg; konnektori rajad | pidev: liikumise osakaal, peatusi, seisab / liigub, alustel, täituvus, kogumissõidud; AGV: kärude olekute osakaalud, `Collision`, ümbersõidud; konnektoris detail, ülekandeid |
+| Tööpingid | laadimine, häälestus, rike, remont, puhvrid, operatsioonid | olek, detail, operatsioone, rikkeid; olekute osakaalud |
+| Puhvrid | liik, pink, mahutavus, järjekord, laadimine | sissetulevad, väljaminevad, broneeritud, keskmine ja suurim täituvus |
+| Keskladu | mahutavus, laadimine, ummikuvaru | valmis laos, pargitud, täituvus; parkimised kokku |
+| Detailitüübid | prioriteet, partii, marsruudid (operatsioon keskmine ± kõrvalekalle) | sisse, valmis, praak, süsteemis, keskmine tsükliaeg |
+| Rikked ja praak | jaotus, pinkide rikete ja remondi parameetrid | rikkeid, praak, pinkide kaupa, praak tüüpide kaupa |
+
+| Dynamic teema | Sisu |
+|---|---|
+| Tsükliaeg ja osakaalud | läbilaskevõime, detaile süsteemis (keskmine, suurim), `Tts` (keskmine, lühim, pikim), valem ja osade tabel tulpadega, suhtarvud |
+| Tsükliaeg tüüpide kaupa | valmis, `Tts` keskmine / lühim / pikim, töötlemise, transpordi ja ootamise osakaal |
+| Aegrida | `Stats.Timeline`: aeg, süsteemis, valmis kokku ja vahemikus, pinke töös, rikkes, puhvrites; graafik |
+| Sündmused | sündmuste arv tüübi kaupa (`EventCountByType`) |
+
+- **Tsükliaja osad** **[T]**: `SimReport`-i kategooriad vastavad originaali valemile nii: `Tm` – töötlemine (`Process`), `Tturn` – häälestus (`Setup`), `Tload` – laadimine (`Load`, sh `Tin`, `Tout`), `Ttrans` – transport, `Twait` – ootamine. `Tp`, `Tprep`, `Twash`, `Tmeas` eraldi pole (pesemine ja mõõtmine oleks operatsioonid). Töötlemise osakaal = (`Tm` + `Tturn`) / `Tts`.
+- **Millal saadaval** **[U]**: Simulate jätab tulemuse meelde (`KeepReport`) iga kokkuvõtte ajal – lõpus, ummikus ja katkestamisel (Esc). Päises on olek: „lõpuni“, „katkestatud kell …“ või „UMMIK kell …“ koos põhjusega. Kui mudelit on pärast simulatsiooni muudetud (mudeli JSON erineb), siis Static lõppseisu ei näita ja Dynamic hoiatab. Dynamic ilma simulatsioonita – teade „käivita enne Simulate“.
+- **Teemad** **[O]**: Static / Dynamic avab vormi märkeruutudega, valik jääb seadetesse (`EnvironmentOptions.ReportStatic`, `ReportDynamic`). Teemade järjekord aruandes on alati sama.
+- **Kokkuvõtte nupp „Aruanne“** **[U]**: Static ja Dynamic valitud teemadega ühes aknas. Normaalse lõpu järel tuleb Esc-iga tagasi animaator, katkestamise järel töölaud.
+- **Ekraanil** **[O + U]**: töölaua vaade (nagu animaator) – menüü jääb kasutatavaks, F2 vahetab välimust. Kerimine: nooled, PgUp / PgDn, tühik, Home / End, hiire ratas, klõps kerimisribal; all „read a–b / n“; F – faili; Esc / Enter sulgeb ja taastab eelmise vaate. Rida kuni 74 märki, püsilaiusega kiri. EGA: hall aken nagu dialoogid, joon `─` ja tulbad `▄` fondist (täisplokk `█` liidaks read kokku). Kaasaegne: aken keskel, joon ja tulbad ristkülikutena (aktsendivärv), sest `─` ja `▄` pole igas püsilaiusega fondis sama laiad.
+- **Faili** **[O]**: tekstifail (UTF-8), sama sisu mis ekraanil; pealkiri, koostamise aeg, teemade pealkirjad joonitud (`═`). Nimi küsitakse (vaikimisi `mudel-static.txt`, `-dynamic`, `-report`). CSV-d ei tehta (kasutaja otsus).
+- **Aegrida aruandes** **[U]**: samm on väikseim 1, 5, 10, 15, 30 min, 1, 2, 4 h hulgast, mis annab kuni 100 rida (8 h → 5 min); viimane punkt (lõpp) on alati kaasas. Graafik näitab valmis detaile kokku (läbilaskevõime kõver – ummik on tasane), sest detailide arv süsteemis on `Kl` tõttu peaaegu konstantne.
+- **Simulaator** ei muutunud; `PARKING_RESERVE` eksporditakse (Static näitab ummikuvaru).

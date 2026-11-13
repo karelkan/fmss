@@ -101,6 +101,11 @@ export function SetDesktopView(view) {
   RequestRedraw();
 }
 
+// [U] GetDesktopView – praegune töölaua vaade (aruanne taastab selle sulgemisel). Kutsub: fms_rep.js.
+export function GetDesktopView() {
+  return DesktopView;
+}
+
 // [U] SetHotkeys – kiirklahvid, mis töötavad alati (ka avaekraanil ja dialoogis).
 export function SetHotkeys(map) {
   Hotkeys = map;

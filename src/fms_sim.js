@@ -48,7 +48,7 @@ let LastEventTime = 0;        // [U] viimase töödeldud sündmuse aeg (ummiku a
 let TotalPlaces = 0;          // [O] Ntm + Nmt + Nbuf (lk 42) + Ncon (7a); Ntm = alusi / kärusid (7c)
 
 const MAX_EVENTS_PER_STEP = 100000;  // [U] kaitse lõputu tsükli vastu
-const PARKING_RESERVE = 2;           // [U] kesklao kohti, mis jäetakse ummiku lahendamiseks (5.3)
+export const PARKING_RESERVE = 2;           // [U] kesklao kohti, mis jäetakse ummiku lahendamiseks (5.3)
 const SAMPLE_INTERVAL = 60;          // [U] aegrea (Stats.Timeline) samm vaikimisi, s
 const ARC_LENGTH = Math.PI / 4;      // [T] kaare pikkus ikoonides (veerandring raadiusega 1/2)
 const POSITION_DECIMALS = 1000;      // [U] asukohad ümardatakse 0,001 cm täpsuseni

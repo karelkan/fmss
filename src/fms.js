@@ -3,7 +3,11 @@
 
 import { Texts, FormatText } from './fms_lng.js';
 import { EmptyModel, ModelSummary, MAX_WORKPIECE_TYPES } from './fms_glb.js';
-import { Enumerate } from './fms_sim.js';
+import { Enumerate, SimState } from './fms_sim.js';
+import {
+  STATIC_TOPICS, DYNAMIC_TOPICS, KeepReport, LastSimulation, StaticReport, DynamicReport, ReportText, ReportFileName,
+  ShowReport, CloseReport,
+} from './fms_rep.js';
 import { StartAnimator, StopAnimator, ClockText } from './anima.js';
 import { EditLayout, ViewLayout, StopEditor, EnsureTrack, NoteEditorChange, SetEditorCursor, EditorCursorRect } from './fms_ed.js';
 import {
@@ -13,12 +17,12 @@ import {
 import { EnvironmentOptions, LoadOptions, SaveOptions } from './fms_opt.js';
 import {
   DemoModels, LoadDemoModel, ChooseLocalFile, SaveModel, RecentModels, RememberModel,
-  ParseModelText, ModelFileName,
+  ParseModelText, ModelFileName, SaveText,
 } from './fms_file.js';
 import { ROW_HEIGHT, CreateEgaTheme, CreateModernTheme, LoadEgaFont } from './fms_theme.js';
 import {
   InitScreen, SetTheme, SetFullScreen, SetDesktop, SetHotkeys, RequestRedraw,
-  MessageBox, ListBox, InputBox, DialogOpen,
+  MessageBox, ListBox, InputBox, FormBox, DialogOpen,
 } from './windows.js';
 
 // =====================================================================
@@ -214,6 +218,7 @@ function AcceptLoadedModel(result, text, fileName) {
     MessageBox(Texts.LoadErrorTitle, result.Errors.map((line, i) => ({ Text: line, Role: i === 0 ? 'Error' : 'WindowText' })));
     return;
   }
+  CloseReport();
   StopAnimator();
   StopEditor();
   CurrentModel = result.Model;
@@ -255,6 +260,7 @@ function MenuPick() {
 }
 
 function MenuNew() {
+  CloseReport();
   StopAnimator();
   StopEditor();
   CurrentModel = EmptyModel('');
@@ -300,7 +306,8 @@ function CheckLine(problem) {
 }
 
 // [O] MenuSimulate – Simulate: kontroll (Enumerate), siis animaator (pausil, anima.js).
-//     Lõpus või Esc-iga lühikokkuvõte; täielikud aruanded tulevad etapis 9.
+//     Lõpus või Esc-iga lühikokkuvõte; tulemus jääb aruannete jaoks meelde (KeepReport),
+//     nupp „Aruanne“ näitab Static ja Dynamic aruannet (etapp 9).
 function MenuSimulate() {
   if (!CurrentModel) { MessageBox(Texts.SimTitle, [Texts.SimNoModel]); return; }
   const result = Enumerate(CurrentModel);
@@ -313,12 +320,20 @@ function MenuSimulate() {
     return;
   }
   const model = CurrentModel;
+  const modelText = JSON.stringify(model);
+  const fileName = CurrentFile;
+  CloseReport();
   StopEditor();
   StartAnimator({
     Model: structuredClone(model),
     Network: result.Network,
-    OnSummary: (report, onClose) => MessageBox(Texts.SimTitle, SimSummaryLines(report, result.Warnings), [Texts.ButtonOk],
-      () => { if (onClose) onClose(); }),
+    OnSummary: (report, onClose) => {
+      KeepReport(report, SimState(), modelText, fileName);
+      MessageBox(Texts.SimTitle, SimSummaryLines(report, result.Warnings), [Texts.ButtonOk, Texts.ButtonReport], (button) => {
+        if (onClose) onClose();
+        if (button === 1) FullReport();
+      });
+    },
   });
 }
 
@@ -368,8 +383,91 @@ function SimSummaryLines(report, warnings) {
   );
   if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
   for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });
-  lines.push('', Texts.SimLater);
+  lines.push('', Texts.SimReportHint);
   return lines;
+}
+
+// =====================================================================
+// Aruanded (fms_rep.js)
+// =====================================================================
+
+// [U] ReportTopics – aruande valitud teemad seadetest (null = kõik).
+function ReportTopics(kind) {
+  const all = kind === 'Static' ? STATIC_TOPICS : DYNAMIC_TOPICS;
+  const saved = EnvironmentOptions[`Report${kind}`];
+  return saved === null ? [...all] : all.filter((topic) => saved.includes(topic));
+}
+
+// [O] ChooseTopics – Static / Dynamic: kasutaja valib, mis teemad aruandesse tulevad
+//     (originaal ptk 6.5). Valik jääb seadetesse. onChosen(teemad).
+function ChooseTopics(kind, title, onChosen) {
+  const all = kind === 'Static' ? STATIC_TOPICS : DYNAMIC_TOPICS;
+  const chosen = ReportTopics(kind);
+  const fields = all.map((topic, i) => ({ Key: topic, Label: Texts.RepTopicNames[topic], Kind: 'Check', Value: chosen.includes(topic), Row: i }));
+  const output = EnvironmentOptions.ReportOutput === 'File' ? Texts.RepOutputFile : Texts.RepOutputDisplay;
+  FormBox(title, fields, [Texts.ButtonOk, Texts.ButtonCancel], (index, form) => {
+    if (index !== 0) return true;
+    const topics = form.Fields.filter((field) => field.Value).map((field) => field.Key);
+    if (topics.length === 0) return [{ Key: all[0], Message: Texts.RepNoTopics }];
+    EnvironmentOptions[`Report${kind}`] = topics;
+    SaveOptions();
+    return () => onChosen(topics);
+  }, { Lines: [Texts.RepTopicsPrompt, FormatText(Texts.RepTopicsOutput, { Output: output })] });
+}
+
+// [O] MenuStaticReport – Report → Static: algne seis (parameetrid) ja lõppseis valitud teemadega.
+function MenuStaticReport() {
+  if (!CurrentModel) { MessageBox(Texts.RepStaticTitle, [Texts.SimNoModel]); return; }
+  const result = Enumerate(CurrentModel);
+  if (result.Errors.length > 0) {
+    MessageBox(Texts.RepStaticTitle, [{ Text: Texts.SimCannot, Role: 'Error' }, ...result.Errors.slice(0, SIM_SHOWN_ERRORS).map(CheckLine)]);
+    return;
+  }
+  ChooseTopics('Static', Texts.RepStaticTitle, (topics) => OutputReport(Texts.RepStaticTitle,
+    StaticReport(CurrentModel, result.Network, LastSimulation(), topics), ReportFileName(CurrentFile, CurrentModel.Meta?.Name, 'static')));
+}
+
+// [O] MenuDynamicReport – Report → Dynamic: viimase simulatsiooni statistika valitud teemadega.
+function MenuDynamicReport() {
+  const last = LastSimulation();
+  if (!last) { MessageBox(Texts.RepDynamicTitle, [Texts.RepNoSimulation]); return; }
+  ChooseTopics('Dynamic', Texts.RepDynamicTitle, (topics) => OutputReport(Texts.RepDynamicTitle,
+    DynamicReport(last, CurrentModel, topics), ReportFileName(last.File, last.Report.Model, 'dynamic')));
+}
+
+// [U] FullReport – Simulate kokkuvõtte nupp „Aruanne“: Static ja Dynamic valitud teemadega ekraanile.
+function FullReport() {
+  const last = LastSimulation();
+  const result = CurrentModel ? Enumerate(CurrentModel) : null;
+  if (!last || !result || result.Errors.length > 0) return;
+  const lines = [
+    ...StaticReport(CurrentModel, result.Network, last, ReportTopics('Static')),
+    ...DynamicReport(last, CurrentModel, ReportTopics('Dynamic'), { Header: false }),
+  ];
+  const fileName = ReportFileName(last.File, last.Report.Model, 'report');
+  ShowReport(Texts.RepFullTitle, lines, { OnFile: () => SaveReportAs(Texts.RepFullTitle, lines, fileName) });
+}
+
+// [O] OutputReport – aruanne valitud väljundisse (Report → Output): ekraanile või faili.
+function OutputReport(title, lines, fileName) {
+  if (EnvironmentOptions.ReportOutput === 'File') SaveReportAs(title, lines, fileName);
+  else ShowReport(title, lines, { OnFile: () => SaveReportAs(title, lines, fileName) });
+}
+
+// [U] SaveReportAs – küsib failinime ja laadib aruande tekstifailina alla.
+function SaveReportAs(title, lines, fileName) {
+  InputBox(Texts.RepFileTitle, Texts.RepFilePrompt, fileName, (name) => {
+    if (name === null || name.trim() === '') return;
+    const file = /\.txt$/i.test(name.trim()) ? name.trim() : `${name.trim()}.txt`;
+    SaveText(ReportText(title, lines, new Date().toLocaleString('et-EE')), file);
+    MessageBox(Texts.RepFileTitle, [FormatText(Texts.RepSaved, { File: file })]);
+  });
+}
+
+// [U] ChangeReportOutput – Report → Output → Display | File; jääb seadetesse.
+function ChangeReportOutput(output) {
+  EnvironmentOptions.ReportOutput = output;
+  SaveOptions();
 }
 
 // =====================================================================
@@ -379,6 +477,7 @@ function SimSummaryLines(report, warnings) {
 // [O] MenuLayout – Edit → Layout: ruudustik ja ikoonid. Mudeli puudumisel alustatakse tühjaga.
 //     tool – algne tööriist ('Select' – Config → Choose); kui Layout on juba avatud, jääb Undo alles.
 function MenuLayout(tool = undefined, message = '') {
+  CloseReport();
   StopAnimator();
   if (!CurrentModel) { CurrentModel = EmptyModel(''); CurrentFile = ''; MODEL_CHANGED = false; }
   EditLayout({
@@ -469,6 +568,7 @@ function MenuFlushWorkpiece(number) {
 // [O] MenuView – Edit → View: kogu mudel korraga.
 function MenuView() {
   if (!CurrentModel) { MessageBox(Texts.MenuView.replace('&', ''), [Texts.SimNoModel]); return; }
+  CloseReport();
   StopAnimator();
   ViewLayout({ Model: CurrentModel, OnExit: RequestRedraw });
 }
@@ -569,10 +669,15 @@ function BuildMainMenu() {
     },
     { Label: Texts.MenuSimulate, Hint: Texts.HintSimulate, Action: MenuSimulate },
     {
-      Label: Texts.MenuReport, Hint: Texts.HintReport, Items: [
-        NotYet(Texts.MenuStatic, 9),
-        NotYet(Texts.MenuDynamic, 9),
-        NotYet(Texts.MenuOutput, 9, { Items: [NotYet(Texts.MenuDisplay, 9), NotYet(Texts.MenuToFile, 9)] }),
+      Label: Texts.MenuReport, Hint: Texts.HintReport, Items: () => [
+        { Label: Texts.MenuStatic, Hint: Texts.HintStatic, Enabled: modelLoaded(), Action: MenuStaticReport },
+        { Label: Texts.MenuDynamic, Hint: Texts.HintDynamic, Action: MenuDynamicReport },
+        {
+          Label: Texts.MenuOutput, Hint: Texts.HintOutput, Items: [
+            { Label: Texts.MenuDisplay, Hint: Texts.HintDisplay, Checked: () => EnvironmentOptions.ReportOutput === 'Display', Action: () => ChangeReportOutput('Display') },
+            { Label: Texts.MenuToFile, Hint: Texts.HintToFile, Checked: () => EnvironmentOptions.ReportOutput === 'File', Action: () => ChangeReportOutput('File') },
+          ],
+        },
       ],
     },
     {
@@ -601,7 +706,7 @@ function BuildMainMenu() {
 
 function AskQuit() {
   MessageBox(Texts.QuitTitle, [MODEL_CHANGED ? Texts.ChangedText : Texts.QuitText], [Texts.ButtonYes, Texts.ButtonNo], (button) => {
-    if (button === 0) { StopEditor(); StopAnimator(); ShowSplash(); }
+    if (button === 0) { CloseReport(); StopEditor(); StopAnimator(); ShowSplash(); }
   });
 }
 

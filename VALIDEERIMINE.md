@@ -435,3 +435,60 @@ Jaotus näidis-PTS-is (ilma riketeta, seeme 1): Uniform 84 valmis / 3663 s, Tria
 **Leiud** (brauseris): pingi kokkuvõtte rida „(14×)“ ja Model data abirida ei mahtunud EGA-sse – mõlemat lühendati (rikete arv on kokkuvõtte real „Rikkeid n“). Kaasaegses välimuses kattis spindel praagi – rikkes pingis spindlit ei joonistata.
 
 **Mida see EI kontrolli:** transpordi, puhvri ja konnektori rikkeid (originaali tabel 4.5), kvaliteedipraaki (tõenäosus operatsiooni kohta), rikkeid jõudeolekus, laadimis- ja häälestusaegade kõrvalekaldeid. 7b–7c ootel tööd jäävad: mitme sammu planeerimine, `Parking`, `ZoneLength`, `Dispatch`, konnektori broneerimine kogu tee ajaks, kaasaegse juhtriba lühendamine (nüüd ka „rikkes … praak …“).
+
+---
+
+# Etapp 9: aruanded
+
+Disain: [DISAIN.md](DISAIN.md) osa 18. Menüü *Report* – Static (algne seis ja lõppseis), Dynamic (tsükliaeg ja osakaalud, tüüpide kaupa, aegrida, sündmused), Output (ekraanile / faili). Testid on [test/report.test.js](test/report.test.js) (P1–P7). Simulaator ei muutunud, seega kehtivad kõik varasemad testid (175 rohelist).
+
+Põhimõte: aruanne ei arvuta midagi uut. Iga arv tuleb `SimReport`-ist, `Stats.Timeline`-ist või lõppseisust (`CaptureEndState` loeb `SimState`-i). Testid loevad arvud aruande tekstist tagasi ja võrdlevad neid allikaga.
+
+## Käsitsi arvutatud
+
+| Test | Tulemus |
+|---|---|
+| **P1** stsenaarium A1 (üks pink, üks detail korraga – arvutus etapist 2): ootab 0–25, peale 25–35, sõidab 35–60, puhvrisse 60–70, pinki 70–80, töötleb 80–380, puhvrisse 380–390, ootab 390–395, peale 395–405, sõidab 405–430, maha 430–440 | `Tm` 300, `Tturn` 0, `Tload` 6 × 10 = 60, `Ttrans` 25 + 25 = 50, `Twait` 25 + 5 = 30, kokku **440 s**. Simulaatori `Times` on täpselt need. Aruandes on „Tsükliaeg Tts: keskmiselt 0:07:20“ ja tabelis 300 / 68 %, 0 / 0 %, 60 / 14 %, 50 / 11 %, 30 / 7 %, kokku 440 / 100 %; „Osakaalud: töötlemine 68 %, ootamine 7 %, transport 11 %“ ✔ |
+
+## Aruanne = allikas
+
+| Test | Tulemus |
+|---|---|
+| **P2** Dynamic, näidis-PTS riketega (rikete vahe 3000 s, remont 300 ± 60), 8 h | Osakaalude summa on 1 (detaili aeg jaguneb täielikult osadeks) ja osade keskmised annavad kokku keskmise tsükliaja. Läbilaskevõime, valmis, osade sekundid ja protsendid ning tüüpide valmis arvud klapivad. Aegrida: samm 5 min, 97 rida. Igal real on aeg, süsteemis, valmis, vahemikus, pinke töös, rikkes ja puhvrites sama mis `Stats.Timeline`-is. Viimane rida on 8:00:00 ja „valmis“ = `Completed`. Vahemike summa = `Completed`. Sündmuste kokku = `EventCount`, `Crash`-ide arv = rikete arv ✔ |
+| **P3** Static, sama jooks | Detailid asukoha järgi (FromCS, alustel, puhvrites, pinkides, konnektorites, kesklaos) ja tüübi järgi annavad kokku „süsteemis“. FromCS = järjekord + sisenevad. Puhvri sissetulevad + väljaminevad = kirjete arv simulaatoris. Tüübi kohta süsteemis = sisse − valmis − praak. Pinkide parameetrid tulevad mudelist, olekute osakaalud `SimReport`-ist (rakendus + jõude + rikkes = 100 %). Kesklao rida klapib `StorageCount`-iga. Rikete parameetrid, rikete ja praagi arv ning marsruudid (`treimine 240±30 → freesimine 180±20`) on õiged ✔ |
+| **P7** lõppseis samm-sammult (nagu animaatoris) = `SimRun` (näidis-AGV) | `CaptureEndState` on identne ✔ |
+
+## Saadavus ja vormistus
+
+| Test | Tulemus |
+|---|---|
+| **P4** ummik (C0, ristmarsruudid ilma kesklaota) | Päises on „Simulatsioon: 0:02:00 / 8:00:00, seeme 1 – UMMIK kell 0:02:00“, järgmisel real hoiatusena „Ummiku põhjus: ringootamine …“ (murtud ridadeks). Ka Static lõppseisus on ummik ✔ |
+| **P4** katkestus 10 min pärast (Esc animaatoris) | „katkestatud kell 0:10:00“; valmis detaile pole, seega tuleb teade, et tsükliaega ei saa arvutada; aegrida 11 rida (samm 60 s); Static töötab ✔ |
+| **P5** mudel muutus pärast simulatsiooni | Static hoiatab ega näita lõppseisu; Dynamic hoiatab; muutmata mudelil hoiatust pole ✔ |
+| **P5** teemade valik, ilma simulatsioonita | Ainult valitud teemad, järjekord alati sama. Ilma simulatsioonita on Static-us ainult algne seis ✔ |
+| **P6** rea laius (näidis-PTS riketega, näidis-AGV, C0) | Kõik read ≤ 74 märki – mahuvad EGA aknasse. Tekstifailis on pealkiri, koostamise aeg ja allajoonitud teemad. Failinimi `demo-static.txt`, aegrea samm 1 h → 1 min, 24 h → 15 min ✔ |
+
+## Brauseris
+
+Näidis-PTS riketega (`fmss.recent`, File → Pick), no-store server:
+
+| Kontroll | Tulemus |
+|---|---|
+| EGA: Report → Static enne simulatsiooni | Teemade vorm (7 märkeruutu, „Väljund: ekraanile“); aruanne 52 rida: algne seis ja „Lõppseisu pole: käivita Simulate“ ✔ |
+| EGA: Simulate (max) → kokkuvõte | Viimane rida on „Täielik aruanne: nupp „Aruanne“ või menüü Report“, nupud OK ja Aruanne. Aruanne avab Static + Dynamic (232 rida) ✔ |
+| EGA: kerimine | Ratas, PgDn ×9, End; olekureal ↑↓ PgUp PgDn F Esc F10; all „read 166–184 / 232“; kerimisriba liugur ✔ |
+| Kaasaegne (F2 avatud aruandes) | Aken keskel, püsilaiusega kiri, osakaalude tulbad sinised, tabeli joon õige laiusega ✔ |
+| F – faili | Avaneb „Aruanne faili“, nimi `demo-rike-dynamic.txt`. Allalaadimist brauseri paanis ei käivitatud; faili sisu (`ReportText`) on testitud P6-s ✔ |
+| Esc | Aruanne sulgub ja animaator tuleb tagasi (pilt 8:00:00 juures) ✔ |
+| Konsool | vigu pole ✔ |
+
+## Leiud
+
+1. **Report-menüü oli hall ka pärast mudeli laadimist**: alammenüü oli massiiv, mis ehitati käivitamisel (mudelit polnud). Nüüd on see funktsioon nagu File ja Edit.
+2. **EGA-s sulasid aegrea tulbad üheks mustaks plokiks**: `█` täidab kogu 14 piksli kõrguse rea. Nüüd on märk `▄` (alumine pool, CP437) ja ridade vahele jääb vahe.
+3. **Kaasaegses välimuses oli tabeli joon liiga pikk**: `─` võeti teisest fondist (laiem kui püsilaiusega kirja märk). Kaasaegses joonistatakse joon ja tulbad ristkülikutena; EGA jääb märkidega.
+4. **Ummiku põhjus ei mahtunud ühele reale** (C0: „ringootamine: WP0, WP1“ olekureal). Põhjus on nüüd eraldi hoiatusena ja murtakse ridadeks.
+5. **Hiire ratas** kerib nüüd sammu suuruse järgi (~100 px = 3 rida), mitte iga sündmusega 3 rida.
+6. **Aegrea graafik**: esialgu näitas see detaile süsteemis, aga `Kl` hoiab selle peaaegu konstantsena (näidis-PTS: 12 terve päeva), nii et graafik oli kasutu. Nüüd näitab see valmis detaile kokku – läbilaskevõime kõver, mille alguses on soojenemine ja ummikus tasane osa.
+
+**Mida see EI kontrolli:** päris allalaadimist brauseris (`SaveText` on sama skeem mis `SaveModel`-il) ega väga pikki nimekirju (üle 100 objekti), kuigi kerimine töötab ridade arvust sõltumata. Ootel tööd etappidest 7b–8 jäävad samaks.
