@@ -810,3 +810,39 @@ L9: Partii järjest annab treipinkidele alla 60 % Segamini häälestusajast (kõ
 | konsool | vigu pole ✔ |
 
 **Mida see EI kontrolli:** animatsiooni nähtava paaniga (peidetud paanis on `requestAnimationFrame` aeglane – kasutati sammu `N`); C ja B kokkuvõtet EGA-s brauseris (sama kood, test L12); 1.4 saiti GitHub Pages'is (push ja tag v1.4 alles tulevad).
+
+---
+
+# Etapp 12: dokumentatsioon
+
+Dokument `site/doc/index.html` (saidil `/doc/`), [DISAIN.md](DISAIN.md) osa 21. Simulaator ei muutunud. Testid `test/doc.test.js` (D1–D6), kokku `npm test` 221/221.
+
+## Testid
+
+| Test | Tulemus |
+|---|---|
+| **D1** sõnastik | kõik 189 DISAIN.md osa 12.2 rida on dokumendi tabelites 7.3 samade nimede ja tunnusega; dokumendis pole lisaridu ✔ |
+| **D2** EventHandlerid | kõik 11 `EventHandlers` käsitlejat on tabelis 7.2 õige sündmuse ja koodi päisekommentaari tunnusega ✔ |
+| **D3** joonised mudelitest | joonised 3.3 (Näidis-AGV), 4.1 (Näidis-PTS) ja 9.1 (Reduktori FMS) on täpselt `LayoutSvg` väljund mudelifailist ✔ |
+| **D4** viited | sisukorra lingid, tekstis viidatud joonised ja tabelid (v.a „diplomitöö tabelist …“) ja pildid on olemas; joonise numbrid ei kordu ✔ |
+| **D5** versioon | tiitellehel ja jaluses on `package.json` versioon (1.4); tabeli 8.2 testide arvud annavad kokku tekstis oleva arvu ✔ |
+| **D6** sait | `tools/site.sh` paneb `doc/index.html` ja pildid saidile, EGA font on `../v1/fonts/`; avaleht viitab `doc/`-le ✔ |
+| **Testi kontroll** – meelega vead: sõnastiku tunnus muudetud ja uus nimi lisatud, joonise 4.1 koordinaat muudetud, joonise number korduv | D1, D3 ja D4 kukkusid kohe; pärast taastamist rohelised ✔ |
+
+## Sisu kontroll
+
+| Kontroll | Tulemus |
+|---|---|
+| **Arvud tekstis** | näidismudelite tulemused (tabel 9.1) jooksutati uuesti (`SimRun`, 8 h, seeme 1) – samad mis VALIDEERIMINE.md etappides 4–11d; testide arvud failide kaupa `node --test` väljundist |
+| **Little'i seadus** (peatükk 2.3) | Näidis-PTS: λW = 10,5 / 3600 × 3663 ≈ 10,7, WIP 12; Näidis-AGV 12,1 vs 13; Kinnitustehas 24,4 vs 31 (pikk algus tühjast süsteemist). Vahe seletatud dokumendis |
+| **Kirjandus** | viited [2]–[8] kontrolliti veebist (köide, number, leheküljed); Browne jt 1984 artikli numbrit ei leitud – jäeti välja |
+| **Brauseris** (no-store server) | hele ja tume teema, telefoni laius (375 px) ilma horisontaalse kerimiseta; joonised mõlemas teemas loetavad |
+| **Prinditult** (Chrome, A4) | tiitelleht eraldi lehel, peatükk uuelt lehelt, lehekülje number all; joonised ei murdu, pikad tabelid jätkuvad järgmisel lehel; koodiplokid murduvad reale |
+
+## Leiud
+
+1. **Mudelijoonised käsitsi oleksid vananenud.** Seepärast teeb paigutuse joonised `tools/layout_svg.js` mudelifailist ja test D3 võrdleb – kui näidis muutub, tuleb joonis uuesti genereerida.
+2. **Sõnastiku kahekordne pidamine** (DISAIN.md ja dokument) on teadlik valik (kasutaja otsus: käsitsi ja testiga); D1 hoiab need kooskõlas. Rollide sõnastus on sama, eemaldatud on ainult viited „(osa N)“.
+3. **Ekraanipildid** tehti lõuendist (`toBlob`) – EGA 960 × 720 (4 : 3), kaasaegne 1280 × 720. Peidetud paanis on `requestAnimationFrame` aeglane, seepärast juhiti animaatorit klahvisündmustega.
+
+**Mida see EI kontrolli:** teksti sisulist õigsust automaatselt – selle peab autor üle lugema; pilte (need võivad vananeda, kui liides muutub – test kontrollib ainult, et failid on olemas); saiti GitHub Pages'is (push alles tuleb).

@@ -2,7 +2,7 @@
 
 **Paindautomatiseeritud tootmise simulatsioonisüsteem.** Diplomiprojekt, Tallinna Tehnikaülikool, Arvutitehnika Instituut, 1993 (autor K. Kannel, juhendaja J. Riives). Kirjutati Turbo Pascalis ja jäi pooleli; versioon 1.0 valmis 2026 brauseris – *läks ainult 33 aastat, aga valmis sai*.
 
-**Veebis:** [karelkan.github.io/fmss](https://karelkan.github.io/fmss/) – avaleht ja lühijuhend; versioon 1 (praegu 1.3): [karelkan.github.io/fmss/v1](https://karelkan.github.io/fmss/v1/).
+**Veebis:** [karelkan.github.io/fmss](https://karelkan.github.io/fmss/) – avaleht ja lühijuhend; versioon 1 (praegu 1.4): [karelkan.github.io/fmss/v1](https://karelkan.github.io/fmss/v1/); dokumentatsioon: [karelkan.github.io/fmss/doc](https://karelkan.github.io/fmss/doc/).
 
 Kolm osa nagu originaalis:
 
@@ -22,7 +22,7 @@ python3 -m http.server 8000
 
 Seejärel ava brauseris http://localhost:8000/. Testid (Node 20+): `npm test`.
 
-Veebisaidi kokkupanek (avaleht + `/v1/`, sama mis GitHub Pages'is – [DISAIN.md](DISAIN.md) osa 19):
+Veebisaidi kokkupanek (avaleht + `/doc/` + `/v1/`, sama mis GitHub Pages'is – [DISAIN.md](DISAIN.md) osa 19):
 
 ```bash
 tools/site.sh /tmp/fmss-site
@@ -35,8 +35,8 @@ tools/site.sh /tmp/fmss-site
 | `index.html`, `src/` | rakendus; moodulid originaali nimedega (`fms.js`, `fms_sim.js`, `fms_ed.js`, `fms_rep.js`, `anima.js` …) |
 | `models/` | näidismudelid (`*.fms.json`) ja nende nimekiri `index.json` |
 | `fonts/` | EGA font |
-| `site/` | avaleht ja lühijuhend |
-| `tools/`, `.github/workflows/` | saidi kokkupanek ja GitHub Pages |
+| `site/` | avaleht ja lühijuhend; `site/doc/` – dokumentatsioon (joonised, ekraanipildid `img/`) |
+| `tools/`, `.github/workflows/` | saidi kokkupanek ja GitHub Pages; dokumentatsiooni joonised mudelitest (`tools/layout_svg.js`) |
 | `test/`, `proto/` | testid; prototüüp (etapp 2, võrdluseks) |
 | [PLAAN.md](PLAAN.md), [DISAIN.md](DISAIN.md), [VALIDEERIMINE.md](VALIDEERIMINE.md) | teostusplaan, simulatsiooniloogika ja liidese disain, valideerimise tulemused |
 
@@ -64,7 +64,7 @@ tools/site.sh /tmp/fmss-site
   - [x] 11b. Versioon 1.2 – parandus: `ShortestPaths` ümardas aega igal sammul ja suletud konveieril võis tee tulla vahejaama kaudu (0,001 s „kiirem“) – simulatsioon katkes erindiga (leiti mudeliga A); `PATH_TIME_EPSILON` – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11b
   - [x] 11c. Mudelid: Kinnitustehas (16 pinki, 8 tüüpi, konveier), Allhanketehas (15 pinki, 12 tüüpi, 3 konveierit konnektoritega), Reduktori FMS (12 pinki, 7 tüüpi, 4 AGV-d, rikked) – `models/`, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11c. Versioon 1.3: Simulate kokkuvõte mahub EGA-s ekraanile (`SimSummaryLines`, `MessageBoxMaxLines`)
 - [x] 11d. Versioon 1.4 – simulatsiooni lõpurežiim `Sim.EndMode`: Kellani, Kellani ja pink tühi, Kellani ja liin tühi, Tehas tühjaks (pärast kestust lõpetamine, kuni 2 × kestus), Partiid lõpuni (tellimus – igast tüübist „Partii, tk“, originaali reegel „partiidena“, praak asendatakse, tulemus makespan); tüüpide järjekord `Sim.OrderSequence` Segamini / Partii järjest (originaali II.2); läbilaskevõime ja rakendatus perioodi 0…T järgi; Model data vorm, animaatori „lõpetab“, kokkuvõte ja aruanne; Allhanketehas on tellimus (48 tk, partii järjest) – [DISAIN.md](DISAIN.md) osa 20, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11d
-- [ ] 12. Dokumentatsioon: diplomitööga sarnane – teooria koos täiendustega, arhitektuur diagrammidega, andmeobjektid ja protseduurid ([PLAAN.md](PLAAN.md))
+- [x] 12. Dokumentatsioon: diplomitööga sarnane dokument saidil `/doc/` (`site/doc/index.html`, prinditav PDF-iks) – teooria koos täiendustega, arhitektuur 21 joonisega (SVG, mudelite paigutus `tools/layout_svg.js`-iga), kirjed, EventHandlerid ja sõnastik, valideerimine, näidismudelid; avalehelt viide; test `test/doc.test.js` hoiab selle koodi ja sõnastikuga kooskõlas – [DISAIN.md](DISAIN.md) osa 21, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12
 - [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
 
 ## Autoriõigus ja litsentsid

@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19. Simulatsiooni lõpurežiim (etapp 11d): osa 20.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19. Simulatsiooni lõpurežiim (etapp 11d): osa 20. Dokumentatsioon (etapp 12): osa 21.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -724,6 +724,12 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `LoadDemoList` | loeb näidiste nimekirja serverist ja asendab `DemoModels`-i sisu; kui ei õnnestu, jääb varunimekiri | [U] |
 | `DEMO_LIST_FILE`, `DEMO_FILE_PATTERN` | nimekirja fail (`index.json`); lubatud näidise failinimi | [U] |
 
+**Dokumentatsioon** (`tools/layout_svg.js`, etapp 12, osa 21)
+
+| Nimi | Roll | |
+|---|---|---|
+| `LayoutSvg` | mudeli paigutus SVG-joonisena dokumentatsiooni jaoks (rada, jaamad, sõlmed, suunanool, objektid) | [U] |
+
 ---
 
 ## 13. Kasutajaliides (etapp 3) **[O + U]**
@@ -947,3 +953,16 @@ Kell T (`SimStep` pärast `CollectStats`-i) salvestatakse perioodi 0…T aruanne
 
 - **Model data**: read „Lõpp“ ja „Tüüpide järjekord“ (nimed ≤ 20 märki), vormi vihje. Workpiece data vormil vihje partii kohta.
 - **Animaator**: pärast T olekureal „lõpetab“ (pausi ajal „lõpetab, paus“); EGA olekurea kõrgus arvestab lõpetamisega režiimis kohe pikima olekuga (`GeneralWorst`), et rida T-l ei hüppaks. E-s „valmis 12/48“.
+
+---
+
+## 21. Dokumentatsioon (etapp 12) **[U]**
+
+Diplomitööga sarnane dokument saidil `/doc/` (`site/doc/index.html`), avalehelt viide. Kirjeldab versiooni 1.4. Alus: see dokument (eriti sõnastik osa 12), [VALIDEERIMINE.md](VALIDEERIMINE.md) ja [originaal.md](originaal.md); tunnused [O] / [T] / [U] nagu siin. Testid `test/doc.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12.
+
+- **Vorming**: üks HTML-leht avalehe stiilis (hele / tume süsteemi järgi), ilma build-sammu ja sõltuvusteta. Prindi-CSS: A4, peatükk uuelt lehelt, lehekülje number – PDF tekib brauseri „Prindi → Salvesta PDF-ina“ kaudu. Keel eesti; kirjanduse loetelu viidetega [1]…[8].
+- **Struktuur**: tiitelleht (TTÜ, autor K. Kannel, juhendaja J. Riives), annotatsioon, sisukord; 1 sissejuhatus (ka: tarkvara ja dokumentatsioon on arendatud koos Claude'iga); 2 teooria (PTS, diskreetsündmuste simulatsioon, tsükliaeg, Little'i seadus); 3 täiendused (rajavõrk, ummikud, AGV-d, mitu kohta, rikked, lõpp); 4 mudel; 5 arhitektuur; 6 kasutajaliides; 7 kirjed, EventHandlerid ja sõnastik; 8 valideerimine; 9 näidismudelid; 10 kokkuvõte, piirangud, 2.0.
+- **Joonised**: käsitsi SVG lehe sees, värvid CSS-muutujatest (töötavad heledas, tumedas ja prinditult). Mudelite paigutused (joonised 3.3, 4.1, 9.1) teeb `tools/layout_svg.js` (`LayoutSvg`) otse mudelifailist; ekraanipildid (PNG) on kaustas `site/doc/img/` (EGA 960 × 720, kaasaegne 1280 × 720).
+- **Ajakohasus**: dokument on käsitsi kirjutatud (kasutaja otsus 2026-11-14) ja test annab märku, kui see jääb koodist maha: iga osa 12.2 sõnastiku rida on dokumendis samade nimede ja tunnusega (D1), iga `EventHandlers` käsitleja on tabelis 7.2 sama tunnusega mis koodi päisekommentaaris (D2), paigutuse joonised on samad mis `LayoutSvg` väljund (D3), viited joonistele ja tabelitele, sisukorra lingid ja pildid on olemas (D4), versioon ja testide arv klapivad (D5), `tools/site.sh` paneb dokumendi saidile (D6). Uus etapp uuendab dokumenti (CLAUDE.md „Valmis etapp“).
+- **Sait**: `tools/site.sh` kopeerib `site/doc/` → `VÄLJUND/doc/` praegusest harust (nagu avaleht); EGA font tuleb `../v1/fonts/`-st.
+

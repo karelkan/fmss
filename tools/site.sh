@@ -4,6 +4,7 @@
 #   tools/site.sh VÄLJUND [VERSIOON1_REF]
 #
 #   VÄLJUND/index.html  avaleht ja lühijuhend (site/index.html, praegusest harust)
+#   VÄLJUND/doc/        dokumentatsioon (site/doc/, praegusest harust; etapp 12)
 #   VÄLJUND/v1/         versioon 1 (1.0, 1.1 …): index.html, src/, fonts/ – git-ref'ist (vaikimisi tööpuu);
 #                       models/ alati praegusest harust (näidiseid saab lisada koodi muutmata, etapp 11)
 #
@@ -19,6 +20,8 @@ app_files="index.html src fonts"
 rm -rf "$out"
 mkdir -p "$out/v1"
 cp "$root/site/index.html" "$out/index.html"
+mkdir -p "$out/doc"
+cp -R "$root/site/doc/." "$out/doc/"
 touch "$out/.nojekyll"
 
 if [ -n "$ref" ]; then
