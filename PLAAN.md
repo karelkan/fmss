@@ -87,6 +87,8 @@ Kui etapp 3 on valmis, saab etappe 4 ja 6 teha paralleelselt.
 
 Pärast 1.0 valmimist. Eesmärk: **kaasaegne ja mugav kasutajaliides**; EGA välimusest ja selle piirangutest (640 × 350, originaali menüüd ja vormid) loobutakse.
 
+**Spetsifikatsioon ja tööplaan: [V2.md](V2.md)** (V2 etapp 1, arutelu 2026-11-14) – otsused, võimalused, tehniline ülesehitus, kokkulepped ja etapid. Allolev on algne idee.
+
 - **Simulaator jääb**: `fms_sim.js` ei sõltu joonistamisest ja mudelifail (JSON) jääb ühilduvaks – 1.0 mudelid avanevad 2.0-s. 1.0 testid kehtivad edasi, nii et 2.0 tulemused peavad klappima 1.0-ga.
 - **Veebis** aadressil `/v2/` (tag `v2.0`), 1.0 jääb `/v1/`-le. Brauseri mälu on samal originil ühine: 2.0 kasutab oma `localStorage` võtmeid (1.0-l `fmss.recent`, `fmss.options`) – vt [DISAIN.md](DISAIN.md) osa 19.
 - **Algab diskussiooniga** – enne teostust:

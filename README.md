@@ -39,6 +39,7 @@ tools/site.sh /tmp/fmss-site
 | `tools/`, `.github/workflows/` | saidi kokkupanek ja GitHub Pages; dokumentatsiooni joonised mudelitest (`tools/layout_svg.js`) |
 | `test/`, `proto/` | testid; prototüüp (etapp 2, võrdluseks) |
 | [PLAAN.md](PLAAN.md), [DISAIN.md](DISAIN.md), [VALIDEERIMINE.md](VALIDEERIMINE.md) | teostusplaan, simulatsiooniloogika ja liidese disain, valideerimise tulemused |
+| [V2.md](V2.md) | versiooni 2.0 spetsifikatsioon ja tööplaan |
 
 ## Seis
 
@@ -66,7 +67,9 @@ tools/site.sh /tmp/fmss-site
 - [x] 11d. Versioon 1.4 – simulatsiooni lõpurežiim `Sim.EndMode`: Kellani, Kellani ja pink tühi, Kellani ja liin tühi, Tehas tühjaks (pärast kestust lõpetamine, kuni 2 × kestus), Partiid lõpuni (tellimus – igast tüübist „Partii, tk“, originaali reegel „partiidena“, praak asendatakse, tulemus makespan); tüüpide järjekord `Sim.OrderSequence` Segamini / Partii järjest (originaali II.2); läbilaskevõime ja rakendatus perioodi 0…T järgi; Model data vorm, animaatori „lõpetab“, kokkuvõte ja aruanne; Allhanketehas on tellimus (48 tk, partii järjest) – [DISAIN.md](DISAIN.md) osa 20, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11d
 - [x] 12. Dokumentatsioon: diplomitööga sarnane dokument saidil `/doc/` (`site/doc/index.html`, prinditav PDF-iks) – teooria koos täiendustega, arhitektuur 21 joonisega (SVG, mudelite paigutus `tools/layout_svg.js`-iga), kirjed, EventHandlerid ja sõnastik, valideerimine, näidismudelid; avalehelt viide; test `test/doc.test.js` hoiab selle koodi ja sõnastikuga kooskõlas – [DISAIN.md](DISAIN.md) osa 21, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12
   - [x] Versioon 1.5 – seitsmes näidis **Mootoriosade tehas** (`models/mootor.fms.json`: 32 pinki, 3 konveierit + kuue AGV-ga ring, 11 konnektorit, 16 tüüpi, rikked); EGA kokkuvõttes konnektorite koondrida – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12b, [DISAIN.md](DISAIN.md) osa 18, 19
-- [ ] Versioon 2.0: kaasaegne liides (algab diskussiooni ja spetsifikatsiooni kinnitamisega) ja Adviser – [PLAAN.md](PLAAN.md)
+- [ ] Versioon 2.0: kaasaegne liides, Adviser ja Claude'i nõustaja – [V2.md](V2.md)
+  - [x] V2 etapp 1. Arutelu ja tööplaan: otsused, võimalused (tööruum ja tabelid, metrooskeem ja plaan, tsehhid, tööstuslik visualiseerimine, katsete haldur, mitu sisendit ja väljundit, Adviser, Claude'i nõustaja, kasutusjuhend), etapid 2–13; 2.0 = etapid 3–7
+  - [ ] V2 etapp 2. Maketid ja liidese spetsifikatsiooni kinnitus
 
 ## Autoriõigus ja litsentsid
 
