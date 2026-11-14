@@ -4,8 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport } from '../src/fms_sim.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport } from '../core/fms_sim.js';
 
 const ROOT = new URL('../', import.meta.url);
 const ReadModel = name => JSON.parse(readFileSync(new URL(`models/${name}`, ROOT), 'utf8'));
@@ -286,9 +286,9 @@ test('L10: lõpetamine samm-sammult (nagu animaatoris) on sama mis SimRun-iga; E
 // L11. Liides: Model data vorm, kokkuvõte (EGA-s ≤ 19 rida), Static ja Dynamic aruanne.
 // ---------------------------------------------------------------------
 test('L11: redaktor – lõpurežiim ja tüüpide järjekord vormist mudelisse (CheckModel)', async () => {
-  const { SubmitModelForm } = await import('../src/fms_ed_data.js');
-  const { Texts: Lng } = await import('../src/fms_lng.js');
-  const { END_MODES, ORDER_SEQUENCES } = await import('../src/fms_glb.js');
+  const { SubmitModelForm } = await import('../v1/src/fms_ed_data.js');
+  const { Texts: Lng } = await import('../core/fms_lng.js');
+  const { END_MODES, ORDER_SEQUENCES } = await import('../core/fms_glb.js');
   // nimed mahuvad EGA vormi (≤ 20 märki)
   for (const name of [...Object.values(Lng.FormEndModes), ...Object.values(Lng.FormOrderSequences)]) assert.ok(Array.from(name).length <= 20, name);
   assert.deepEqual(Object.keys(Lng.FormEndModes), END_MODES);
@@ -308,7 +308,7 @@ test('L11: redaktor – lõpurežiim ja tüüpide järjekord vormist mudelisse (
 });
 
 test('L12: kokkuvõte ja aruanne – lõpetamise ja tellimuse read; suures mudelis mahub EGA-sse', async () => {
-  const { SimSummaryLines, StaticReport, DynamicReport, KeepReport, LineText, REPORT_WIDTH } = await import('../src/fms_rep.js');
+  const { SimSummaryLines, StaticReport, DynamicReport, KeepReport, LineText, REPORT_WIDTH } = await import('../v1/src/fms_rep.js');
   const EGA_LINES = 19;
   const text = lines => lines.map(line => (typeof line === 'string' ? line : LineText(line)));
   // A: rida pole (nagu enne)

@@ -6,10 +6,10 @@
 // muudeta. Aruande koostamine ei kasuta brauserit (testid: test/report.test.js).
 // Rida on kuni REPORT_WIDTH märki, et mahuks EGA 80 märgi laiusesse aknasse.
 
-import { Texts, FormatText } from './fms_lng.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
 import { ClockText } from './anima.js';
-import { PARKING_RESERVE } from './fms_sim.js';
+import { PARKING_RESERVE } from '../core/fms_sim.js';
 import { SetDesktopView, GetDesktopView, RequestRedraw } from './windows.js';
 
 // =====================================================================

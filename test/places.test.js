@@ -3,8 +3,8 @@
 // käru peatuste nimekiri – CheckPallet, CheckCarts). VALIDEERIMINE.md etapp 7c.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState } from '../src/fms_sim.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState } from '../core/fms_sim.js';
 
 const CHECKED = { CheckInvariants: true };
 const DOT = { Dot: true };

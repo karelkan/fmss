@@ -4,10 +4,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun } from '../src/fms_sim.js';
-import { SimRun as ProtoSimRun } from '../proto/fms_sim.js';
-import { ScenarioA, ScenarioC } from '../proto/scenarios.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Enumerate, SimRun } from '../core/fms_sim.js';
+import { SimRun as ProtoSimRun } from './proto/fms_sim.js';
+import { ScenarioA, ScenarioC } from './proto/scenarios.js';
 
 const ROOT = new URL('../', import.meta.url);
 const demoText = readFileSync(new URL('models/demo.fms.json', ROOT), 'utf8');

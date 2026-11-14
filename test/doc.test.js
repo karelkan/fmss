@@ -55,7 +55,7 @@ test('D1 iga DISAIN.md sõnastiku rida on dokumendis samade nimede ja tunnusega'
 });
 
 test('D2 iga EventHandler (fms_sim.js) on dokumendi tabelis 7.2', () => {
-  const source = Read('src/fms_sim.js');
+  const source = Read('core/fms_sim.js');
   const block = source.match(/const EventHandlers = \{([\s\S]*?)\};/)[1];
   const handlers = [...block.matchAll(/(\w+): (\w+Proc)/g)].map(match => [match[2], match[1]]);
   assert.ok(handlers.length >= 11);

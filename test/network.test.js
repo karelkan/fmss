@@ -4,9 +4,9 @@
 // ja S (kaks silmust, ristmarsruudid) – VALIDEERIMINE.md etapp 7a.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState, StationPaths, ShortestPaths } from '../src/fms_sim.js';
-import { TrackGeometry, TrackPoint } from '../src/anima.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, StationPaths, ShortestPaths } from '../core/fms_sim.js';
+import { TrackGeometry, TrackPoint } from '../v1/src/anima.js';
 
 const CHECKED = { CheckInvariants: true };
 const DOT = { Dot: true };

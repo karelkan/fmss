@@ -11,8 +11,8 @@
 //   Avoid – valitud objekti ala ekraanil: vorm avaneb all või üleval nii, et seda ei kata;
 //   Then(saved) – vorm suleti (Config → All läheb järgmise objekti juurde, kui saved).
 
-import { IconTypes, OPERATIONS, TRACK_MODES, BUFFER_DISCIPLINES, DISTRIBUTIONS, END_MODES, ORDER_SEQUENCES, MAX_WORKPIECE_TYPES, CheckModel } from './fms_glb.js';
-import { Texts, FormatText } from './fms_lng.js';
+import { IconTypes, OPERATIONS, TRACK_MODES, BUFFER_DISCIPLINES, DISTRIBUTIONS, END_MODES, ORDER_SEQUENCES, MAX_WORKPIECE_TYPES, CheckModel } from '../core/fms_glb.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
 import { FormBox, ListBox, MessageBox } from './windows.js';
 import { SegmentCells, EdgeLengthOf, SetEdgeLength, DeleteTrack, UniqueName, ModelProblems, ProblemCell } from './fms_ed.js';
 

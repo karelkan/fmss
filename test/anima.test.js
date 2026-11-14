@@ -5,14 +5,14 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { Enumerate, SimInit, SimStep, SimState, SimReport, SimRun } from '../src/fms_sim.js';
+import { Enumerate, SimInit, SimStep, SimState, SimReport, SimRun } from '../core/fms_sim.js';
 import {
   TrackGeometry, TrackPoint, CellPathPoint, PalletPosition, InterpolateOffset, WorkpiecePlaces,
   EventListArray, DiffEventList, EventCardLayout, EventAxisX, SpeedFromSlider, SliderFromSpeed,
   NextSpeed, SpeedText, SPEED_STEPS, PalletGrid, PalletPlacePoint, PLACES_SHOWN,
   LayoutView, ScrollArrows, ScrollStep, ZoomAt, ModernCellSize, WheelZoomFactor, MODERN_ZOOM,
-} from '../src/anima.js';
-import { IconTypes } from '../src/fms_glb.js';
+} from '../v1/src/anima.js';
+import { IconTypes } from '../core/fms_glb.js';
 
 const ROOT = new URL('../', import.meta.url);
 const demoText = readFileSync(new URL('models/demo.fms.json', ROOT), 'utf8');

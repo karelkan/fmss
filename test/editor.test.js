@@ -6,18 +6,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel, EmptyModel, IconTypes, OPERATIONS, MAX_WORKPIECE_TYPES } from '../src/fms_glb.js';
-import { Enumerate, SimRun } from '../src/fms_sim.js';
+import { CheckModel, EmptyModel, IconTypes, OPERATIONS, MAX_WORKPIECE_TYPES } from '../core/fms_glb.js';
+import { Enumerate, SimRun } from '../core/fms_sim.js';
 import {
   IconFromPorts, CellPorts, LaySegment, LayPath, CellSteps, ExtendDragPath, PlaceIcon, EraseCell,
   MoveCell, CycleDirection, ResizeLayout, CellsOutside, ParseDim, RestoreModel, CellAt, PALETTE,
   PaletteTool, MAX_LAYOUT_DIM, DeleteTrack, SegmentCells, EdgeLengthOf, SetEdgeLength, ModelProblems, ProblemCell,
-} from '../src/fms_ed.js';
+} from '../v1/src/fms_ed.js';
 import {
   SubmitModelForm, FormValues, ParseNumber, NumberText, KnownOperations, NewWorkpiece, CopyWorkpiece, FlushWorkpiece,
   ConfigAllCells, RouteText, ProblemLines,
-} from '../src/fms_ed_data.js';
-import { ParseModelText } from '../src/fms_file.js';
+} from '../v1/src/fms_ed_data.js';
+import { ParseModelText } from '../v1/src/fms_file.js';
 
 const ROOT = new URL('../', import.meta.url);
 const demoText = readFileSync(new URL('models/demo.fms.json', ROOT), 'utf8');

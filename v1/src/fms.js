@@ -1,9 +1,9 @@
 // FMSS – peaprogramm: avaekraan, peamenüü, töölaud.
 // Vastab originaali moodulile FMS.PAS. Menüü: originaali joon. 6.1–6.2 (originaal.md 8.1).
 
-import { Texts, FormatText } from './fms_lng.js';
-import { EmptyModel, ModelSummary, MAX_WORKPIECE_TYPES } from './fms_glb.js';
-import { Enumerate, SimState } from './fms_sim.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
+import { EmptyModel, ModelSummary, MAX_WORKPIECE_TYPES } from '../core/fms_glb.js';
+import { Enumerate, SimState } from '../core/fms_sim.js';
 import {
   STATIC_TOPICS, DYNAMIC_TOPICS, KeepReport, LastSimulation, StaticReport, DynamicReport, ReportText, ReportFileName,
   ShowReport, CloseReport, SimSummaryLines,

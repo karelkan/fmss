@@ -3,10 +3,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { CheckModel, EmptyModel, IconTypes, MAX_WORKPIECE_TYPES } from '../src/fms_glb.js';
-import { ParseModelText, ModelFileName } from '../src/fms_file.js';
-import { Enumerate } from '../src/fms_sim.js';
-import { Texts, FormatText } from '../src/fms_lng.js';
+import { CheckModel, EmptyModel, IconTypes, MAX_WORKPIECE_TYPES } from '../core/fms_glb.js';
+import { ParseModelText, ModelFileName } from '../v1/src/fms_file.js';
+import { Enumerate } from '../core/fms_sim.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
 
 const ROOT = new URL('../', import.meta.url);
 const demoText = readFileSync(new URL('models/demo.fms.json', ROOT), 'utf8');
@@ -109,11 +109,13 @@ test('FormatText asendab kohatäited', () => {
 });
 
 test('kõik koodis kasutatud tekstid on fms_lng.js-is olemas', () => {
-  const sourceDir = new URL('src/', ROOT);
   const used = new Set();
-  for (const file of readdirSync(sourceDir)) {
-    const source = readFileSync(new URL(file, sourceDir), 'utf8');
-    for (const match of source.matchAll(/Texts\.(\w+)/g)) used.add(match[1]);
+  for (const dir of ['core/', 'v1/src/']) {
+    const sourceDir = new URL(dir, ROOT);
+    for (const file of readdirSync(sourceDir)) {
+      const source = readFileSync(new URL(file, sourceDir), 'utf8');
+      for (const match of source.matchAll(/Texts\.(\w+)/g)) used.add(match[1]);
+    }
   }
   const missing = [...used].filter((key) => !(key in Texts));
   assert.deepEqual(missing, []);

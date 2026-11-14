@@ -4,9 +4,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel, IconTypes } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport, StationPaths, DriveCart } from '../src/fms_sim.js';
-import { EdgePoint, NodePoint, CartPosition, CartPoint, InterpolateCart, WorkpiecePlaces } from '../src/anima.js';
+import { CheckModel, IconTypes } from '../core/fms_glb.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport, StationPaths, DriveCart } from '../core/fms_sim.js';
+import { EdgePoint, NodePoint, CartPosition, CartPoint, InterpolateCart, WorkpiecePlaces } from '../v1/src/anima.js';
 
 const CHECKED = { CheckInvariants: true };
 const DOT = { Dot: true };

@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19. Simulatsiooni lõpurežiim (etapp 11d): osa 20. Dokumentatsioon (etapp 12): osa 21.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`test/proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `core/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`v1/src/fms_ed.js`, `v1/src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19. Simulatsiooni lõpurežiim (etapp 11d): osa 20. Dokumentatsioon (etapp 12): osa 21.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -337,7 +337,7 @@ Kui teine alus jõuab samal hetkel täpselt jaama (nihe 0), saab ta märke `Arri
 - `Storage: null` tähendab, et kesklattu pole (stsenaarium C0).
 - Rike (etapp 8, osa 17) **[U]**: pingil võivad olla `CrashMean` (keskmine töötlemisaeg rikete vahel, s; 0 või puudub = rikkeid pole), `RepairMean`, `RepairDev` (remondiaeg, s); `Sim.Distribution` – `Uniform` (vaikimisi, kui puudub), `Triangular` või `Normal`. Vanad mudelid jäävad kehtima.
 - Lõpurežiim (etapp 11d, osa 20) **[U]**: `Sim.EndMode` – `Time` (vaikimisi, kui puudub), `FinishOps`, `Ship`, `Drain`, `Order`; `Sim.OrderSequence` – `Mixed` (vaikimisi) või `Batch`. Detaili `Batch` võib olla 0 (tüüpi ei toodeta); puudub = 1. Vanad mudelid jäävad kehtima, `MODEL_VERSION` on 1.
-- Mudeli struktuuri kontrollib `CheckModel` (`src/fms_glb.js`) laadimisel; rajavõrgu ja andmete kontroll on `Enumerate`-s (osa 2.2).
+- Mudeli struktuuri kontrollib `CheckModel` (`core/fms_glb.js`) laadimisel; rajavõrgu ja andmete kontroll on `Enumerate`-s (osa 2.2).
 - Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal, osa 2.1).
 
 ---
@@ -377,7 +377,7 @@ Invariandid, mida kontrollitakse igal sekundil:
 
 Originaalis: diskreetne transpordirada (`DISCTRACK`), kus transporti teevad **transpordirobotid (TRB)** või **automaatkärud (AGV)** (lk 29–30); sündmus `Collision`, protseduurid `ProgTM` ja `FindPal`; konfliktid lahendab Planner (lk 43). **[O]**
 
-Tänapäevased nimetused: **AGV** (*automated guided vehicle*, automaatjuhitav käru) ja **RGV** (*rail-guided vehicle*, rööbaskäru). Simulatsiooni jaoks on need samad: kärud, mis liiguvad etteantud radadel iseseisvalt ja eri suundades. Teostus: `src/fms_sim.js` (etapp 7b), valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b. Etapis 1 kirjutatud kava (tsoonid, `Collision` kui ootegraafi ring) jäi alles; täpsustused tulid valideerimisest.
+Tänapäevased nimetused: **AGV** (*automated guided vehicle*, automaatjuhitav käru) ja **RGV** (*rail-guided vehicle*, rööbaskäru). Simulatsiooni jaoks on need samad: kärud, mis liiguvad etteantud radadel iseseisvalt ja eri suundades. Teostus: `core/fms_sim.js` (etapp 7b), valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b. Etapis 1 kirjutatud kava (tsoonid, `Collision` kui ootegraafi ring) jäi alles; täpsustused tulid valideerimisest.
 
 ### 11.1 Rada kui teedevõrk (`Enumerate`) **[O + U]**
 
@@ -590,10 +590,10 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ProcAllEvents` | sisetsükkel: kõik käesoleva hetke sündmused | [U] |
 | `CheckModel` | mudelifaili struktuuri kontroll (väljad, tüübid, piirid, viited); kasutavad ka redaktori vormid | [U] |
 | `EmptyModel`, `ModelSummary` | uus tühi mudel; lühikokkuvõte töölauale | [U] |
-| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `PICKUP_SOURCE`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves` – vt päisekommentaarid `src/fms_sim.js`-is | [T]/[U] |
+| abiprotseduurid | `SetWPState`, `SetMachState`, `CurrentOp`, `CanReserveSlot`, `StorageFree`, `StationLoadTime`, `BeginSetup`, `BeginPickup`, `PICKUP_SOURCE`, `BeginUnloadFromPallet`, `AfterPalletAtStation`, `WorkpieceLeaves` – vt päisekommentaarid `core/fms_sim.js`-is | [T]/[U] |
 | `Animator`, `SimStatus`, `Transport` | kuvamine: pinkide, puhvrite ja ladude seis; üldseis (üldosa + rajad); alused ja nende kohad (`anima.js`, osa 14) | [O] |
 
-**Mudeli konstandid** (`src/fms_glb.js`)
+**Mudeli konstandid** (`core/fms_glb.js`)
 
 | Nimi | Roll | |
 |---|---|---|
@@ -637,9 +637,9 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `SIM_SHOWN_ERRORS`, `SIM_SHOWN_OBJECTS`, `CheckLine`, `Percent`, `Decimal` | kokkuvõtte piirid (`SIM_SHOWN_OBJECTS` – kuni 6 pinki / puhvrit, `fms_rep.js`) ja vormindus (%, koma); `ClockText` (h:mm:ss) on `anima.js`-is | [U] |
 | `MessageBoxMaxLines` | mitu rida mahub nuppudega dialoogi (EGA 19; `windows.js`, 1.3) | [U] |
 | `DesktopView`, `SetDesktopView`, `GetDesktopView`, `POINTER_CAPTURED`, `HandleWheel`, `InsideDesktop` | töölaua vaade (animaator, aruanne): joonistaja, klahvid, hiir; praegune vaade (aruanne taastab selle); lohistamine; hiire ratas | [U] |
-| abiprotseduurid | `MenuItems`, `SelectedItem`, `DropdownItems`, `DrawMenuBar`, `DrawDropdown`, `DrawStatusLine`, `MoveInDropdown`, `HandleMenuKey`, `OpenDialog`, `CloseDialog`, `DrawDialog`, `HandleDialogKey`, `HandleDialogPointer`, `MenuLoad`, `MenuPick`, `MenuNew`, `MenuSave`, `MenuWriteAs`, `AskQuit`, `ShowHelp` – vt kommentaarid `src/windows.js`-is ja `src/fms.js`-is | [U] |
+| abiprotseduurid | `MenuItems`, `SelectedItem`, `DropdownItems`, `DrawMenuBar`, `DrawDropdown`, `DrawStatusLine`, `MoveInDropdown`, `HandleMenuKey`, `OpenDialog`, `CloseDialog`, `DrawDialog`, `HandleDialogKey`, `HandleDialogPointer`, `MenuLoad`, `MenuPick`, `MenuNew`, `MenuSave`, `MenuWriteAs`, `AskQuit`, `ShowHelp` – vt kommentaarid `v1/src/windows.js`-is ja `v1/src/fms.js`-is | [U] |
 
-**Animaator** (`src/anima.js`, etapp 5, osa 14)
+**Animaator** (`v1/src/anima.js`, etapp 5, osa 14)
 
 | Nimi | Roll | |
 |---|---|---|
@@ -662,7 +662,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | abiprotseduurid ja konstandid | `StepSimulation`, `CheckFinished`, `ScheduleFrame`, `WakeAnimator`, `ToggleRun`, `StepOnce`, `NextEvent`, `SetSpeed`, `ToggleMax`, `StopRun`, `ExitAnimator`, `SlotPoint`, `QueuePoint`, `DrawWorkpiece`, `DrawBufferSlots`, `DrawStorages`, `DrawConnectors`, `DrawSpindle`, `DrawMachineLetters`, `DrawTrackIcon`, `DrawDirectionArrow`, `MACHINE_ROLES`, `MACHINE_LINK_SIDES` jt – vt päisekommentaarid | [U] |
 | teema primitiivid | `Line`, `Ellipse`, `Polygon`, `StrokeRect`, `RoundRect`, `Clip`, `Alpha`, `Slider` (teema meetodid); EGA-s `EgaLine`, `EgaArc`, `EgaFillEllipse`, `EgaFillPolygon` | [U] |
 
-**Redaktor** (`src/fms_ed.js`, etapp 6, osa 15)
+**Redaktor** (`v1/src/fms_ed.js`, etapp 6, osa 15)
 
 | Nimi | Roll | |
 |---|---|---|
@@ -697,7 +697,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `FormBox`, `FormLayout`, `DrawForm`, `HandleFormKey`, `HandleFormPointer`, `PressFormButton`, `ChangeField`, `FieldWidth`, `LabelWidth`, `FieldText` | vormidialoog (`windows.js`): tekst, arv, valik, märkeruut, silt; Tab / nooled / hiir; vead välja juures; koht nii, et objekt jääb näha | [U] |
 | abiprotseduurid ja konstandid | `LayoutGrid`, `InsideGrid`, `CellAt`, `SegmentEnd`, `ClampCursor`, `ClampScroll`, `GridView`, `CellUnder`, `ScrollArrows`, `DrawToolGlyph`, `DrawPaletteItem`, `DEFAULT_TRACK`, `DEFAULT_MACHINE`, `DEFAULT_BUFFER`, `DEFAULT_STORAGE` – vt päisekommentaarid | [U] |
 
-**Aruanded** (`src/fms_rep.js`, etapp 9, osa 18)
+**Aruanded** (`v1/src/fms_rep.js`, etapp 9, osa 18)
 
 | Nimi | Roll | |
 |---|---|---|
@@ -716,7 +716,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `TableLines`, `WrapLines`, `LineText`, `Percent`, `Decimal` | püsilaiusega tabel; loetelu murdmine; rea tekst; vormindus (protsent, koma) | [U] |
 | abiprotseduurid | `StatusText`, `EndModeName`, `SequenceName`, `EndingLines`, `FormatLines`, `DeadlockLines`, `HeaderLines`, `TrackKind`, `StaticModel` … `StaticCrashes`, `DynamicCycle` … `DynamicEvents`, `ClampTop` – vt päisekommentaarid | [U] |
 
-**Avaldamine** (`src/fms_file.js`, etapp 10, osa 19)
+**Avaldamine** (`v1/src/fms_file.js`, etapp 10, osa 19)
 
 | Nimi | Roll | |
 |---|---|---|
@@ -734,7 +734,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 
 ## 13. Kasutajaliides (etapp 3) **[O + U]**
 
-- **Moodulid** originaali järgi: `fms.js` (FMS.PAS), `windows.js` (WINDOWS.PAS), `fms_glb.js`, `fms_file.js`, `fms_opt.js`, `fms_lng.js`; uus `fms_theme.js` (välimused). Kood on kaustas `src/`, käivitab `index.html`.
+- **Moodulid** originaali järgi: `fms.js` (FMS.PAS), `windows.js` (WINDOWS.PAS), `fms_glb.js`, `fms_file.js`, `fms_opt.js`, `fms_lng.js`; uus `fms_theme.js` (välimused). Kood on kaustas `v1/src/` (ühised `fms_sim.js`, `fms_glb.js`, `fms_lng.js` kaustas `core/` – ümberkorraldus 2026-11-14, osa 19), käivitab `v1/index.html`.
 - **Üks lõuend** (Canvas), kogu liides joonistatakse ise nagu originaalis. `windows.js` teab ainult paigutust ja loogikat ning kasutab värvide asemel **rolle** (`MenuBar`, `WindowText` …); teema annab rollidele värvid ja joonistab primitiivid (ristkülik, tekst, paneel, nupp).
 - **Loogiline ekraan**: rida on 14 pikslit. EGA: 640 × 350 (80 × 25 märki), 16 värvi, font PxPlus IBM EGA 8x14, tähed teravaks (lävend), suurendus täisarvuline ja venitus 4:3 nagu EGA monitoril. Kaasaegne: sama paigutus, kuid ekraan on nii suur kui aken (kuni 1,5 CSS-pikslit loogilise piksli kohta), süsteemifont, ümarad nurgad, hele / tume / süsteemi järgi.
 - **Menüü** nagu joon. 6.1–6.2: peamenüü üleval, alammenüüd vertikaalselt, nende alammenüüd nihkega paremal. Menüü nimed inglise keeles (originaal), vihjed ja teated eesti keeles. Hiljem valmivad punktid on hallid, aga valitavad – valik ütleb, mis etapis need tulevad. Directory, Change dir, Rename, Delete on välja lülitatud (brauseris pole ketast).
@@ -746,7 +746,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 
 ## 14. Animaator (etapp 5) **[O + U]**
 
-Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinkide ja puhvrite olekud, `SimStatus` üldised suurused; side on ühepoolne. **[O]** Teostus: `src/anima.js`.
+Originaalis (originaal.md 6.3): `Animator` joonistab kärude asukohad ning pinkide ja puhvrite olekud, `SimStatus` üldised suurused; side on ühepoolne. **[O]** Teostus: `v1/src/anima.js`.
 
 - **Ühepoolne side** **[O]**: animaator kutsub `SimInit` / `SimStep` ja loeb `SimState()`-i, aga simulaatori andmeid ei muuda. Test: samm-sammult koos olekut lugedes on aruanne sama mis `SimRun`-iga.
 - **Avamine**: *Simulate* kontrollib mudelit (`Enumerate`) ja avab animaatori **pausil** töölaual (`SetDesktopView`). Menüü jääb kasutatavaks. Lõpus (aeg täis või ummik) animaator peatub ja näitab kokkuvõtet, pilt jääb ekraanile. Esc / ⏹ näitab kokkuvõtet ja viib töölauale tagasi. **[U]**
@@ -787,7 +787,7 @@ EGA: ikoon 48 × 35 pikslit (4:3 ekraanil ruut), joonistamine pikslihaaval 16 v�
 
 ## 15. Redaktor (etapp 6) **[O + U]**
 
-Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 × 4 ikooni, ruudustik), all ikoonipalett; ikoon valitakse paletist hiirega ja pannakse ruudule; servades kerimisnooled. `View` – sama väiksemas mõõtkavas (41 × 23), ilma ruudustikuta. Teostus: `src/fms_ed.js`.
+Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 × 4 ikooni, ruudustik), all ikoonipalett; ikoon valitakse paletist hiirega ja pannakse ruudule; servades kerimisnooled. `View` – sama väiksemas mõõtkavas (41 × 23), ilma ruudustikuta. Teostus: `v1/src/fms_ed.js`.
 
 **Layout** **[O + U]**
 - Aken: infurida (mudel, ruudustik, aktiivne rada, kursor), ruudustik ja palett. EGA-s ikoon 48 × 35 nagu animaatoris; nähtav osa sõltub ekraanist (EGA-s 13 × 6), ülejäänu kerimisnoolte, hiire ratta või kursoriga. Kaasaegses välimuses on ikoon nii suur, kui ruumi on (36 … 72 pikslit); **suum** (etapp 11a) **[U]**: Ctrl + hiire ratas või näpistus (`Ctrl` sisendis – `HandleWheel`), piirid nagu animaatoris (`ModernCellSize`), `0` – automaatne suurus. Kerimine jääb terve ikooni kaupa ja kursor jääb nähtavale.
@@ -804,7 +804,7 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 
 **View** **[O]**: kogu mudel korraga, ilma ruudustiku punktideta; ainult vaatamiseks (Esc).
 
-**Andmed vormides** (`src/fms_ed_data.js`, etapp 6b) **[O + U]**
+**Andmed vormides** (`v1/src/fms_ed_data.js`, etapp 6b) **[O + U]**
 - **Config** **[O]**: *All* – kõik objektid joonisel järjest (pingid, puhvrid, rada, keskladu; ülevalt alla), objekt on Layout-is esile tõstetud ja vorm avaneb ekraani all – või üleval, kui all kataks objekti (`FormBox` `Avoid`). OK → järgmine, Loobu / Esc lõpetab. *Choose* – Layout tööriistaga „vali“: klõps või Enter objektil avab selle vormi.
 - **Vormid**: tööpink (nimi, mudel, ajad, rikete vahe ja remont ± kõrvalekalle – etapp 8, operatsioonid märkeruutudega + uus), puhver (kohad, pöördusmeetod, aeg), keskladu (kas on, kohad, aeg), rada (tabel 4.1; raja lahtrist avades ka **lõigu pikkus** – metrokaart, tühi = mõõtkavast), detail (nimi, prioriteet, partii) → **marsruudid** (nimekiri + uus) → marsruut (prioriteet ja operatsioonide tabel: operatsioon, keskmine, kõrvalekalle; + op / − op / Kustuta), **Model data** [U] (nimi, mõõtkava, seeme, kestus, Kl, seisu piir, kõrvalekalde jaotus – etapp 8).
 - **Kontroll** [U]: vormi väärtused pannakse mudeli koopiasse ja kontrollitakse sama `CheckModel`-iga, mis faili laadimisel; vead on välja juures (silt punane, teade vormi all). Arvus sobib koma ja punkt.
@@ -817,7 +817,7 @@ Originaalis (originaal.md 8.2): `EditLayout` – üleval redigeeritav mudel (13 
 
 ## 16. Mitu detaili alusel / kärul (etapp 7c) **[O + U]**
 
-Originaalis on rajal „kohtade arv transpordivahendil – mitu detaili mahub korraga“ (originaal.md tabel 4.1), aga kuidas mitu detaili ühel alusel liiguvad, pole kirjeldatud. **[O]** Teostus: `src/fms_sim.js`, testid `test/places.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c.
+Originaalis on rajal „kohtade arv transpordivahendil – mitu detaili mahub korraga“ (originaal.md tabel 4.1), aga kuidas mitu detaili ühel alusel liiguvad, pole kirjeldatud. **[O]** Teostus: `core/fms_sim.js`, testid `test/places.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c.
 
 - **Põhimõte jääb** **[U]**: detail läheb alusele ainult siis, kui tema sihtkoht (ja tee konnektorid) on broneeritud (osa 5.2). Seega pääseb iga alusel olev detail alati maha – transpordikohad ei ole kunagi ringootamises ja ummiku vältimist (osa 5.3) muuta pole vaja.
 - **Kohad** **[U]**: alusel / kärul on `Places` (massiiv pikkusega `PlacesPerCart`, detail või `null`) ja `ReservedWPs` (pidev rada: pealelaadimine käib; käru: talle antud soovid). Detaili asukoht `Pallet` teab oma kohta (`Place`). `PlacesPerCart = 1` korral on kõik nagu enne: kõik varasemad aruanded on identsed (VALIDEERIMINE.md 7c).
@@ -835,7 +835,7 @@ Originaalis on rajal „kohtade arv transpordivahendil – mitu detaili mahub ko
 
 ## 17. Rikked ja juhuslikkus (etapp 8) **[O + T + U]**
 
-Originaalis: `Crash` on sõltumatu sündmus, mille toimumine on antud **tõenäosusega ajaühikus**; seade seisab remondi ajal; **rike tööpingis → töödeldav detail on praak ja saadetakse välja** (originaal.md 5.1, 5.4 p 6). Parameetrid puudusid (originaal.md osa 10). **[O]** Teostus: `src/fms_sim.js`, testid `test/crash.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8.
+Originaalis: `Crash` on sõltumatu sündmus, mille toimumine on antud **tõenäosusega ajaühikus**; seade seisab remondi ajal; **rike tööpingis → töödeldav detail on praak ja saadetakse välja** (originaal.md 5.1, 5.4 p 6). Parameetrid puudusid (originaal.md osa 10). **[O]** Teostus: `core/fms_sim.js`, testid `test/crash.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8.
 
 - **Ulatus**: ainult tööpingi rike. Transpordi, puhvri ja konnektori rike (originaali tabel 4.5) ja kvaliteedipraak (tõenäosus operatsiooni kohta) jäid tegemata – ideed 2.0 jaoks. **[U]**
 - **Rikke kell** **[T]**: käib ainult töötlemise ajal (`PROCESSING`). Töötlemisaeg rikkeni (`TimeToCrash`) on eksponentjaotusega keskmisega `CrashMean` (püsiv tõenäosus ajaühikus), täissekundites, vähemalt 1. Nii juhtub rike alati detaili töötlemise ajal ja detail on alati praak, nagu originaalis. Uus aeg loetakse remondi lõpust.
@@ -859,7 +859,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 
 ## 18. Aruanded (etapp 9) **[O + U]**
 
-Originaalis (originaal.md 8.3, ptk 6.5 lk 62): moodul `FMS_REP1.PAS`, menüü *Report* – **Static** (süsteemi komponentide parameetrid), **Dynamic** (dünaamilised parameetrid ja simulatsiooni käigus kogutud statistika); mõlemas **valib kasutaja teemad**; **Output** – ekraanile või kasutaja antud nimega faili. Tsükliaeg ja osakaalud: originaal.md 8.5. **[O]** Teostus: `src/fms_rep.js`, menüü `src/fms.js`, testid `test/report.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9.
+Originaalis (originaal.md 8.3, ptk 6.5 lk 62): moodul `FMS_REP1.PAS`, menüü *Report* – **Static** (süsteemi komponentide parameetrid), **Dynamic** (dünaamilised parameetrid ja simulatsiooni käigus kogutud statistika); mõlemas **valib kasutaja teemad**; **Output** – ekraanile või kasutaja antud nimega faili. Tsükliaeg ja osakaalud: originaal.md 8.5. **[O]** Teostus: `v1/src/fms_rep.js`, menüü `v1/src/fms.js`, testid `test/report.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9.
 
 - **Static = algne seis + lõppseis** **[U, kasutaja otsus]**: iga teema all kõigepealt komponentide parameetrid (mudelifailist ja `Enumerate` võrgust – saadaval ka ilma simulatsioonita), siis lõppseis viimasest simulatsioonist (objekti olek lõpus ja tema statistika).
 - **Dynamic** – kogu süsteemi statistika simulatsiooni käigus.
@@ -901,10 +901,11 @@ Versioon 1.0 avaldatakse GitHub Pages'is staatiliste failidena, build-sammu pole
 - **`/v1/` on külmutatud**: `index.html`, `src/`, `fonts/` võetakse viimasest 1.x tag'ist – algul `v1.0`, etapist 11a `v1.1` (`git archive`). Parandused versioonis 1 saavad uue tag'i (1.1, 1.2 …) ja töövoog võtab selle; aadress `/v1/` ei muutu. `models/` tuleb `main` harust, et etapis 11 lisatud näidismudelid oleksid ka 1.0-s näha ilma koodi muutmata. Tingimus: mudelifaili vorming jääb ühilduvaks (`MODEL_VERSION` 1).
 - **Näidiste nimekiri** **[U]**: `models/index.json` (`[{ File, Name }]`, esimene avatakse käivitamisel). `LoadDemoList` loeb selle Main-is; vigased kirjed jäetakse välja (`ParseDemoList`), faili puudumisel jääb koodi varunimekiri. Test kontrollib, et iga `models/*.fms.json` on nimekirjas ja jookseb 8 h ilma ummikuta.
 - **Kokkupanek**: `tools/site.sh VÄLJUND [REF]` kopeerib failid; sama skripti kasutab töövoog (`tools/site.sh _site v1.0`) ja kohalik kontroll (ilma REF-ita – tööpuust). Töövoog käivitub `main`-i pushil ja käsitsi; Pages'i allikas on GitHub Actions.
-- **Suhtelised teed**: `index.html` → `src/fms.js`; moodulid laadivad fondi ja mudelid `new URL('../…', import.meta.url)` kaudu. Seega töötab rakendus igas alamkaustas (test L6 keelab absoluutsed teed).
+- **Suhtelised teed**: `v1/index.html` → `src/fms.js`; moodulid laadivad simulaatori `../core/`-ist, fondi ja mudelid `new URL('../…', import.meta.url)` kaudu. Seega töötab rakendus igas alamkaustas (test L6 keelab absoluutsed teed).
 - **Brauseri mälu**: kõigil sama kasutaja Pages'i saitidel on üks origin, seega `fmss.recent` ja `fmss.options` on `/v1/`-l ja hilisemal 2.0-l ühised. 1.0 neid ei muuda; 2.0 kasutab oma võtmeid (või loeb 1.0 mudelid `fmss.recent`-ist ainult sisse).
 - **Advise** jääb menüüsse halliks: „… tuleb versioonis 2.0“ (`NotYet` võtab etapi asemel versiooni). Vananenud „tuleb etapis …“ tekstid (`EnumLater`, `FormTrackLater`, konnektori vihjed) on eemaldatud.
 - **Versioon**: töölaual „versioon 1.0“, `package.json` 1.0.0; git-tag `v1.0`. **1.1** (etapp 11a): animaatoris kerimine ja suum, redaktoris suum (osa 14, 15); töölaual „versioon 1.1“, `package.json` 1.1.0, tag `v1.1`, töövoog `tools/site.sh _site v1.1`. Mudelifaili vorming ei muutunud. **1.2** (etapp 11b): teede ümardusviga parandatud (osa 2.3); töölaual „versioon 1.2“, `package.json` 1.2.0, tag `v1.2`, töövoog `v1.2`. **1.3** (etapp 11c): Simulate kokkuvõte mahub EGA-s ekraanile (osa 18); „versioon 1.3“, `package.json` 1.3.0, tag `v1.3`, töövoog `v1.3`. **1.4** (etapp 11d): simulatsiooni lõpurežiim (osa 20), mudelifailis uued valikulised väljad; „versioon 1.4“, `package.json` 1.4.0, tag `v1.4`, töövoog `v1.4`. Näidis Allhanketehas on tellimus (`Order`) – 1.3 kood selle välju ei tunne ja jookseb kellani (`/v1/` võtab koodi alati viimasest tag'ist, seega seda ei juhtu). **1.5** (etapp 12, pärast dokumentatsiooni): seitsmes näidis Mootoriosade tehas ja EGA kokkuvõtte koondrida konnektoritele (osa 18); „versioon 1.5“, `package.json` 1.5.0, tag `v1.5`, töövoog `v1.5`. Mudelifaili vorming ei muutunud.
+- **Kaustad** (ümberkorraldus 2026-11-14, enne V2 etappi 3) **[U]**: `core/` – ühine simulaator (`fms_sim.js`, `fms_glb.js`, `fms_lng.js`); `v1/` – versioon 1 (`index.html`, `src/`, `fonts/`); hiljem `v2/`; `models/` – ühised näidised; `test/proto/` – prototüüp. Failid liigutati `git mv`-ga (`git log --follow` näitab ajalugu), koodis muutusid ainult impordid. **Versiooni kaust on iseseisev**: `v1/core` ja `v1/models` on repos lingid (`../core`, `../models`), `v1/src` impordib `../core/fms_sim.js` ega lähe kaustast välja (test L6). Nii saab saidil olla mitu versiooni (tag ja `main`) igaüks oma simulaatoriga. `tools/site.sh` paneb `VÄLJUND/v1/core` päris koopiana; tag'i vana paigutuse (kuni `v1.5`: juures `index.html`, `src/`, `fonts/`) tunneb ära `v1/index.html` puudumise järgi – `/v1/` tag'ist `v1.5` on bitt-täpselt sama mis enne (`diff -r`). Kohapeal: `python3 -m http.server` juurest, aadress `/v1/`.
 - **Avalikkus**: repo on avalik (Pages'i tingimus), õigused kaitstud (litsentsi ei anta). Skaneeringud (`docs/skaneeringud/`) ja `CLAUDE.md` jäävad ainult kohalikku koopiasse – `.gitignore` ja enne esimest pushi eemaldatakse need ka git'i ajaloost.
 
 
@@ -912,7 +913,7 @@ Versioon 1.0 avaldatakse GitHub Pages'is staatiliste failidena, build-sammu pole
 
 ## 20. Simulatsiooni lõpurežiim (etapp 11d) **[O + T + U]**
 
-Originaal lõpu tingimust ei määranud (ainult `SIMULATION_DONE`), aga Planneril oli sissetoomise reegel „partiidena“ (originaal.md osa 7, I.6) ja tüübi valik „üht tüüpi järjest“ (II.2); detailil oli „partii suurus“. Kuni versioonini 1.3 lõppes simulatsioon kestusega `Sim.Duration` (T) ja detailid jäid süsteemi. Otsus ja põhjendused: [PLAAN.md](PLAAN.md) 11d. Teostus: `src/fms_sim.js` (osa „Simulatsiooni lõpp“), testid `test/end.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11d.
+Originaal lõpu tingimust ei määranud (ainult `SIMULATION_DONE`), aga Planneril oli sissetoomise reegel „partiidena“ (originaal.md osa 7, I.6) ja tüübi valik „üht tüüpi järjest“ (II.2); detailil oli „partii suurus“. Kuni versioonini 1.3 lõppes simulatsioon kestusega `Sim.Duration` (T) ja detailid jäid süsteemi. Otsus ja põhjendused: [PLAAN.md](PLAAN.md) 11d. Teostus: `core/fms_sim.js` (osa „Simulatsiooni lõpp“), testid `test/end.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11d.
 
 ### 20.1 Väljad **[U]**
 

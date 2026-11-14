@@ -1,3 +1,5 @@
+> **Märkus (2026-11-14):** kaustad korraldati ümber – `src/fms_sim.js`, `fms_glb.js`, `fms_lng.js` on nüüd `core/`-is, ülejäänud `src/` ja `index.html`, `fonts/` kaustas `v1/`, `proto/` on `test/proto/` (DISAIN.md osa 19). Allolevad kirjed on jäetud nii, nagu need etappides kirjutati.
+
 # Etapp 2: prototüüp ja valideerimine
 
 Eesmärk: enne täisteostust kontrollida, kas [DISAIN.md](DISAIN.md) loogika (osad 1–7, pidevad konveierid) töötab. Kus ei töötanud, parandati disaini.
@@ -6,10 +8,10 @@ Eesmärk: enne täisteostust kontrollida, kas [DISAIN.md](DISAIN.md) loogika (os
 
 | Fail | Sisu |
 |---|---|
-| [proto/fms_sim.js](proto/fms_sim.js) | simulaatori tuum ilma graafikata: Event List, `MinuteMan`, EventHandlerid, Planner, ummikute vältimine ja tuvastus, statistika, invariandid |
-| [proto/scenarios.js](proto/scenarios.js) | stsenaariumid A, B, C |
-| [proto/run.js](proto/run.js) | käivitaja: `node proto/run.js B` (valikud `A`, `B`, `C`, `C0`, teine argument = seeme) |
-| [proto/test/sim.test.js](proto/test/sim.test.js) | testid: `npm test` |
+| [proto/fms_sim.js](test/proto/fms_sim.js) | simulaatori tuum ilma graafikata: Event List, `MinuteMan`, EventHandlerid, Planner, ummikute vältimine ja tuvastus, statistika, invariandid |
+| [proto/scenarios.js](test/proto/scenarios.js) | stsenaariumid A, B, C |
+| [proto/run.js](test/proto/run.js) | käivitaja: `node proto/run.js B` (valikud `A`, `B`, `C`, `C0`, teine argument = seeme) |
+| [proto/test/sim.test.js](test/proto/test/sim.test.js) | testid: `npm test` |
 
 Prototüübi piirangud: üks suletud pidev konveier; mudel on „kompileeritud“ kujul (rada = pikkus, jaamad = asukohad), ikoonidest rajavõrgu ehitamine (`Enumerate`) tuleb hiljem; rikkeid ja AGV-sid pole.
 
@@ -64,7 +66,7 @@ Disaini osad 1–7 on pidevate konveierite jaoks **valideeritud**: loogika on an
 
 # Etapp 4: tootekood ja `Enumerate`
 
-Prototüübi loogika viidi muutmata kujul faili [src/fms_sim.js](src/fms_sim.js). Uus osa on `Enumerate`, mis teeb mudelifaili ruudustikust simulatsiooni võrgu (DISAIN.md 2.1), ja andmekontroll (2.2). Testid: [test/sim.test.js](test/sim.test.js).
+Prototüübi loogika viidi muutmata kujul faili [src/fms_sim.js](core/fms_sim.js). Uus osa on `Enumerate`, mis teeb mudelifaili ruudustikust simulatsiooni võrgu (DISAIN.md 2.1), ja andmekontroll (2.2). Testid: [test/sim.test.js](test/sim.test.js).
 
 | Test | Tulemus |
 |---|---|
@@ -86,7 +88,7 @@ Prototüübi loogika viidi muutmata kujul faili [src/fms_sim.js](src/fms_sim.js)
 
 # Etapp 5: animaator
 
-Animaator ([src/anima.js](src/anima.js), DISAIN.md osa 14) ainult loeb simulaatori olekut. Arvutusosa on brauserist sõltumatu ja seda testitakse Node'iga: [test/anima.test.js](test/anima.test.js).
+Animaator ([src/anima.js](v1/src/anima.js), DISAIN.md osa 14) ainult loeb simulaatori olekut. Arvutusosa on brauserist sõltumatu ja seda testitakse Node'iga: [test/anima.test.js](test/anima.test.js).
 
 | Test | Tulemus |
 |---|---|
@@ -107,7 +109,7 @@ Animaator ([src/anima.js](src/anima.js), DISAIN.md osa 14) ainult loeb simulaato
 
 # Etapp 6: redaktor
 
-Redaktori loogika ([src/fms_ed.js](src/fms_ed.js), DISAIN.md osa 15) muudab mudelit ja on brauserist sõltumatu – testid: [test/editor.test.js](test/editor.test.js).
+Redaktori loogika ([src/fms_ed.js](v1/src/fms_ed.js), DISAIN.md osa 15) muudab mudelit ja on brauserist sõltumatu – testid: [test/editor.test.js](test/editor.test.js).
 
 ## 6a: Layout ja View
 

@@ -10,7 +10,7 @@
 //            (nt „tuleb hiljem“); Checked() – kas ees on linnuke.
 
 import { ROW_HEIGHT } from './fms_theme.js';
-import { Texts } from './fms_lng.js';
+import { Texts } from '../core/fms_lng.js';
 
 // =====================================================================
 // Globaalsed andmed

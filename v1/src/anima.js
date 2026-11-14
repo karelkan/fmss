@@ -17,10 +17,10 @@
 // vaade (View): ikooni laius CW ja kõrgus CH pikslites. EGA-s on CH < CW, sest EGA pikslid on
 // kõrged – nii on ikoon ekraanil ruudukujuline.
 
-import { IconTypes, DIRECTIONS, CellTrack, ENDING_MODES } from './fms_glb.js';
-import { Texts, FormatText } from './fms_lng.js';
+import { IconTypes, DIRECTIONS, CellTrack, ENDING_MODES } from '../core/fms_glb.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
-import { SimInit, SimStep, SimState, SimReport } from './fms_sim.js';
+import { SimInit, SimStep, SimState, SimReport } from '../core/fms_sim.js';
 import { SetDesktopView, RequestRedraw } from './windows.js';
 
 // =====================================================================

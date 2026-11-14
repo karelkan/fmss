@@ -3,9 +3,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { CheckModel } from '../src/fms_glb.js';
-import { ParseDemoList, ParseModelText, DemoModels } from '../src/fms_file.js';
-import { Enumerate, SimRun } from '../src/fms_sim.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { ParseDemoList, ParseModelText, DemoModels } from '../v1/src/fms_file.js';
+import { Enumerate, SimRun } from '../core/fms_sim.js';
 
 const ROOT = new URL('../', import.meta.url);
 const Read = path => readFileSync(new URL(path, ROOT), 'utf8');
@@ -29,7 +29,7 @@ test('L3 ParseDemoList jätab vigased kirjed välja', () => {
   assert.deepEqual(ParseDemoList('{"File":"a.fms.json"}'), []);
   const list = ParseDemoList(JSON.stringify([
     { File: 'hea.fms.json', Name: ' Hea ' },
-    { File: '../src/fms.js', Name: 'kaustast välja' },
+    { File: '../v1/src/fms.js', Name: 'kaustast välja' },
     { File: 'sub/x.fms.json', Name: 'alamkaust' },
     { File: 'x.json', Name: 'vale laiend' },
     { File: 'nimeta.fms.json', Name: '' },
@@ -66,13 +66,15 @@ test('L5 riketega näidis: rikkeid ja praaki tekib', () => {
 });
 
 test('L6 rakendus kasutab ainult suhtelisi teid (töötab alamkaustas /v1/)', () => {
-  const html = Read('index.html');
+  const html = Read('v1/index.html');
   assert.match(html, /<script type="module" src="src\/fms\.js"><\/script>/);
-  for (const name of readdirSync(new URL('src/', ROOT))) {
-    const source = Read(`src/${name}`);
+  for (const name of [...readdirSync(new URL('v1/src/', ROOT)).map(n => `v1/src/${n}`), ...readdirSync(new URL('core/', ROOT)).map(n => `core/${n}`)]) {
+    const source = Read(name);
     for (const match of source.matchAll(/(?:from\s+|import\(\s*|fetch\(\s*|new URL\(\s*)(['"`])([^'"`]+)\1/g)) {
       const path = match[2];
       assert.ok(!path.startsWith('/') && !/^[a-z]+:/i.test(path), `${name}: absoluutne tee ${path}`);
+      // versiooni kaust on saidil iseseisev: v1/core ja v1/models on lingid, kaustast välja ei minda
+      if (name.startsWith('v1/')) assert.ok(!path.startsWith('../../'), `${name}: tee kaustast v1/ välja ${path}`);
     }
   }
 });

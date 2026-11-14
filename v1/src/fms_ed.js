@@ -16,9 +16,9 @@
 // kolm – hargnemine (Tee*), neli – ristmik. Külgi, mis naabriga pole ühendatud, arvesse ei võeta
 // (LinkedPorts) – nii saab raja otsast pöörata.
 
-import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS, CheckModel, CellTrack } from './fms_glb.js';
-import { Enumerate } from './fms_sim.js';
-import { Texts, FormatText } from './fms_lng.js';
+import { IconTypes, DIRECTIONS, DirectionPorts, OPERATIONS, CheckModel, CellTrack } from '../core/fms_glb.js';
+import { Enumerate } from '../core/fms_sim.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
 import { DrawLayout, DrawIcon, LayoutView, DrawScrollArrow, ModernCellSize, WheelZoomFactor } from './anima.js';
 import { SetDesktopView, RequestRedraw, InputBox, MessageBox } from './windows.js';

@@ -5,15 +5,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport } from '../src/fms_sim.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Enumerate, SimRun, SimInit, SimStep, SimState, SimReport } from '../core/fms_sim.js';
 import {
   KeepReport, StaticReport, DynamicReport, ReportText, ReportFileName, CaptureEndState, CycleStats,
   TimelineStep, TimelineRows, LineText, REPORT_WIDTH, STATIC_TOPICS, DYNAMIC_TOPICS,
   SimSummaryLines,
-} from '../src/fms_rep.js';
-import { ClockText } from '../src/anima.js';
-import { ScenarioA } from '../proto/scenarios.js';
+} from '../v1/src/fms_rep.js';
+import { ClockText } from '../v1/src/anima.js';
+import { ScenarioA } from './proto/scenarios.js';
 
 const ROOT = new URL('../', import.meta.url);
 const ReadModel = name => JSON.parse(readFileSync(new URL(`models/${name}`, ROOT), 'utf8'));

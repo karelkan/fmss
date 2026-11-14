@@ -20,7 +20,7 @@ Originaali kirjeldus: [originaal.md](originaal.md). Skaneeritud diplomitöö on 
 python3 -m http.server 8000
 ```
 
-Seejärel ava brauseris http://localhost:8000/. Testid (Node 20+): `npm test`.
+Seejärel ava brauseris http://localhost:8000/v1/. Testid (Node 20+): `npm test`.
 
 Veebisaidi kokkupanek (avaleht + `/doc/` + `/v1/`, sama mis GitHub Pages'is – [DISAIN.md](DISAIN.md) osa 19):
 
@@ -32,12 +32,13 @@ tools/site.sh /tmp/fmss-site
 
 | Kaust | Sisu |
 |---|---|
-| `index.html`, `src/` | rakendus; moodulid originaali nimedega (`fms.js`, `fms_sim.js`, `fms_ed.js`, `fms_rep.js`, `anima.js` …) |
-| `models/` | näidismudelid (`*.fms.json`) ja nende nimekiri `index.json` |
-| `fonts/` | EGA font |
+| `core/` | ühine simulaator (versioonidel 1 ja 2): `fms_sim.js`, `fms_glb.js` (andmemudel, kontroll), `fms_lng.js` (tekstid) |
+| `v1/` | versioon 1 (EGA ja kaasaegne): `index.html`, `src/` – liides originaali nimedega (`fms.js`, `fms_ed.js`, `fms_rep.js`, `anima.js` …), `fonts/` – EGA font; `v1/core` ja `v1/models` on lingid |
+| `v2/` | versioon 2 (tuleb V2 etapis 3) |
+| `models/` | näidismudelid (`*.fms.json`) ja nende nimekiri `index.json` – ühised |
 | `site/` | avaleht ja lühijuhend; `site/doc/` – dokumentatsioon (joonised, ekraanipildid `img/`) |
 | `tools/`, `.github/workflows/` | saidi kokkupanek ja GitHub Pages; dokumentatsiooni joonised mudelitest (`tools/layout_svg.js`) |
-| `test/`, `proto/` | testid; prototüüp (etapp 2, võrdluseks) |
+| `test/`, `test/proto/` | testid; simulaatori prototüüp (etapp 2, võrdluseks) |
 | [PLAAN.md](PLAAN.md), [DISAIN.md](DISAIN.md), [VALIDEERIMINE.md](VALIDEERIMINE.md) | teostusplaan, simulatsiooniloogika ja liidese disain, valideerimise tulemused |
 | [V2.md](V2.md) | versiooni 2.0 spetsifikatsioon ja tööplaan |
 
@@ -48,17 +49,17 @@ tools/site.sh /tmp/fmss-site
 - [x] 1. Simulatsiooniloogika disain ([DISAIN.md](DISAIN.md))
 - [x] 2. Prototüüp ja valideerimine ([VALIDEERIMINE.md](VALIDEERIMINE.md), `npm test`)
 - [x] 3. Karkass (teemad EGA / kaasaegne, menüü, avaekraan, andmemudel – [DISAIN.md](DISAIN.md) osa 13)
-- [x] 4. Täissimulaator (`src/fms_sim.js`: `Enumerate` ruudustikust, andmekontroll, statistika; *Simulate* jookseb lõpuni ja näitab kokkuvõtet – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 4)
-- [x] 5. Animaator (`src/anima.js`: *Simulate* avab animatsiooni – kärud, pinkide ja puhvrite olekud, kiirus ×1…×1000, samm / järgmine sündmus; kaasaegses välimuses juhtriba ja Event List ekraanil – [DISAIN.md](DISAIN.md) osa 14, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 5)
+- [x] 4. Täissimulaator (`core/fms_sim.js`: `Enumerate` ruudustikust, andmekontroll, statistika; *Simulate* jookseb lõpuni ja näitab kokkuvõtet – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 4)
+- [x] 5. Animaator (`v1/src/anima.js`: *Simulate* avab animatsiooni – kärud, pinkide ja puhvrite olekud, kiirus ×1…×1000, samm / järgmine sündmus; kaasaegses välimuses juhtriba ja Event List ekraanil – [DISAIN.md](DISAIN.md) osa 14, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 5)
 - [x] 6. Redaktor ([DISAIN.md](DISAIN.md) osa 15, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 6)
-  - [x] 6a. Layout ja View (`src/fms_ed.js`: rada lohistades, ikoon valitakse ise; palett, kustutamine, suunanool, Undo, kerimine; salvestamata muudatuse hoiatus)
-  - [x] 6b. Andmed vormides (`src/fms_ed_data.js`, `FormBox`): Config (All / Choose), Transport (ka lõigu pikkus ja raja kustutamine), Workpiece data (Edit / Copy / Flush, marsruudid), Storage data, Model data; vigade ja hoiatuste arv Layout-is ja nimekiri (K, Edit → Check)
+  - [x] 6a. Layout ja View (`v1/src/fms_ed.js`: rada lohistades, ikoon valitakse ise; palett, kustutamine, suunanool, Undo, kerimine; salvestamata muudatuse hoiatus)
+  - [x] 6b. Andmed vormides (`v1/src/fms_ed_data.js`, `FormBox`): Config (All / Choose), Transport (ka lõigu pikkus ja raja kustutamine), Workpiece data (Edit / Copy / Flush, marsruudid), Storage data, Model data; vigade ja hoiatuste arv Layout-is ja nimekiri (K, Edit → Check)
 - [x] 7. Rajavõrk ja diskreetsed rajad
-  - [x] 7a. Rajavõrgu graaf (`src/fms_sim.js`: mitu pidevat rada, konnektorid, avatud konveier, tee üle konnektorite, sild (mitteühendatud ristumine) – [DISAIN.md](DISAIN.md) osa 2.3, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7a); animaator ja redaktor koos sellega
-  - [x] 7b. Diskreetsed rajad (`src/fms_sim.js`: rada kui teedevõrk – raja-harud, ristmikud, ühesuunalised lõigud noolega; kärud, tsoonid ja plokid, `ProgTM`, `FindPal`, `Collision`, ümbersõit ja kõrvalepõige; paralleelsed konnektorid; teed aja järgi – [DISAIN.md](DISAIN.md) osa 11, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b); animaator ja redaktor koos sellega; näidismudel `models/agv.fms.json` (File → Load → Näidis-AGV)
-  - [x] 7c. Mitu detaili alusel / kärul (`src/fms_sim.js`: kohad alusel, jaamas mitu peale- ja mahalaadimist, käru peatuste nimekiri ja kogumissõit odavaima lisamisega – [DISAIN.md](DISAIN.md) osa 16, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c); animaator (kohad alusel, EGA olekurida kahel real) ja kokkuvõte
-- [x] 8. Rikked ja juhuslikkus (`src/fms_sim.js`: tööpingi rike töötlemise ajal – `Crash`, remont `Repair`, praak SysOut-i; rikete vahe eksponentjaotusega, pingi oma juhuarvujada; kestuse jaotus ühtlane / kolmnurkne / normaalne – [DISAIN.md](DISAIN.md) osa 17, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8); animaator (rikkes pink R, praak ristiga), kokkuvõte, redaktori vormid
-- [x] 9. Aruanded (`src/fms_rep.js`: menüü Report – Static (algne seis ja lõppseis teemade kaupa), Dynamic (tsükliaeg ja osakaalud, tüüpide kaupa, aegrida graafikuga, sündmused), Output ekraanile (kerimisega aken mõlemas välimuses) või tekstifaili; Simulate kokkuvõttes nupp „Aruanne“; ka ummiku ja katkestuse korral – [DISAIN.md](DISAIN.md) osa 18, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9)
+  - [x] 7a. Rajavõrgu graaf (`core/fms_sim.js`: mitu pidevat rada, konnektorid, avatud konveier, tee üle konnektorite, sild (mitteühendatud ristumine) – [DISAIN.md](DISAIN.md) osa 2.3, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7a); animaator ja redaktor koos sellega
+  - [x] 7b. Diskreetsed rajad (`core/fms_sim.js`: rada kui teedevõrk – raja-harud, ristmikud, ühesuunalised lõigud noolega; kärud, tsoonid ja plokid, `ProgTM`, `FindPal`, `Collision`, ümbersõit ja kõrvalepõige; paralleelsed konnektorid; teed aja järgi – [DISAIN.md](DISAIN.md) osa 11, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7b); animaator ja redaktor koos sellega; näidismudel `models/agv.fms.json` (File → Load → Näidis-AGV)
+  - [x] 7c. Mitu detaili alusel / kärul (`core/fms_sim.js`: kohad alusel, jaamas mitu peale- ja mahalaadimist, käru peatuste nimekiri ja kogumissõit odavaima lisamisega – [DISAIN.md](DISAIN.md) osa 16, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 7c); animaator (kohad alusel, EGA olekurida kahel real) ja kokkuvõte
+- [x] 8. Rikked ja juhuslikkus (`core/fms_sim.js`: tööpingi rike töötlemise ajal – `Crash`, remont `Repair`, praak SysOut-i; rikete vahe eksponentjaotusega, pingi oma juhuarvujada; kestuse jaotus ühtlane / kolmnurkne / normaalne – [DISAIN.md](DISAIN.md) osa 17, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 8); animaator (rikkes pink R, praak ristiga), kokkuvõte, redaktori vormid
+- [x] 9. Aruanded (`v1/src/fms_rep.js`: menüü Report – Static (algne seis ja lõppseis teemade kaupa), Dynamic (tsükliaeg ja osakaalud, tüüpide kaupa, aegrida graafikuga, sündmused), Output ekraanile (kerimisega aken mõlemas välimuses) või tekstifaili; Simulate kokkuvõttes nupp „Aruanne“; ka ummiku ja katkestuse korral – [DISAIN.md](DISAIN.md) osa 18, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 9)
 - [x] 10. Avaldamine – versioon 1.0 (avaleht ja lühijuhend `site/index.html`, `/v1/` tag'ist `v1.0`, `tools/site.sh`, GitHub Pages'i töövoog; näidiste nimekiri `models/index.json`, näidis riketega; Advise → „tuleb versioonis 2.0“ – [DISAIN.md](DISAIN.md) osa 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 10). Avaldatud: https://karelkan.github.io/fmss/ (tag `v1.0`)
 - [x] 11. Näidismudelid: 3 suurt tootmissüsteemi (12–16 tööpinki) avalike lugude põhjal; versioonid 1.1–1.3 ([PLAAN.md](PLAAN.md))
   - [x] 11a. Versioon 1.1 – kerimine ja suum: suur mudel animaatoris (EGA kerib, ikoon jääb 48 × 35; kaasaegne kahandab kuni 36 px, siis kerib; suum hiire rattaga, lohistamine, `0`), redaktoris kaasaegne suum (Ctrl + ratas); `/v1/` tag'ist `v1.1` – [DISAIN.md](DISAIN.md) osa 14, 19, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11a
@@ -69,10 +70,11 @@ tools/site.sh /tmp/fmss-site
   - [x] Versioon 1.5 – seitsmes näidis **Mootoriosade tehas** (`models/mootor.fms.json`: 32 pinki, 3 konveierit + kuue AGV-ga ring, 11 konnektorit, 16 tüüpi, rikked); EGA kokkuvõttes konnektorite koondrida – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12b, [DISAIN.md](DISAIN.md) osa 18, 19
 - [ ] Versioon 2.0: kaasaegne liides, Adviser ja Claude'i nõustaja – [V2.md](V2.md)
   - [x] V2 etapp 1. Arutelu ja tööplaan: otsused, võimalused (tööruum ja tabelid, metrooskeem ja plaan, tsehhid, tööstuslik visualiseerimine, katsete haldur, mitu sisendit ja väljundit, Adviser, Claude'i nõustaja, kasutusjuhend), etapid 2–13; 2.0 = etapid 3–7
+  - [x] Kaustade ümberkorraldus: `v1/` (liides), `core/` (ühine simulaator), `test/proto/`; `/v1/` sait tag'ist sama ([DISAIN.md](DISAIN.md) osa 19)
   - [ ] V2 etapp 2. Maketid ja liidese spetsifikatsiooni kinnitus
 
 ## Autoriõigus ja litsentsid
 
 © K. Kannel 1993, 2026. Kõik õigused kaitstud. Lähtekood on avalik tutvumiseks; selle kasutamiseks, muutmiseks või levitamiseks küsi autorilt luba.
 
-EGA font: **PxPlus IBM EGA 8x14** kogumikust [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/) (VileR), litsents [CC BY-SA 4.0](fonts/LICENSE-CC-BY-SA-4.0.txt). Fail `fonts/WebPlus_IBM_EGA_8x14.woff` on muutmata.
+EGA font: **PxPlus IBM EGA 8x14** kogumikust [The Ultimate Oldschool PC Font Pack](https://int10h.org/oldschool-pc-fonts/) (VileR), litsents [CC BY-SA 4.0](v1/fonts/LICENSE-CC-BY-SA-4.0.txt). Fail `v1/fonts/WebPlus_IBM_EGA_8x14.woff` on muutmata.

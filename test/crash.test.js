@@ -4,8 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CheckModel } from '../src/fms_glb.js';
-import { Enumerate, SimRun } from '../src/fms_sim.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Enumerate, SimRun } from '../core/fms_sim.js';
 
 const ROOT = new URL('../', import.meta.url);
 const ReadModel = name => JSON.parse(readFileSync(new URL(`models/${name}`, ROOT), 'utf8'));
@@ -214,7 +214,7 @@ test('R8: CheckModel – rikke väljad ja jaotus', () => {
 
 // R9. Redaktor: pingi vormi rikke väljad lähevad läbi sama kontrolli (SubmitModelForm + CheckModel).
 test('R9: redaktor – pingi rikke väljad ja jaotus vormist mudelisse', async () => {
-  const { SubmitModelForm } = await import('../src/fms_ed_data.js');
+  const { SubmitModelForm } = await import('../v1/src/fms_ed_data.js');
   const model = LayoutH();
   const fields = (crash, repair, dev) => [
     { Key: 'CrashMean', Label: 'Rikete vahe, s', Kind: 'Number', Text: crash, Path: 'Machines[1].CrashMean' },

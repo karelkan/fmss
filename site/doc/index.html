@@ -1449,7 +1449,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     build-sammu ega väliseid teeke pole.
   </p>
   <div class="table-wrap">
-    <p class="caption">Tabel 5.1. Moodulid (kaust <code>src/</code>, versioon 1.5)</p>
+    <p class="caption">Tabel 5.1. Moodulid (kaustad <code>v1/src/</code> ja <code>core/</code> – ühine simulaator, versioon 1.5)</p>
     <table>
       <tr><th>Moodul</th><th>Originaalis</th><th>Sisu</th><th class="num">Ridu</th></tr>
       <tr><td><code>fms.js</code></td><td><code>FMS.PAS</code></td><td>peaprogramm: menüüd, failid, töölaud, Simulate</td><td class="num">693</td></tr>
@@ -2123,11 +2123,11 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td><code>ProcAllEvents</code></td><td>sisetsükkel: kõik käesoleva hetke sündmused</td><td><span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>CheckModel</code></td><td>mudelifaili struktuuri kontroll (väljad, tüübid, piirid, viited); kasutavad ka redaktori vormid</td><td><span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>EmptyModel</code>, <code>ModelSummary</code></td><td>uus tühi mudel; lühikokkuvõte töölauale</td><td><span class="tag tag-u">[U]</span></td></tr>
-      <tr><td>abiprotseduurid</td><td><code>SetWPState</code>, <code>SetMachState</code>, <code>CurrentOp</code>, <code>CanReserveSlot</code>, <code>StorageFree</code>, <code>StationLoadTime</code>, <code>BeginSetup</code>, <code>BeginPickup</code>, <code>PICKUP_SOURCE</code>, <code>BeginUnloadFromPallet</code>, <code>AfterPalletAtStation</code>, <code>WorkpieceLeaves</code> – vt päisekommentaarid <code>src/fms_sim.js</code>-is</td><td><span class="tag tag-t">[T]</span>/<span class="tag tag-u">[U]</span></td></tr>
+      <tr><td>abiprotseduurid</td><td><code>SetWPState</code>, <code>SetMachState</code>, <code>CurrentOp</code>, <code>CanReserveSlot</code>, <code>StorageFree</code>, <code>StationLoadTime</code>, <code>BeginSetup</code>, <code>BeginPickup</code>, <code>PICKUP_SOURCE</code>, <code>BeginUnloadFromPallet</code>, <code>AfterPalletAtStation</code>, <code>WorkpieceLeaves</code> – vt päisekommentaarid <code>core/fms_sim.js</code>-is</td><td><span class="tag tag-t">[T]</span>/<span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>Animator</code>, <code>SimStatus</code>, <code>Transport</code></td><td>kuvamine: pinkide, puhvrite ja ladude seis; üldseis (üldosa + rajad); alused ja nende kohad (<code>anima.js</code>, osa 14)</td><td><span class="tag tag-o">[O]</span></td></tr>
     </table>
   </div>
-  <h4>Mudeli konstandid <span class="note">(<code>src/fms_glb.js</code>)</span></h4>
+  <h4>Mudeli konstandid <span class="note">(<code>core/fms_glb.js</code>)</span></h4>
   <div class="table-wrap">
     <table class="glossary">
       <tr><th>Nimi</th><th>Roll</th><th></th></tr>
@@ -2172,10 +2172,10 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td><code>SIM_SHOWN_ERRORS</code>, <code>SIM_SHOWN_OBJECTS</code>, <code>CheckLine</code>, <code>Percent</code>, <code>Decimal</code></td><td>kokkuvõtte piirid (<code>SIM_SHOWN_OBJECTS</code> – kuni 6 pinki / puhvrit, <code>fms_rep.js</code>) ja vormindus (%, koma); <code>ClockText</code> (h:mm:ss) on <code>anima.js</code>-is</td><td><span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>MessageBoxMaxLines</code></td><td>mitu rida mahub nuppudega dialoogi (EGA 19; <code>windows.js</code>, 1.3)</td><td><span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>DesktopView</code>, <code>SetDesktopView</code>, <code>GetDesktopView</code>, <code>POINTER_CAPTURED</code>, <code>HandleWheel</code>, <code>InsideDesktop</code></td><td>töölaua vaade (animaator, aruanne): joonistaja, klahvid, hiir; praegune vaade (aruanne taastab selle); lohistamine; hiire ratas</td><td><span class="tag tag-u">[U]</span></td></tr>
-      <tr><td>abiprotseduurid</td><td><code>MenuItems</code>, <code>SelectedItem</code>, <code>DropdownItems</code>, <code>DrawMenuBar</code>, <code>DrawDropdown</code>, <code>DrawStatusLine</code>, <code>MoveInDropdown</code>, <code>HandleMenuKey</code>, <code>OpenDialog</code>, <code>CloseDialog</code>, <code>DrawDialog</code>, <code>HandleDialogKey</code>, <code>HandleDialogPointer</code>, <code>MenuLoad</code>, <code>MenuPick</code>, <code>MenuNew</code>, <code>MenuSave</code>, <code>MenuWriteAs</code>, <code>AskQuit</code>, <code>ShowHelp</code> – vt kommentaarid <code>src/windows.js</code>-is ja <code>src/fms.js</code>-is</td><td><span class="tag tag-u">[U]</span></td></tr>
+      <tr><td>abiprotseduurid</td><td><code>MenuItems</code>, <code>SelectedItem</code>, <code>DropdownItems</code>, <code>DrawMenuBar</code>, <code>DrawDropdown</code>, <code>DrawStatusLine</code>, <code>MoveInDropdown</code>, <code>HandleMenuKey</code>, <code>OpenDialog</code>, <code>CloseDialog</code>, <code>DrawDialog</code>, <code>HandleDialogKey</code>, <code>HandleDialogPointer</code>, <code>MenuLoad</code>, <code>MenuPick</code>, <code>MenuNew</code>, <code>MenuSave</code>, <code>MenuWriteAs</code>, <code>AskQuit</code>, <code>ShowHelp</code> – vt kommentaarid <code>v1/src/windows.js</code>-is ja <code>v1/src/fms.js</code>-is</td><td><span class="tag tag-u">[U]</span></td></tr>
     </table>
   </div>
-  <h4>Animaator <span class="note">(<code>src/anima.js</code>, etapp 5, osa 14)</span></h4>
+  <h4>Animaator <span class="note">(<code>v1/src/anima.js</code>, etapp 5, osa 14)</span></h4>
   <div class="table-wrap">
     <table class="glossary">
       <tr><th>Nimi</th><th>Roll</th><th></th></tr>
@@ -2199,7 +2199,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td>teema primitiivid</td><td><code>Line</code>, <code>Ellipse</code>, <code>Polygon</code>, <code>StrokeRect</code>, <code>RoundRect</code>, <code>Clip</code>, <code>Alpha</code>, <code>Slider</code> (teema meetodid); EGA-s <code>EgaLine</code>, <code>EgaArc</code>, <code>EgaFillEllipse</code>, <code>EgaFillPolygon</code></td><td><span class="tag tag-u">[U]</span></td></tr>
     </table>
   </div>
-  <h4>Redaktor <span class="note">(<code>src/fms_ed.js</code>, etapp 6, osa 15)</span></h4>
+  <h4>Redaktor <span class="note">(<code>v1/src/fms_ed.js</code>, etapp 6, osa 15)</span></h4>
   <div class="table-wrap">
     <table class="glossary">
       <tr><th>Nimi</th><th>Roll</th><th></th></tr>
@@ -2235,7 +2235,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td>abiprotseduurid ja konstandid</td><td><code>LayoutGrid</code>, <code>InsideGrid</code>, <code>CellAt</code>, <code>SegmentEnd</code>, <code>ClampCursor</code>, <code>ClampScroll</code>, <code>GridView</code>, <code>CellUnder</code>, <code>ScrollArrows</code>, <code>DrawToolGlyph</code>, <code>DrawPaletteItem</code>, <code>DEFAULT_TRACK</code>, <code>DEFAULT_MACHINE</code>, <code>DEFAULT_BUFFER</code>, <code>DEFAULT_STORAGE</code> – vt päisekommentaarid</td><td><span class="tag tag-u">[U]</span></td></tr>
     </table>
   </div>
-  <h4>Aruanded <span class="note">(<code>src/fms_rep.js</code>, etapp 9, osa 18)</span></h4>
+  <h4>Aruanded <span class="note">(<code>v1/src/fms_rep.js</code>, etapp 9, osa 18)</span></h4>
   <div class="table-wrap">
     <table class="glossary">
       <tr><th>Nimi</th><th>Roll</th><th></th></tr>
@@ -2255,7 +2255,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td>abiprotseduurid</td><td><code>StatusText</code>, <code>EndModeName</code>, <code>SequenceName</code>, <code>EndingLines</code>, <code>FormatLines</code>, <code>DeadlockLines</code>, <code>HeaderLines</code>, <code>TrackKind</code>, <code>StaticModel</code> … <code>StaticCrashes</code>, <code>DynamicCycle</code> … <code>DynamicEvents</code>, <code>ClampTop</code> – vt päisekommentaarid</td><td><span class="tag tag-u">[U]</span></td></tr>
     </table>
   </div>
-  <h4>Avaldamine <span class="note">(<code>src/fms_file.js</code>, etapp 10, osa 19)</span></h4>
+  <h4>Avaldamine <span class="note">(<code>v1/src/fms_file.js</code>, etapp 10, osa 19)</span></h4>
   <div class="table-wrap">
     <table class="glossary">
       <tr><th>Nimi</th><th>Roll</th><th></th></tr>
@@ -2335,7 +2335,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     <p class="caption">Tabel 8.2. Testifailid</p>
     <table>
       <tr><th>Fail</th><th>Sisu</th><th class="num">Teste</th></tr>
-      <tr><td><code>proto/test/sim.test.js</code></td><td>prototüüp (etapp 2)</td><td class="num">7</td></tr>
+      <tr><td><code>test/proto/test/sim.test.js</code></td><td>prototüüp (etapp 2)</td><td class="num">7</td></tr>
       <tr><td><code>test/sim.test.js</code></td><td>tootekood, <code>Enumerate</code>, võrdlus prototüübiga, statistika</td><td class="num">23</td></tr>
       <tr><td><code>test/model.test.js</code></td><td>mudelifaili kontroll <code>CheckModel</code></td><td class="num">13</td></tr>
       <tr><td><code>test/network.test.js</code></td><td>rajavõrk, konnektorid, avatud konveier, sild, teed</td><td class="num">30</td></tr>

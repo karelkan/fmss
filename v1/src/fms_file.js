@@ -5,8 +5,8 @@
 // Save laadib faili alla. Pick (10 viimast) hoitakse brauseri mälus.
 // ParseModelText ja ModelFileName ei kasuta brauserit (testitavad Node'iga).
 
-import { CheckModel } from './fms_glb.js';
-import { Texts, FormatText } from './fms_lng.js';
+import { CheckModel } from '../core/fms_glb.js';
+import { Texts, FormatText } from '../core/fms_lng.js';
 
 const RECENT_KEY = 'fmss.recent';
 const MAX_RECENT = 10;            // [O] Pick – 10 viimast (joon. 6.1)
