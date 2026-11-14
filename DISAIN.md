@@ -1,6 +1,6 @@
 # Simulatsiooniloogika disain
 
-Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19.
+Etapp 1 ([PLAAN.md](PLAAN.md)). Alus: [originaal.md](originaal.md). Osad 1–7 (pidevad konveierid) on **valideeritud prototüübiga** (`proto/`); tulemused ja tehtud muudatused: [VALIDEERIMINE.md](VALIDEERIMINE.md). Tootekood on `src/fms_sim.js` (etapp 4): sama loogika + `Enumerate` (osa 2.1) ja andmekontroll (osa 2.2). Animaator (etapp 5): osa 14. Redaktor (etapp 6): osa 15 (`src/fms_ed.js`, `src/fms_ed_data.js`). Rajavõrgu graaf (etapp 7a: mitu rada, konnektorid, avatud konveier): osa 2.3. Diskreetsed rajad (AGV-d, etapp 7b): osa 11. Mitu detaili alusel / kärul (etapp 7c): osa 16. Rikked ja juhuslikkus (etapp 8): osa 17. Aruanded (etapp 9): osa 18. Avaldamine (etapp 10): osa 19. Simulatsiooni lõpurežiim (etapp 11d): osa 20.
 
 Nimetamise reeglid ja globaalsete nimede sõnastik: osa 12.
 
@@ -254,7 +254,7 @@ Planner otsustab ja lisab sündmusi (`InSys`, `Load`, `OutSys`). **[O]** (lk 51)
 
 1. **Uue detaili sissetoomine** (`InSys`). **[O]**
    - Millal: kui `Ndet / (Ntm + Nmt + Nbuf) < Kl`, vaikimisi `Kl = 0.85`. Etapist 7a lisandub konnektorite arv `Ncon`. `Ntm` on originaalis kohtade arv transpordil; etapist 7c **aluste / kärude arv** (`Carts`, kohtade arvust sõltumata) **[U]** – kohad tõid süsteemi detaile, mis ootasid FromCS-is (VALIDEERIMINE.md etapp 7c, leid 1). Ühe kohaga alusel on see sama. Lisaks igal lahkumisel kontrollitakse uuesti. Teised originaali reeglid (kindel intervall, ajakava, partiid) on valitavad seadetes.
-   - Mis tüüp: kõige vähem töödeldud tüüp (vaikimisi); valitavad ka „üks tüüp järjest“ ja „kõige rohkem vabu pinke marsruudis“.
+   - Mis tüüp: kõige vähem töödeldud tüüp (vaikimisi); valitavad ka „üks tüüp järjest“ ja „kõige rohkem vabu pinke marsruudis“. Etapist 11d on tehtud „üks tüüp järjest“ (`Sim.OrderSequence` `Batch`, `ChooseType`) ja sissetoomine tellimuse järgi (`Sim.EndMode` `Order`, originaali I.6 „partiidena“) – osa 20.
 2. **Marsruudi valik** sisenemisel. **[O]** Kriteeriumid: enim hetkel vabade pinkide operatsioone → lähim esimese operatsiooni pink → enim operatsioone samas pingis. Viik → marsruudi prioriteet.
 3. **Sihtkoha valik ja broneerimine** (`FindMach`, `FindBuf`, `FindSysPos`). **[T + U]**
    - Kui detailil on järgmine operatsioon: sobivad pingid on need, mis teevad seda operatsiooni, mille puhvris on vaba sissetulev koht ja kuhu viib rada (osa 2.3). Valik: vaba pink → pink pole rikkes (etapp 8) → lühim järjekord → lähim (tee pikkus).
@@ -301,6 +301,7 @@ Kui teine alus jõuab samal hetkel täpselt jaama (nihe 0), saab ta märke `Arri
 - Rikked (etapp 8) **[U]**: pingi kohta `DOWN` osakaal (`DownShare`) ja rikete arv (`Crashes`); rakendatus ei sisalda rikkeaega. Süsteemis `Crashes`, `Scrapped`; aegreas `DownMachines`, `Scrapped`. Praak ei lähe valmis detailide, läbilaskevõime ega tsükliaja hulka.
 - Süsteem: läbilaskevõime (detaili tunnis), keskmine ja suurim detailide arv süsteemis, kesklattu pargitud.
 - **Aegrida** (`Stats.Timeline`, Dynamic-aruande jaoks, etapp 9) **[U]**: iga `SampleInterval` sekundi järel (vaikimisi 60, ka algus ja lõpp) detailid süsteemis, valmis, hõivatud pingid, puhvrite täituvus.
+- **Lõpurežiim** (etapp 11d, osa 20) **[U]**: lõpetamisega režiimis (B–D) on läbilaskevõime, detailide keskmine arv ning pinkide, puhvrite ja radade näitajad perioodi 0…T järgi (`Stats.PeriodReport`); tsükliaeg, osakaalud ja tüübid kogu jooksu järgi; lõpetamine eraldi (`Ending`). Tellimuse režiimis on periood 0…makespan.
 - Kõik tuleb `SimReport`-ist; menüü *Simulate* näitab sellest lühikokkuvõtet (etapp 4), täielikud aruanded on menüüs *Report* (etapp 9, osa 18).
 
 ---
@@ -335,6 +336,7 @@ Kui teine alus jõuab samal hetkel täpselt jaama (nihe 0), saab ta märke `Arri
 - Suunanool on raja sirge või kaare väli `"Dir"` (osa 2.1). **[O]**
 - `Storage: null` tähendab, et kesklattu pole (stsenaarium C0).
 - Rike (etapp 8, osa 17) **[U]**: pingil võivad olla `CrashMean` (keskmine töötlemisaeg rikete vahel, s; 0 või puudub = rikkeid pole), `RepairMean`, `RepairDev` (remondiaeg, s); `Sim.Distribution` – `Uniform` (vaikimisi, kui puudub), `Triangular` või `Normal`. Vanad mudelid jäävad kehtima.
+- Lõpurežiim (etapp 11d, osa 20) **[U]**: `Sim.EndMode` – `Time` (vaikimisi, kui puudub), `FinishOps`, `Ship`, `Drain`, `Order`; `Sim.OrderSequence` – `Mixed` (vaikimisi) või `Batch`. Detaili `Batch` võib olla 0 (tüüpi ei toodeta); puudub = 1. Vanad mudelid jäävad kehtima, `MODEL_VERSION` on 1.
 - Mudeli struktuuri kontrollib `CheckModel` (`src/fms_glb.js`) laadimisel; rajavõrgu ja andmete kontroll on `Enumerate`-s (osa 2.2).
 - Tööpingi ja puhvri seos tuletatakse naabrusest ruudustikus (puhver vahetult pingi all/kohal, osa 2.1).
 
@@ -572,6 +574,14 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `DetectDeadlock` | ummiku lahendamine (parkimine) ja varukontroll | [U] |
 | `FindDeadlockedWorkpieces` | ummikus olevad detailid (püsipunkt üle puhvrite) | [U] |
 | `LoadMachines`, `AssignDestinations`, `AdmitWorkpieces` | Planneri kolm sammu | [T] |
+| `ChooseType` | mis tüüpi detail tuua: Segamini (vähim sisse toodud) või Partii järjest (originaal II.1, II.2; osa 20) | [T] |
+| `TypeBatch`, `OrderLeft`, `OrderDone` | tüübi partii (puudub = 1); tellimusest sisse toomata (praak asendatakse); kogu tellimus sisse toodud | [U] |
+| `BatchTurn` | partii järjest ringiratast: tüüpide järjekord, käesolev tüüp ja tema arv | [U] |
+| `ENDING` | lipp: lõpetamine käib (kell T möödas, lõpurežiim B–D) | [U] |
+| `CheckSimEnd`, `BeginEnding`, `EndReached` | kas simulatsioon on läbi (režiimi järgi, ülempiir); kell T – perioodi aruanne ja lõpetamise algus; kas lõpetamine on läbi | [U] |
+| `StopNewOps`, `TransportStopped`, `MayTravel` | lõpetamisel: pingid ei alusta (B, C); transport seisab (B); detail võib alusele minna (C: valmis või sõit alanud) | [U] |
+| `AnyLoadEvent`, `ReleasePlannedDestination` | kas mõni laadimine on pooleli; enne töötlemist broneeritud järgmise pingi koha vabastamine | [U] |
+| `ReportNow` | `SimReport`-i näitajad käesoleva hetke seisuga (ka perioodi 0…T aruanne) | [U] |
 | `ChooseRoute` | marsruudi valik sisenemisel | [O nimi, T sisu] |
 | `NextOpElsewhere` | järgmine operatsioon, mis tehakse teises pingis | [U] |
 | `OrderByDiscipline` | puhvri detailide järjekord (FIFO / FILO / RANDOM) | [O] |
@@ -594,6 +604,8 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `MAX_WORKPIECE_TYPES` | detailitüüpe kõige rohkem (16) | [O] |
 | `TRACK_MODES`, `BUFFER_DISCIPLINES` | lubatud raja liigid ja puhvri distsipliinid | [O] |
 | `DISTRIBUTIONS` | kestuse kõrvalekalde jaotused: `Uniform`, `Triangular`, `Normal` (osa 17) | [U] |
+| `END_MODES`, `ENDING_MODES` | lõpurežiimid `Time`, `FinishOps`, `Ship`, `Drain`, `Order`; neist lõpetamisega (B–D) (osa 20) | [U] |
+| `ORDER_SEQUENCES` | tüüpide järjekord `Mixed`, `Batch` (originaal II.1, II.2; osa 20) | [O] |
 
 **Kasutajaliides** (etapp 3, osa 13)
 
@@ -702,7 +714,7 @@ let EdgeArray = [];         // [U] rajavõrgu lõigud
 | `ReportView`, `ReportActive`, `CloseReport`, `ReportLayout`, `ReportPainter`, `DrawReportLine`, `ReportInput`, `ScrollReport` | aruande vaade töölaual: olek; kas ees; sulgemine (eelmine vaade tagasi); paigutus; joonistamine (EGA – märgid, kaasaegne – joon ja tulbad ristkülikutena); klahvid, ratas, kerimisriba | [U] |
 | `REPORT_WIDTH`, `BAR_WIDTH`, `SHARE_BAR_WIDTH`, `WHEEL_LINES` | rea suurim laius (74 märki – mahub EGA aknasse); tulpade pikkus; ratta samm | [U] |
 | `TableLines`, `WrapLines`, `LineText`, `Percent`, `Decimal` | püsilaiusega tabel; loetelu murdmine; rea tekst; vormindus (protsent, koma) | [U] |
-| abiprotseduurid | `StatusText`, `DeadlockLines`, `HeaderLines`, `TrackKind`, `StaticModel` … `StaticCrashes`, `DynamicCycle` … `DynamicEvents`, `ClampTop` – vt päisekommentaarid | [U] |
+| abiprotseduurid | `StatusText`, `EndModeName`, `SequenceName`, `EndingLines`, `FormatLines`, `DeadlockLines`, `HeaderLines`, `TrackKind`, `StaticModel` … `StaticCrashes`, `DynamicCycle` … `DynamicEvents`, `ClampTop` – vt päisekommentaarid | [U] |
 
 **Avaldamine** (`src/fms_file.js`, etapp 10, osa 19)
 
@@ -886,6 +898,52 @@ Versioon 1.0 avaldatakse GitHub Pages'is staatiliste failidena, build-sammu pole
 - **Suhtelised teed**: `index.html` → `src/fms.js`; moodulid laadivad fondi ja mudelid `new URL('../…', import.meta.url)` kaudu. Seega töötab rakendus igas alamkaustas (test L6 keelab absoluutsed teed).
 - **Brauseri mälu**: kõigil sama kasutaja Pages'i saitidel on üks origin, seega `fmss.recent` ja `fmss.options` on `/v1/`-l ja hilisemal 2.0-l ühised. 1.0 neid ei muuda; 2.0 kasutab oma võtmeid (või loeb 1.0 mudelid `fmss.recent`-ist ainult sisse).
 - **Advise** jääb menüüsse halliks: „… tuleb versioonis 2.0“ (`NotYet` võtab etapi asemel versiooni). Vananenud „tuleb etapis …“ tekstid (`EnumLater`, `FormTrackLater`, konnektori vihjed) on eemaldatud.
-- **Versioon**: töölaual „versioon 1.0“, `package.json` 1.0.0; git-tag `v1.0`. **1.1** (etapp 11a): animaatoris kerimine ja suum, redaktoris suum (osa 14, 15); töölaual „versioon 1.1“, `package.json` 1.1.0, tag `v1.1`, töövoog `tools/site.sh _site v1.1`. Mudelifaili vorming ei muutunud. **1.2** (etapp 11b): teede ümardusviga parandatud (osa 2.3); töölaual „versioon 1.2“, `package.json` 1.2.0, tag `v1.2`, töövoog `v1.2`. **1.3** (etapp 11c): Simulate kokkuvõte mahub EGA-s ekraanile (osa 18); „versioon 1.3“, `package.json` 1.3.0, tag `v1.3`, töövoog `v1.3`.
+- **Versioon**: töölaual „versioon 1.0“, `package.json` 1.0.0; git-tag `v1.0`. **1.1** (etapp 11a): animaatoris kerimine ja suum, redaktoris suum (osa 14, 15); töölaual „versioon 1.1“, `package.json` 1.1.0, tag `v1.1`, töövoog `tools/site.sh _site v1.1`. Mudelifaili vorming ei muutunud. **1.2** (etapp 11b): teede ümardusviga parandatud (osa 2.3); töölaual „versioon 1.2“, `package.json` 1.2.0, tag `v1.2`, töövoog `v1.2`. **1.3** (etapp 11c): Simulate kokkuvõte mahub EGA-s ekraanile (osa 18); „versioon 1.3“, `package.json` 1.3.0, tag `v1.3`, töövoog `v1.3`. **1.4** (etapp 11d): simulatsiooni lõpurežiim (osa 20), mudelifailis uued valikulised väljad; „versioon 1.4“, `package.json` 1.4.0, tag `v1.4`, töövoog `v1.4`. Näidis Allhanketehas on tellimus (`Order`) – 1.3 kood selle välju ei tunne ja jookseb kellani (`/v1/` võtab koodi alati viimasest tag'ist, seega seda ei juhtu).
 - **Avalikkus**: repo on avalik (Pages'i tingimus), õigused kaitstud (litsentsi ei anta). Skaneeringud (`docs/skaneeringud/`) ja `CLAUDE.md` jäävad ainult kohalikku koopiasse – `.gitignore` ja enne esimest pushi eemaldatakse need ka git'i ajaloost.
 
+
+---
+
+## 20. Simulatsiooni lõpurežiim (etapp 11d) **[O + T + U]**
+
+Originaal lõpu tingimust ei määranud (ainult `SIMULATION_DONE`), aga Planneril oli sissetoomise reegel „partiidena“ (originaal.md osa 7, I.6) ja tüübi valik „üht tüüpi järjest“ (II.2); detailil oli „partii suurus“. Kuni versioonini 1.3 lõppes simulatsioon kestusega `Sim.Duration` (T) ja detailid jäid süsteemi. Otsus ja põhjendused: [PLAAN.md](PLAAN.md) 11d. Teostus: `src/fms_sim.js` (osa „Simulatsiooni lõpp“), testid `test/end.test.js`, valideerimine [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11d.
+
+### 20.1 Väljad **[U]**
+
+- `Sim.EndMode` (`END_MODES`): `Time` – **Kellani** (vaikimisi), `FinishOps` – **Kellani ja pink tühi**, `Ship` – **Kellani ja liin tühi**, `Drain` – **Tehas tühjaks**, `Order` – **Partiid lõpuni**.
+- `Sim.OrderSequence` (`ORDER_SEQUENCES`) **[O]**: `Mixed` – **Segamini** (kõige vähem sisse toodud tüüp, II.1, nagu varem), `Batch` – **Partii järjest** (II.2).
+- Detaili `Batch` (vormis „Partii, tk“): `Order` korral tellitud kogus, `Batch` järjekorras nii mitu tükki järjest; 0 – tüüpi ei toodeta (kõigis režiimides); puudub = 1.
+- Väljad on valikulised; vaikimisi tulemus on bitt-täpselt sama mis 1.3-s (test L0, kõik vanad testid).
+
+### 20.2 Tüübi valik – `ChooseType` **[T]**
+
+- **Segamini**: tüüpidest, mille partii > 0 (ja `Order` korral tellimus pole veel sees), kõige vähem sisse toodud; viigi korral esimene.
+- **Partii järjest**: tüübid `Priority` järgi (1 enne), viigi korral mudeli järjekorras. `Order` korral esimene tüüp, mille tellimus pole veel sees; muidu ringiratast `Batch` tükki igast (`BatchTurn`). Järgmise partii esimene detail tuleb kohe, kui eelmise viimane on sisse toodud (partiid kattuvad).
+- **Tellimus** (`OrderLeft`): `Batch` − (sisse toodud − praak). Praak (`Doomed`, loendatakse rikke hetkel) **asendatakse** – tellimus täidetakse heade detailidega.
+
+### 20.3 Lõpetamine
+
+Kell T (`SimStep` pärast `CollectStats`-i) salvestatakse perioodi 0…T aruanne (`BeginEnding`, `Stats.PeriodReport`) ja režiimides B–D algab lõpetamine (`ENDING`). Pärast T uusi detaile ei tooda.
+
+| | Pinkid | Transport | Sihtkohad (`AssignDestinations`) | Ummiku tuvastus | Lõpp (`EndReached`) |
+|---|---|---|---|---|---|
+| A `Time` | – | – | – | – | kell T |
+| B `FinishOps` | ei laadi uut (`LoadMachines` ei tööta); pooleli laadimine, häälestus ja töötlemine lõpetatakse; järgmist operatsiooni samas pingis ei alustata – detail puhvrisse, broneeritud järgmise pingi koht vabaneb | seisab (`MinuteMan` ei liiguta, uusi laadimisi alusele ei alustata); pooleli `Load` sündmused lõpevad | ei anta | välja lülitatud | pingid tühjad ja ühtegi `Load` sündmust pole |
+| C `Ship` | nagu B | käib; alusele / kärule läheb ainult valmis detail või praak, konnektoris olev detail ja detail, kellele käru on juba teel (`MayTravel`) – alustatud sõidud lõpevad, pooleli detail jääb järgmise pingi puhvrisse | ainult valmis detailid ja praak (`OutSys`) | välja lülitatud | B + alused, kärud (ka broneeringud) ja konnektorid tühjad, ükski valmis detail ega praak pole süsteemis |
+| D `Drain` | tavaliselt | tavaliselt | tavaliselt (ka FromCS järjekord ja pargitud) | töötab, parkimine ka | süsteem tühi |
+| E `Order` | tavaliselt | tavaliselt | tavaliselt | töötab | tellimus sees ja süsteem tühi |
+
+- **Ülempiir** **[U]**: B–D lõpetamine kestab kuni veel ühe T (kokku 2T); siis `Stats.EndCapped` ja olek „lõpetamine katkes“. E-s on T ülempiir: kui see saabub enne, lõpeb simulatsioon nagu A ja tellimus jääb pooleli. Ummiku ja seisu tuvastus töötavad D-s ja E-s edasi; B-s ja C-s ummikut ei teki (pingid uut tööd ei alusta, alusel olev detail sõidab broneeritud sihtkohta), seepärast `DetectDeadlock` ei tööta (see pargiks detaile ja tekitaks uusi sõite).
+- **Rikked** lõpetamise ajal on lubatud: remont lõpetatakse, praak läheb B-s puhvrisse, C–E-s välja.
+- **B on alati võimalik** ilma ummikuta, sest pink alustab ainult broneeritud väljumiskohaga (osa 3.3).
+
+### 20.4 Statistika ja aruanne
+
+- `SimReport`: B–D korral `ThroughputPerHour`, `AvgWip`, `MaxWip`, `Machines`, `Buffers`, `Tracks` perioodi 0…T aruandest (lõpetamine ei langeta neid); `Created`, `Completed`, tsükliaeg, osakaalud, `Types`, aegrida – kogu jooks. Uued väljad: `Done`, `EndMode`, `Ending` (`Start`, `Duration`, `PeriodCompleted`, `CompletedAfter`, `ScrappedAfter`, `LeftInSystem`, `Capped`; A ja E korral `null`), `Order` (`Sequence`, `Total`, `Completed`, `Done`, `Makespan`; ainult E).
+- Kokkuvõte (`SimSummaryLines`): lõpetamise rida („Lõpp „…“: lõpetamine 0:17:30, lisaks valmis 5“ või „… katkes ülempiiril …“), läbilaskevõime „0…8:00:00“; E-s „Tellimus (Partii järjest) täidetud: 48 / 48, aeg 5:20:58“. A korral nagu varem.
+- Aruanne: Static „Mudel ja seaded“ – lõpurežiim ja tüüpide järjekord (E-s tellimuse kogus), lõppseisus lõpetamise või tellimuse read; olek `StatusText` („lõpuni“, „lõpetamine katkes“, „tellimus täidetud“, „tellimus jäi pooleli“). Dynamic – läbilaskevõime perioodi järgi ja lõpetamise / tellimuse read. Read ≤ `REPORT_WIDTH` (test L12).
+
+### 20.5 Liides
+
+- **Model data**: read „Lõpp“ ja „Tüüpide järjekord“ (nimed ≤ 20 märki), vormi vihje. Workpiece data vormil vihje partii kohta.
+- **Animaator**: pärast T olekureal „lõpetab“ (pausi ajal „lõpetab, paus“); EGA olekurea kõrgus arvestab lõpetamisega režiimis kohe pikima olekuga (`GeneralWorst`), et rida T-l ei hüppaks. E-s „valmis 12/48“.

@@ -1,6 +1,6 @@
 # Originaali kirjeldus
 
-Ümberkirjutus diplomiprojektist **„Paindautomatiseeritud tootmise simulatsioonisüsteem“** (K. Kannel, TTÜ Arvutitehnika Instituut, 1993; juhendaja J. Riives, konsultant V. Leppikson). Skaneeritud diplomitöö (mittelõplik versioon, lisad puuduvad) on autori juures, avalikus repos seda pole; viited „lk N“ ja „joon. N“ on selle järgi.
+Ümberkirjutus diplomiprojektist **„Paindautomatiseeritud tootmise simulatsioonisüsteem“** (K. Kannel, TTÜ Arvutitehnika Instituut, 1993; juhendaja J. Riives). Skaneeritud diplomitöö (mittelõplik versioon, lisad puuduvad) on autori juures, avalikus repos seda pole; viited „lk N“ ja „joon. N“ on selle järgi.
 
 Siia on võetud ainult taastamiseks olulised osad. Viited `lk N` on originaali leheküljenumbrid. Märge **[tõlgendus]** tähendab, et see on minu lugemine joonisest või tekstist, mitte originaali otsene väide.
 

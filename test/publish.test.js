@@ -39,7 +39,7 @@ test('L3 ParseDemoList jätab vigased kirjed välja', () => {
 });
 
 for (const demo of demoList) {
-  test(`L4 ${demo.Name}: laadib, jookseb 8 h invariantidega ilma ummikuta`, () => {
+  test(`L4 ${demo.Name}: laadib, jookseb 8 h (tellimus: kuni tehtud) invariantidega ilma ummikuta`, () => {
     const text = Read(`models/${demo.File}`);
     const { Model: model, Errors: errors } = ParseModelText(text, demo.File);
     assert.deepEqual(errors, []);
@@ -48,7 +48,13 @@ for (const demo of demoList) {
     assert.deepEqual(enumErrors, []);
     const report = SimRun(network, { CheckInvariants: true });
     assert.equal(report.Deadlock, false, report.DeadlockReason);
-    assert.equal(report.Time, model.Sim.Duration);
+    if (model.Sim.EndMode === 'Order') {
+      // lõpurežiim Order (11d): tellimus tehakse enne ülempiiri valmis
+      assert.equal(report.Order.Done, true);
+      assert.ok(report.Time < model.Sim.Duration);
+    } else {
+      assert.equal(report.Time, model.Sim.Duration);
+    }
     assert.ok(report.Completed > 0);
   });
 }

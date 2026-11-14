@@ -145,11 +145,38 @@ export function ForgetReport() {
   LastReport = null;
 }
 
-// [U] StatusText – simulatsiooni olek: lõpuni, ummik või katkestatud.
+// [U] StatusText – simulatsiooni olek: lõpuni, ummik või katkestatud; lõpurežiimis (11d) ka
+//     „lõpetamine katkes“, „tellimus täidetud“ või „tellimus jäi pooleli“.
 function StatusText(report) {
   if (report.Deadlock) return FormatText(Texts.RepStatusDeadlock, { Time: ClockText(report.Time) });
-  if (report.Time >= report.Duration) return Texts.RepStatusDone;
-  return FormatText(Texts.RepStatusStopped, { Time: ClockText(report.Time) });
+  if (!(report.Done ?? report.Time >= report.Duration)) return FormatText(Texts.RepStatusStopped, { Time: ClockText(report.Time) });
+  if (report.Order) return report.Order.Done ? Texts.RepStatusOrderDone : Texts.RepStatusOrderLeft;
+  if (report.Ending?.Capped) return Texts.RepStatusEndCapped;
+  return Texts.RepStatusDone;
+}
+
+// [U] EndModeName, SequenceName – lõpurežiimi ja tüüpide järjekorra nimi liideses (11d).
+const EndModeName = mode => Texts.FormEndModes[mode ?? 'Time'];
+const SequenceName = sequence => Texts.FormOrderSequences[sequence ?? 'Mixed'];
+
+// [U] FormatLines – mitmerealine mall (REPORT_WIDTH): iga rida FormatText-iga.
+const FormatLines = (templates, values) => templates.map(template => FormatText(template, values));
+
+// [U] EndingLines – lõpetamise (B–D) või tellimuse (E) read aruandesse (11d); A korral tühi.
+function EndingLines(report) {
+  if (report.Ending) {
+    const ending = report.Ending;
+    return FormatLines(ending.Capped ? Texts.RepEndingCapped : Texts.RepEnding, {
+      Mode: EndModeName(report.EndMode), Duration: ClockText(ending.Duration), Completed: ending.CompletedAfter,
+      Scrapped: ending.ScrappedAfter, Left: ending.LeftInSystem });
+  }
+  if (report.Order) {
+    const order = report.Order;
+    return FormatLines(order.Done ? Texts.RepOrderDone : Texts.RepOrderLeft, {
+      Sequence: SequenceName(order.Sequence), Completed: order.Completed, Total: order.Total,
+      Makespan: order.Makespan !== null ? ClockText(order.Makespan) : '' });
+  }
+  return [];
 }
 
 // [U] DeadlockLines – ummiku põhjus hoiatusena (murtud ridadeks); ummikuta tühi.
@@ -201,6 +228,10 @@ function StaticModel(model, network, last, endValid) {
     FormatText(Texts.RepSimParams2, {
       Distribution: DISTRIBUTION_NAMES()[sim.Distribution ?? 'Uniform'], Sample: sim.SampleInterval ?? 60,
     }),
+    ...FormatLines(sim.EndMode === 'Order' ? Texts.RepSimEndOrder : [Texts.RepSimEnd], {
+      Mode: EndModeName(sim.EndMode), Sequence: SequenceName(sim.OrderSequence),
+      Total: network.Workpieces.reduce((sum, type) => sum + (type.Batch ?? 1), 0),
+    }),
     FormatText(Texts.RepObjects, {
       Tracks: network.Tracks.length, Machines: network.Machines.length, Buffers: network.Buffers.length,
       Connectors: network.Connectors.length, Storage: network.Storage ? Texts.RepYes : Texts.RepNo, Types: network.Workpieces.length,
@@ -211,6 +242,7 @@ function StaticModel(model, network, last, endValid) {
     lines.push(Sub(Texts.RepFinal),
       FormatText(Texts.RepFinalTime, { Time: ClockText(report.Time), Status: StatusText(report) }),
       ...DeadlockLines(report, '    '),
+      ...EndingLines(report),
       FormatText(Texts.RepFinalCounts, report),
       ...WrapLines(Texts.RepWhere, [
         FormatText(Texts.RepWhereFromCS, last.End.Where), FormatText(Texts.RepWherePallet, last.End.Where),
@@ -353,7 +385,7 @@ function StaticStorage(network, last, endValid) {
 function StaticWorkpieces(network, last, endValid) {
   const lines = [Section(Texts.RepTopicWorkpieces), Sub(Texts.RepInitial)];
   network.Workpieces.forEach((type) => {
-    lines.push(FormatText(Texts.RepTypeLine, { Name: type.Name, Priority: type.Priority, Batch: type.Batch }));
+    lines.push(FormatText(Texts.RepTypeLine, { Name: type.Name, Priority: type.Priority, Batch: type.Batch ?? 1 }));
     type.Routes.forEach((route, routeIndex) => {
       lines.push(...WrapLines(FormatText(Texts.RepRouteLine, { N: routeIndex + 1, Priority: route.Priority }),
         route.Ops.map((operation) => `${operation.Op} ${operation.Mean}±${operation.Dev}`), '      ', ' → '));
@@ -448,8 +480,13 @@ export function CycleStats(finished) {
 //     teemad. Kutsub: DynamicReport.
 function DynamicCycle(report) {
   const stats = CycleStats(report.Finished);
+  // lõpurežiim B–D (11d): läbilaskevõime ja rakendatus perioodi 0…T järgi, lõpetamine eraldi real
   const lines = [Section(Texts.RepTopicCycle),
-    FormatText(Texts.RepThroughput, { Throughput: Decimal(report.ThroughputPerHour), Completed: report.Completed, Time: ClockText(report.Time) }),
+    ...(report.Ending
+      ? FormatLines(Texts.RepThroughputPeriod, { Throughput: Decimal(report.ThroughputPerHour), Completed: report.Ending.PeriodCompleted,
+        Time: ClockText(report.Ending.Start) })
+      : [FormatText(Texts.RepThroughput, { Throughput: Decimal(report.ThroughputPerHour), Completed: report.Completed, Time: ClockText(report.Time) })]),
+    ...EndingLines(report),
     FormatText(Texts.RepWip, { Avg: Decimal(report.AvgWip), Max: report.MaxWip }),
   ];
   if (stats.Count === 0) { lines.push(Texts.RepNoFinished); return lines; }
@@ -748,10 +785,24 @@ function SummaryLinesShown(report, warnings, shown) {
   if (report.Deadlock) {
     lines.push({ Text: FormatText(Texts.SimDeadlock, { Time: ClockText(report.Time), Reason: report.DeadlockReason }), Role: 'Error' });
   }
+  // lõpurežiim (11d): lõpetamine (B–D) või tellimus (E); A korral rida pole (nagu enne)
+  const ending = report.Ending ?? null;
+  if (ending !== null) {
+    lines.push(FormatText(ending.Capped ? Texts.SimEndingCapped : Texts.SimEnding, {
+      Mode: EndModeName(report.EndMode), Duration: ClockText(ending.Duration), Completed: ending.CompletedAfter,
+      Time: ClockText(report.Time), Left: ending.LeftInSystem }));
+  } else if (report.Order) {
+    lines.push(FormatText(report.Order.Done ? Texts.SimOrderDone : Texts.SimOrderLeft, {
+      Sequence: SequenceName(report.Order.Sequence), Completed: report.Order.Completed, Total: report.Order.Total,
+      Makespan: report.Order.Makespan !== null ? ClockText(report.Order.Makespan) : '' }));
+  }
+  const cycle = ClockText(Math.round(report.AvgCycleTime));
   lines.push(
     FormatText(Texts.SimCounts, report),
     ...(report.Crashes > 0 ? [FormatText(Texts.SimCrashes, report)] : []),
-    FormatText(Texts.SimThroughput, { Throughput: Decimal(report.ThroughputPerHour), Cycle: ClockText(Math.round(report.AvgCycleTime)) }),
+    ending !== null
+      ? FormatText(Texts.SimThroughputPeriod, { Throughput: Decimal(report.ThroughputPerHour), Cycle: cycle, Duration: ClockText(ending.Start) })
+      : FormatText(Texts.SimThroughput, { Throughput: Decimal(report.ThroughputPerHour), Cycle: cycle }),
     FormatText(Texts.SimShares1, { Process: Percent(report.Shares.Process), Setup: Percent(report.Shares.Setup), Load: Percent(report.Shares.Load) }),
     FormatText(Texts.SimShares2, { Transport: Percent(report.Shares.Transport), Wait: Percent(report.Shares.Wait) }),
     ...limited(report.Machines, (machine) => FormatText(machine.Crashes > 0 ? Texts.SimMachineDown : Texts.SimMachine, {

@@ -12,11 +12,13 @@
 // Etapp 7b: diskreetsed rajad (AGV-d) – raja graaf (TraceGraph), kärud, tsoonid ja plokid
 // (CartBlock), ProgTM, FindPal, Collision (DISAIN.md osa 11); paralleelsed konnektorid (FreePath).
 //
-// Piirangud (tulevad hiljem): alusel / kärul 1 detail (7c), rikkeid pole (etapp 8).
+// Etapp 7c: mitu detaili alusel / kärul; etapp 8: rikked ja jaotused (DISAIN.md osad 16, 17).
+// Etapp 11d: simulatsiooni lõpurežiim (Sim.EndMode) ja tüüpide järjekord (Sim.OrderSequence) –
+// CheckSimEnd, ChooseType (DISAIN.md osa 20).
 //
 // Moodul ei kasuta brauserit, nii et seda saab testida Node'iga.
 
-import { IconTypes, DIRECTIONS, CellTrack } from './fms_glb.js';
+import { IconTypes, DIRECTIONS, CellTrack, ENDING_MODES } from './fms_glb.js';
 import { Texts, FormatText } from './fms_lng.js';
 
 // =====================================================================
@@ -27,6 +29,8 @@ let SYSTEM_TIME = 0;          // [O] simulatsiooni kell, sekundit algusest
 let NO_EVENTS = true;         // [O] käesolevaks hetkeks pole rohkem sündmusi
 let SIMULATION_DONE = false;  // [O] simulatsioon on läbi
 let DEADLOCK = false;         // [U] ummik, mida ei õnnestunud lahendada
+let ENDING = false;           // [U] lõpetamine käib: kell T on möödas, lõpurežiim B–D (Sim.EndMode, DISAIN.md 20)
+let BatchTurn = null;         // [U] partii järjest (Sim.OrderSequence Batch): { Order – tüübid, Index, Count }
 
 let FirstAtMoment = null;     // [O] viit Event Listi esimesele kirjele
 
@@ -1454,7 +1458,7 @@ function PickupCandidate(stationIndex) {
   let best = null;
   for (const workpieceId of candidateIds) {
     const workpiece = SysWPArray[workpieceId];
-    if (workpiece.State !== 'WAIT_PICKUP' || workpiece.Path[0].From !== stationIndex) continue;
+    if (workpiece.State !== 'WAIT_PICKUP' || workpiece.Path[0].From !== stationIndex || !MayTravel(workpiece)) continue;
     if (best === null || workpiece.StateSince < best.StateSince
         || (workpiece.StateSince === best.StateSince && workpiece.Id < best.Id)) best = workpiece;
   }
@@ -1494,6 +1498,7 @@ function NeedsStop(track, palletIndex, stationIndex) {
 //     CartPickupCandidate). Tagastab { Kind: 'Unload' | 'Pickup', WP } või null.
 //     Kutsuvad: StopMovProc, AfterPalletAtStation, LoadProc.
 function PalletAction(trackIndex, palletIndex, stationIndex) {
+  if (TransportStopped()) return null;   // lõpurežiim B: uusi laadimisi ei alustata
   const track = Tracks[trackIndex];
   const pallet = track.Pallets[palletIndex];
   const unload = PalletWPs(pallet).map(workpieceId => SysWPArray[workpieceId])
@@ -1517,6 +1522,7 @@ function BeginPalletAction(trackIndex, palletIndex, stationIndex, action) {
 //     Kutsub: SimStep. Lisab: StopMov.
 function MinuteMan() {
   const EPSILON = 1e-6;
+  if (TransportStopped()) return;   // lõpurežiim B: transport seisab
   Tracks.forEach((track, trackIndex) => {
     if (track.Discrete) { MoveCarts(track); return; }
     if (track.StopCount > 0) return;
@@ -1817,7 +1823,7 @@ function FindPal(track) {
   const reserved = new Set(track.Pallets.flatMap(cart => cart.ReservedWPs));
   const requests = SysWPArray
     .filter(workpiece => workpiece.State === 'WAIT_PICKUP' && workpiece.Path[0].Track === track.Index
-      && !reserved.has(workpiece.Id))
+      && !reserved.has(workpiece.Id) && MayTravel(workpiece))
     .sort((first, second) => first.StateSince - second.StateSince || first.Id - second.Id);
   for (const workpiece of requests) {
     const goal = StationArray[workpiece.Path[0].From].Node;
@@ -2403,10 +2409,22 @@ function ProcessProc(currentEvent) {
   Stats.LastProgressTime = SYSTEM_TIME;
   const nextOperation = CurrentOp(workpiece);
   if (nextOperation !== null && machine.Ops.includes(nextOperation.Op)) {
-    BeginSetup(machine, workpiece);
-    return;
+    if (!StopNewOps()) {
+      BeginSetup(machine, workpiece);
+      return;
+    }
+    // lõpurežiim B, C: järgmist operatsiooni ei alustata – detail puhvrisse, järgmise pingi koht vabaneb
+    ReleasePlannedDestination(workpiece);
   }
   BeginUnload(machine, workpiece);
+}
+
+// [U] ReleasePlannedDestination – vabastab enne töötlemist broneeritud järgmise pingi koha
+//     (ReserveNextBeforeStart). Kutsuvad: CrashProc, ProcessProc (lõpurežiim B, C).
+function ReleasePlannedDestination(workpiece) {
+  if (!workpiece.PlannedDestination) return;
+  ReleaseSlot(BufferArray[workpiece.PlannedDestination.Index]);
+  workpiece.PlannedDestination = null;
 }
 
 // [T] BeginUnload – detail laaditakse pingist puhvri väljaminevale kohale (koht broneeriti
@@ -2431,10 +2449,8 @@ function CrashProc(currentEvent) {
   machine.Crashes++;
   Stats.Crashes++;
   Stats.LastProgressTime = SYSTEM_TIME;
-  if (workpiece.PlannedDestination) {
-    ReleaseSlot(BufferArray[workpiece.PlannedDestination.Index]);
-    workpiece.PlannedDestination = null;
-  }
+  ReleasePlannedDestination(workpiece);
+  Workpieces[workpiece.Type].Doomed++;
   machine.TimeToCrash = SampleTimeToCrash(machine);
   const repair = { Mean: machine.RepairMean ?? 0, Dev: machine.RepairDev ?? 0 };
   PutEvent({ Event: 'Repair', WP: workpiece.Id, ObjType: 'Machine', ObjCode: machine.Index,
@@ -2506,11 +2522,13 @@ const EventHandlers = {
 //     1) laadib vabad tööpingid puhvrist, 2) leiab ootavatele detailidele sihtkoha ja
 //     broneerib selle, 3) toob süsteemi uusi detaile.
 //     Kutsuvad: EventHandlerid, SimInit. Lisab: Load, OutSys, InSys.
+//     Lõpetamise ajal (ENDING, DISAIN.md 20): B – ei laadi pinke ega anna sihtkohti; C – ei laadi
+//     pinke, sihtkoha saavad ainult valmis detailid ja praak; B–D – uusi detaile ei tooda.
 function Planner(reason) {
   Stats.PlannerCalls++;
-  LoadMachines();
-  AssignDestinations();
-  AdmitWorkpieces();
+  if (!StopNewOps()) LoadMachines();
+  if (!TransportStopped()) AssignDestinations();
+  if (!ENDING) AdmitWorkpieces();
 }
 
 // [O/U] LoadMachines – vaba pink võtab puhvrist detaili distsipliini järgi. Pink alustab ainult
@@ -2584,7 +2602,7 @@ function OrderByDiscipline(entries, discipline) {
 function AssignDestinations() {
   const waiting = SysWPArray
     .filter(workpiece => workpiece.State === 'WAIT_DEST' || workpiece.State === 'PARKED')
-    .filter(workpiece => !workpiece.OutSysPlanned)
+    .filter(workpiece => !workpiece.OutSysPlanned && (!StopNewOps() || CurrentOp(workpiece) === null))
     .sort((first, second) => first.StateSince - second.StateSince || first.Id - second.Id);
   for (const workpiece of waiting) {
     if (workpiece.Destination !== null) {   // sihtkoht on, tee konnektor oli kinni
@@ -2663,11 +2681,11 @@ function ChooseRoute(workpiece) {
 }
 
 // [O] AdmitWorkpieces – süsteemi koormamine: uus detail, kui Ndet / (Ntm + Nmt + Nbuf) < Kl.
-//     Tüüp: kõige vähem süsteemi toodud tüüp. Lisab: InSys.
+//     Tüüp: ChooseType (lõpurežiimis Order ainult tellitud kogus). Lisab: InSys.
 function AdmitWorkpieces() {
   while (CountWorkpiecesInSystem() / TotalPlaces < Model.Sim.Kl) {
-    let typeIndex = 0;
-    Workpieces.forEach((type, index) => { if (type.Started < Workpieces[typeIndex].Started) typeIndex = index; });
+    const typeIndex = ChooseType();
+    if (typeIndex < 0) break;
     Workpieces[typeIndex].Started++;
     const workpiece = {
       Id: SysWPArray.length, Type: typeIndex, Route: 0, OpIndex: 0,
@@ -2679,6 +2697,103 @@ function AdmitWorkpieces() {
     Stats.Created++;
     PutEvent({ Event: 'InSys', WP: workpiece.Id, ObjType: 'SysInput', ObjCode: Model.FromCSStation });
   }
+}
+
+// [U] TypeBatch – tüübi partii suurus (Batch puudub = 1; 0 = tüüpi ei toodeta).
+const TypeBatch = type => type.Batch ?? 1;
+
+// [U] OrderLeft – lõpurežiimis Order veel sisse toomata tellitud detaile tüübist: Batch miinus
+//     sisse toodud, praak (Doomed) asendatakse.
+const OrderLeft = type => TypeBatch(type) - (type.Started - type.Doomed);
+
+// [T] ChooseType – mis tüüpi detail tuua (originaal.md 7, II): Sim.OrderSequence Mixed – kõige
+//     vähem sisse toodud tüüp (II.1); Batch – üht tüüpi järjest (II.2) Priority järjekorras, viigi
+//     korral mudeli järjekorras. Partii 0 tüüpi ei tooda. Lõpurežiimis Order ainult tüüpe, millest
+//     tellitud kogus on sisse toomata (Batch järjest: esimene neist); muidu käivad partiid ringiratast
+//     (BatchTurn). Tagastab tüübi indeksi või -1. Kutsub: AdmitWorkpieces.
+function ChooseType() {
+  const order = Model.Sim.EndMode === 'Order';
+  const candidates = Workpieces.map((type, index) => index)
+    .filter(index => TypeBatch(Workpieces[index]) > 0 && (!order || OrderLeft(Workpieces[index]) > 0));
+  if (candidates.length === 0) return -1;
+  if (Model.Sim.OrderSequence !== 'Batch') {
+    return candidates.reduce((best, index) => (Workpieces[index].Started < Workpieces[best].Started ? index : best));
+  }
+  if (order) return BatchTurn.Order.find(index => candidates.includes(index));
+  const turn = BatchTurn;
+  if (turn.Count >= TypeBatch(Workpieces[turn.Order[turn.Index]])) {
+    do turn.Index = (turn.Index + 1) % turn.Order.length; while (TypeBatch(Workpieces[turn.Order[turn.Index]]) === 0);
+    turn.Count = 0;
+  }
+  turn.Count++;
+  return turn.Order[turn.Index];
+}
+
+// [U] OrderDone – lõpurežiim Order: kogu tellitud kogus on sisse toodud (praak asendatud).
+function OrderDone() {
+  return Workpieces.every(type => OrderLeft(type) <= 0);
+}
+
+// =====================================================================
+// Simulatsiooni lõpp (Sim.EndMode, DISAIN.md 20)
+// =====================================================================
+
+// [U] StopNewOps – lõpurežiim B või C pärast kella T: pingid uut operatsiooni ei alusta.
+const StopNewOps = () => ENDING && (Model.Sim.EndMode === 'FinishOps' || Model.Sim.EndMode === 'Ship');
+
+// [U] TransportStopped – lõpurežiim B pärast kella T: transport seisab.
+const TransportStopped = () => ENDING && Model.Sim.EndMode === 'FinishOps';
+
+// [U] MayTravel – kas detail võib alusele / kärule minna. Lõpurežiimis C ainult valmis detail või
+//     praak ja detail, mille sõit on alanud (konnektoris); käru, mis on juba detailile teel
+//     (ReservedWPs), võtab selle peale. Kutsuvad: PickupCandidate, FindPal.
+function MayTravel(workpiece) {
+  return !StopNewOps() || CurrentOp(workpiece) === null || workpiece.Location.Kind === 'Connector';
+}
+
+// [U] AnyLoadEvent – kas mõni laadimine (Load) on pooleli. Kutsub: EndReached.
+function AnyLoadEvent() {
+  for (let entry = FirstAtMoment; entry !== null; entry = entry.Next) if (entry.Event === 'Load') return true;
+  return false;
+}
+
+// [U] EndReached – kas lõpetamine on läbi (lõpurežiimi tabel, DISAIN.md 20): B – pingid tühjad ja
+//     laadimisi pole; C – lisaks alused, kärud ja konnektorid tühjad ning ükski valmis detail ega
+//     praak ei oota; D – süsteem on tühi. Kutsuvad: CheckSimEnd, BeginEnding.
+function EndReached() {
+  const mode = Model.Sim.EndMode;
+  if (mode === 'Drain') return CountWorkpiecesInSystem() === 0;
+  if (MachineArray.some(machine => machine.WP !== null) || AnyLoadEvent()) return false;
+  if (mode === 'FinishOps') return true;
+  return Tracks.every(track => track.Pallets.every(PalletEmpty))
+    && ConnectorArray.every(connector => connector.WP === null)
+    && SysWPArray.every(workpiece => workpiece.State === 'GONE' || CurrentOp(workpiece) !== null);
+}
+
+// [U] CheckSimEnd – kas simulatsioon on läbi (SIMULATION_DONE): A – kell T; E – tellimus tehtud ja
+//     süsteem tühi, ülempiir T; B–D – lõpetamine läbi (EndReached), ülempiir 2T (Stats.EndCapped).
+//     Kutsub: SimStep.
+function CheckSimEnd() {
+  if (SIMULATION_DONE) return;
+  const duration = Model.Sim.Duration;
+  if (ENDING) {
+    if (EndReached()) SIMULATION_DONE = true;
+    else if (SYSTEM_TIME >= 2 * duration) { SIMULATION_DONE = true; Stats.EndCapped = true; }
+    return;
+  }
+  if (Model.Sim.EndMode === 'Order' && OrderDone() && CountWorkpiecesInSystem() === 0) {
+    SIMULATION_DONE = true;
+    return;
+  }
+  if (SYSTEM_TIME >= duration && !ENDING_MODES.includes(Model.Sim.EndMode)) SIMULATION_DONE = true;
+}
+
+// [U] BeginEnding – kell T, lõpurežiim B–D: perioodi 0…T aruanne (läbilaskevõime, rakendatus)
+//     jäetakse meelde ja algab lõpetamine (ENDING). Kutsub: SimStep (pärast CollectStats-i).
+function BeginEnding() {
+  Stats.PeriodReport = ReportNow();
+  ENDING = true;
+  if (EndReached()) SIMULATION_DONE = true;
 }
 
 // =====================================================================
@@ -3016,7 +3131,7 @@ function CollectStats() {
   Stats.WipIntegral += CountWorkpiecesInSystem();
   Stats.MaxWip = Math.max(Stats.MaxWip, CountWorkpiecesInSystem());
   if (Storage !== null) Storage.MaxParked = Math.max(Storage.MaxParked, Storage.Parked.length);
-  if (SYSTEM_TIME % Model.Sim.SampleInterval === 0 || SIMULATION_DONE || SYSTEM_TIME >= Model.Sim.Duration) {
+  if (SYSTEM_TIME % Model.Sim.SampleInterval === 0 || SIMULATION_DONE || SYSTEM_TIME === Model.Sim.Duration) {
     TimelinePoint();
   }
 }
@@ -3039,8 +3154,37 @@ function TimelinePoint() {
 
 // [T] SimReport – kokkuvõte: läbilaskevõime, tsükliaeg ja osakaalud (originaali ptk 8.5),
 //     pinkide olekud, puhvrite täituvus, konveieri liikumine, tüüpide kaupa, aegrida.
-//     Kutsub: SimRun, fms.js, testid.
+//     Lõpurežiim (DISAIN.md 20): B–D korral on läbilaskevõime, detailide keskmine arv ning pinkide,
+//     puhvrite ja radade näitajad perioodi 0…T järgi (Stats.PeriodReport – lõpetamine ei langeta
+//     neid); tsükliaeg, osakaalud, tüübid ja aegrida kogu jooksu järgi. Ending – lõpetamine
+//     (B–D), Order – tellimus (E). Kutsub: SimRun, fms.js, testid.
 export function SimReport() {
+  const report = ReportNow();
+  const mode = Model.Sim.EndMode;
+  report.Done = SIMULATION_DONE;
+  report.EndMode = mode;
+  report.Ending = null;
+  report.Order = null;
+  const period = Stats.PeriodReport;
+  if (period !== null) {
+    for (const key of ['ThroughputPerHour', 'AvgWip', 'MaxWip', 'Machines', 'Buffers', 'Tracks']) report[key] = period[key];
+    report.Ending = {
+      Start: period.Time, Duration: report.Time - period.Time, PeriodCompleted: period.Completed,
+      CompletedAfter: report.Completed - period.Completed, ScrappedAfter: report.Scrapped - period.Scrapped,
+      LeftInSystem: report.InSystem, Capped: Stats.EndCapped,
+    };
+  }
+  if (mode === 'Order') {
+    const total = Workpieces.reduce((sum, type) => sum + TypeBatch(type), 0);
+    const done = OrderDone() && report.InSystem === 0;
+    report.Order = { Sequence: Model.Sim.OrderSequence, Total: total, Completed: report.Completed,
+                     Done: done, Makespan: done ? report.Time : null };
+  }
+  return report;
+}
+
+// [U] ReportNow – SimReport-i näitajad käesoleva hetke seisuga. Kutsuvad: SimReport, BeginEnding.
+function ReportNow() {
   const time = Math.max(1, SYSTEM_TIME);
   const finished = Stats.Finished;
   const timeKeys = ['Process', 'Setup', 'Load', 'Transport', 'Wait'];
@@ -3154,20 +3298,22 @@ function CartState(cart) {
 //     töötleb hetke 0. Kutsub: SimRun, animaator (etapp 5).
 export function SimInit(network, inputOptions = {}) {
   Model = structuredClone(network);
-  Model.Sim = { ReserveNextBeforeStart: true, SampleInterval: SAMPLE_INTERVAL, ...Model.Sim };
+  Model.Sim = { ReserveNextBeforeStart: true, SampleInterval: SAMPLE_INTERVAL, EndMode: 'Time', OrderSequence: 'Mixed', ...Model.Sim };
   Options = { CheckInvariants: false, ...inputOptions };
   if (Options.CrashAfter) Options.CrashAfter = Options.CrashAfter.map(list => [...(list || [])]);
   SYSTEM_TIME = 0;
   NO_EVENTS = true;
   SIMULATION_DONE = false;
   DEADLOCK = false;
+  ENDING = false;
   FirstAtMoment = null;
   RandomState = Model.Sim.Seed | 0;
   LastEventTime = 0;
   FromCSQueue = [];
   SysWPArray = [];
   Stats = { Created: 0, Completed: 0, Scrapped: 0, Crashes: 0, Parked: 0, Unparked: 0, EventCount: 0, EventCountByType: {},
-            PlannerCalls: 0, LastProgressTime: 0, WipIntegral: 0, MaxWip: 0, Timeline: [], Finished: [] };
+            PlannerCalls: 0, LastProgressTime: 0, WipIntegral: 0, MaxWip: 0, Timeline: [], Finished: [],
+            PeriodReport: null, EndCapped: false };
 
   Tracks = Model.Tracks.map((track, trackIndex) => {
     if (track.Mode === 'Discrete') return InitCarts(track, trackIndex);
@@ -3197,7 +3343,10 @@ export function SimInit(network, inputOptions = {}) {
     Crashes: 0, CrashState: (Model.Sim.Seed ^ Math.imul(machineIndex + 1, 0x9E3779B9)) | 0, TimeToCrash: Infinity,
   }));
   for (const machine of MachineArray) machine.TimeToCrash = SampleTimeToCrash(machine);
-  Workpieces = Model.Workpieces.map(type => ({ ...type, Started: 0, Completed: 0, Scrapped: 0 }));
+  Workpieces = Model.Workpieces.map(type => ({ ...type, Started: 0, Completed: 0, Scrapped: 0, Doomed: 0 }));
+  const batchOrder = Workpieces.map((type, index) => index).filter(index => TypeBatch(Workpieces[index]) > 0)
+    .sort((first, second) => Workpieces[first].Priority - Workpieces[second].Priority || first - second);
+  BatchTurn = { Order: batchOrder, Index: 0, Count: 0 };
 
   Model.FromCSStation = StationArray.findIndex(station => station.Kind === 'FromCS');
   Model.SysOutStation = StationArray.findIndex(station => station.Kind === 'SysOut');
@@ -3240,10 +3389,11 @@ export function SimStep() {
   SYSTEM_TIME++;
   MinuteMan();
   ProcAllEvents();
-  DetectDeadlock();
+  if (!StopNewOps()) DetectDeadlock();   // B, C lõpetamisel ummikut ei teki (pingid ei alusta)
   if (Options.CheckInvariants) CheckInvariants();
-  if (SYSTEM_TIME >= Model.Sim.Duration) SIMULATION_DONE = true;
+  CheckSimEnd();
   CollectStats();
+  if (SYSTEM_TIME === Model.Sim.Duration && !SIMULATION_DONE && ENDING_MODES.includes(Model.Sim.EndMode)) BeginEnding();
 }
 
 // [U] SimRun – käivitab simulatsiooni lõpuni ja tagastab aruande. Kutsub: fms.js, testid.
@@ -3255,6 +3405,6 @@ export function SimRun(network, inputOptions = {}) {
 
 // [U] SimState – sisemine olek testidele ja animaatorile (ainult lugemiseks).
 export function SimState() {
-  return { SYSTEM_TIME, SIMULATION_DONE, DEADLOCK, Network: Model, Tracks, StationArray, ConnectorArray, MachineArray,
+  return { SYSTEM_TIME, SIMULATION_DONE, DEADLOCK, ENDING, Network: Model, Tracks, StationArray, ConnectorArray, MachineArray,
            BufferArray, Storage, Workpieces, SysWPArray, FromCSQueue, FirstAtMoment, Stats };
 }

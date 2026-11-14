@@ -880,7 +880,7 @@
     {
       "Name": "Võll Ø20",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -912,7 +912,7 @@
     {
       "Name": "Võll Ø40",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -949,7 +949,7 @@
     {
       "Name": "Puks",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -971,7 +971,7 @@
     {
       "Name": "Äärik DN50",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1003,7 +1003,7 @@
     {
       "Name": "Äärik DN80",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1040,7 +1040,7 @@
     {
       "Name": "Kronstein Al",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1067,7 +1067,7 @@
     {
       "Name": "Kronstein RV",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1099,7 +1099,7 @@
     {
       "Name": "Korpus Al",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1131,7 +1131,7 @@
     {
       "Name": "Kaas Al",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1158,7 +1158,7 @@
     {
       "Name": "Tiivik",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1195,7 +1195,7 @@
     {
       "Name": "Liitmik",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1247,7 +1247,7 @@
     {
       "Name": "Ventiilikorpus",
       "Priority": 1,
-      "Batch": 10,
+      "Batch": 4,
       "Routes": [
         {
           "Priority": 1,
@@ -1287,6 +1287,8 @@
     "Duration": 28800,
     "Kl": 0.3,
     "StallTime": 900,
-    "Distribution": "Triangular"
+    "Distribution": "Triangular",
+    "EndMode": "Order",
+    "OrderSequence": "Batch"
   }
 }

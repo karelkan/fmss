@@ -11,7 +11,7 @@
 //   Avoid – valitud objekti ala ekraanil: vorm avaneb all või üleval nii, et seda ei kata;
 //   Then(saved) – vorm suleti (Config → All läheb järgmise objekti juurde, kui saved).
 
-import { IconTypes, OPERATIONS, TRACK_MODES, BUFFER_DISCIPLINES, DISTRIBUTIONS, MAX_WORKPIECE_TYPES, CheckModel } from './fms_glb.js';
+import { IconTypes, OPERATIONS, TRACK_MODES, BUFFER_DISCIPLINES, DISTRIBUTIONS, END_MODES, ORDER_SEQUENCES, MAX_WORKPIECE_TYPES, CheckModel } from './fms_glb.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { FormBox, ListBox, MessageBox } from './windows.js';
 import { SegmentCells, EdgeLengthOf, SetEdgeLength, DeleteTrack, UniqueName, ModelProblems, ProblemCell } from './fms_ed.js';
@@ -294,7 +294,7 @@ export function EditWorkpieceData(model, number, ctx = {}) {
       const errors = SubmitModelForm(model, form.Fields, apply, [`${path}.Name`, `${path}.Priority`, `${path}.Batch`], ctx.OnChange);
       if (errors.length) return errors;
       return index === 1 ? () => RouteList(model, number, ctx) : Done(ctx, true);
-    }, { Position: ctx.Position ?? 'Center', Avoid: ctx.Avoid ?? null });
+    }, { Position: ctx.Position ?? 'Center', Avoid: ctx.Avoid ?? null, Lines: Texts.FormWorkpieceHint });
 }
 
 // [U] RouteText – marsruut ühe reana: „1. (prioriteet 1) treimine → freesimine“.
@@ -396,7 +396,8 @@ function EditRoute(model, number, routeNumber, ctx) {
 // =====================================================================
 
 // [U] EditModelData – mudeli üldandmed: nimi, mõõtkava, simulatsiooni seeme, kestus, Kl, StallTime,
-//     kestuse kõrvalekalde jaotus (Distribution, etapp 8).
+//     kestuse kõrvalekalde jaotus (Distribution, etapp 8), lõpurežiim ja tüüpide järjekord (EndMode,
+//     OrderSequence, etapp 11d).
 export function EditModelData(model, ctx = {}) {
   const fields = [
     { Key: 'Name', Label: Texts.FormModelName, Kind: 'Text', Text: model.Meta.Name, Row: 0, Width: 24, Path: 'Meta.Name' },
@@ -407,11 +408,15 @@ export function EditModelData(model, ctx = {}) {
     { Key: 'StallTime', Label: Texts.FormStallTime, Kind: 'Number', Text: NumberText(model.Sim.StallTime), Row: 5, Path: 'Sim.StallTime' },
     { Key: 'Distribution', Label: Texts.FormDistribution, Kind: 'Choice', Choices: DISTRIBUTIONS.map(name => Texts.FormDistributions[name]),
       Values: DISTRIBUTIONS, Value: Math.max(0, DISTRIBUTIONS.indexOf(model.Sim.Distribution ?? 'Uniform')), Row: 6, Path: 'Sim.Distribution' },
+    { Key: 'EndMode', Label: Texts.FormEndMode, Kind: 'Choice', Choices: END_MODES.map(name => Texts.FormEndModes[name]),
+      Values: END_MODES, Value: Math.max(0, END_MODES.indexOf(model.Sim.EndMode ?? 'Time')), Row: 7, Path: 'Sim.EndMode' },
+    { Key: 'OrderSequence', Label: Texts.FormOrderSequence, Kind: 'Choice', Choices: ORDER_SEQUENCES.map(name => Texts.FormOrderSequences[name]),
+      Values: ORDER_SEQUENCES, Value: Math.max(0, ORDER_SEQUENCES.indexOf(model.Sim.OrderSequence ?? 'Mixed')), Row: 8, Path: 'Sim.OrderSequence' },
   ];
   const apply = (target, values) => {
     target.Meta.Name = values.Name;
     target.Scale = values.Scale;
-    for (const key of ['Seed', 'Duration', 'Kl', 'StallTime', 'Distribution']) target.Sim[key] = values[key];
+    for (const key of ['Seed', 'Duration', 'Kl', 'StallTime', 'Distribution', 'EndMode', 'OrderSequence']) target.Sim[key] = values[key];
   };
   ModelForm(model, Texts.FormModelTitle, fields, apply, ['Meta', 'Scale', 'Sim'], ctx, { Lines: Texts.FormModelHint });
 }

@@ -731,3 +731,82 @@ Simulatsioon jääb kõigil ülempiiri alla ja vahe on seletatav. Kitsaskohad on
 | konsool | vigu pole ✔ |
 
 **Mida see EI kontrolli:** tööaegade vastavust konkreetsele tehasele (hinnangud); C aruannet EGA-s (sama kood); max-režiimi kiirust nähtava paaniga (peidetud paanis aeglustub `requestAnimationFrame`, Node'is jookseb 8 h ~0,3 s).
+
+# Etapp 11d: simulatsiooni lõpurežiim (versioon 1.4)
+
+Uued väljad `Sim.EndMode` (Kellani / Kellani ja pink tühi / Kellani ja liin tühi / Tehas tühjaks / Partiid lõpuni) ja `Sim.OrderSequence` (Segamini / Partii järjest) – [DISAIN.md](DISAIN.md) osa 20, otsus [PLAAN.md](PLAAN.md) 11d. Testid `test/end.test.js` (L0–L13, 22 testi), kokku `npm test` 215/215. Invariandid igal sekundil kõigis simulatsioonides.
+
+## Ühilduvus
+
+- Vaikimisi (`Time`, `Mixed`) on aruanne bitt-täpselt sama mis ilma väljadeta (L0: Näidis-PTS, Näidis-AGV, riketega) ja kõik 193 vana testi on rohelised.
+- Allhanketehas on 1.4-s tellimus (`Order`, Partii järjest, 4 tk tüübist = 48 detaili). **11c tulemused kehtivad Kellani + Segamini režiimis** (partii ei mõjuta Segamini järjekorda): seeme 1 – 108 detaili, 13,5 tk/h (L13).
+
+## Käsitsi arvutatud
+
+| Test | Mudel | Ootus | Tulemus |
+|---|---|---|---|
+| L1 B, C | H (avatud konveier, MT1 300 s, MT2 200 s), T = 200 | WP0 töötlemine MT1-s t=48…348, puhvrisse t=358 → lõpp **358**, detail BUF1-s (MT2 operatsioon tegemata), lõpetamine 158 s | ✔ (olek `WAIT_PICKUP` – BUF2 koht broneeriti enne töötlemist, aga sõitu ei tule) |
+| L1 D | H, T = 400 | detail tehakse lõpuni – lõpp tema lahkumisel, sama aeg mis Kellani-režiimis pika kestusega (683); perioodi 0…T näitajad = Kellani T = 400 | ✔ |
+| L2 E | H, partii 1, MT1 rike pärast 100 s töötlemist, remont 120 s | crash.test.js R1/R2: praak lahkub t=348, **asendus** WP1 tuleb t=348 ja lahkub t=1038 → makespan **1038**, sisse 2, valmis 1, praak 1 | ✔ |
+
+## Lõpuseis vastab tabelile (L4, kõik 6 näidist, seeme 1)
+
+B: ükski detail pole pingis. C: lisaks alused, kärud (ka broneeringud) ja konnektorid on tühjad ja ükski valmis detail ega praak pole süsteemis. D: süsteem on tühi, valmis + praak = sisse. Kõigis: pärast T uusi ei tooda (sisse = Kellani-režiimi oma); läbilaskevõime, detailide keskmine arv, pinkide, puhvrite ja radade näitajad = Kellani-režiimi omad (periood 0…T); ummikuid ega ülempiiri pole; lõpetamise aeg B ≤ C ≤ D.
+
+| Mudel (T = 8 h) | A: valmis, sees | B: kestis / lisaks / jäi | C: kestis / lisaks / jäi | D: kestis / lisaks / jäi | E (3 tk tüübist): kokku, makespan Segamini / Partii järjest |
+|---|---|---|---|---|---|
+| Näidis-PTS | 84, 12 | 0:03:25 / +0 / 12 | 0:05:21 / +2 / 10 | 1:27:47 / +12 / 0 | 6: 0:45:43 / 0:47:12 |
+| Näidis-PTS riketega | 76, 12 | 0:04:16 / +0 / 12 | 0:04:16 / +1 / 11 | 1:31:11 / +11, praak 1 / 0 | 6: 0:51:49 / 0:53:18 |
+| Näidis-AGV | 138, 13 | 0:02:19 / +0 / 13 | 0:02:19 / +1 / 12 | 1:07:50 / +13 / 0 | 6: 0:31:29 / 0:31:12 |
+| Kinnitustehas | 67, 31 | 0:26:00 / +0 / 31 | 0:26:00 / +5 / 26 | 2:38:28 / +30, praak 1 / 0 | 24: 3:38:16 / 3:48:40 |
+| Allhanketehas (partii 10, Segamini) | 108, 23 | 0:17:30 / +0 / 23 | 0:17:30 / +1 / 22 | 1:56:20 / +23 / 0 | 36: 3:45:57 / 4:26:42 |
+| Reduktori FMS | 65, 24 | 0:09:58 / +0 / 24 | 0:09:58 / +3 / 21 | 2:46:54 / +24 / 0 | 21: 4:04:34 / 3:41:29 |
+
+B ja C kestavad sama kaua, kui viimane lõpetav pink on ka viimane tegevus (pärast teda pole valmis detaili sõitu, mis kestaks kauem). Tsükliaeg kasvab D-s veidi (Näidis-PTS 3663 → 3907 s): Kellani-režiimis jäid pikalt oodanud detailid arvestusest välja.
+
+## Muud testid
+
+- **L3**: tellimus 1000 tk tüübist, T = 1 h – tulemus sama mis Kellani (valmis, sisse, rakendatus, tüübid), „tellimus jäi pooleli: n / 2000“.
+- **L5**: tellimus (3 tk tüübist) Segamini ja Partii järjest – igast tüübist täpselt 3 valmis, süsteem tühi, makespan < T (Näidis-PTS, riketega, AGV, Reduktor).
+- **L6**: järjekord – Partii järjest Kellani-režiimis ringiratast `Priority` järgi (Äärik 2, Võll 3, Äärik 2, …), tellimuses üks kord; Segamini vaheldumisi nagu varem.
+- **L7**: partii 0 – tüüpi ei tooda üheski režiimis; `CheckModel` lubab 0, keelab −1 ja tundmatu `EndMode` / `OrderSequence`.
+- **L8**: Tehas tühjaks, T = 10 min – ülempiir 2T = 20 min, „katkes“, süsteemi jääb detaile.
+- **L10**: lõpetamine samm-sammult (animaator) = `SimRun`; `ENDING` ainult pärast T.
+- **L11, L12**: vorm → mudel (`SubmitModelForm`, `CheckModel`); nimed ≤ 20 märki, vihjed ≤ 74; kokkuvõttes lõpetamise ja tellimuse read, suures mudelis ≤ 19 rida (EGA), uued read ≤ 70 märki ka äärmuslike arvudega; Static ja Dynamic read ≤ `REPORT_WIDTH` kõigis režiimides.
+
+## Partii järjest ja häälestus (L9, Allhanketehas, seemned 1–5)
+
+Treipingid TR1–TR3 vahetavad operatsioonide perekonda (häälestus 10 min). Häälestuse osakaal ja makespan / läbilaskevõime:
+
+| Tellimus tüübist | Segamini: häälestus, makespan | Partii järjest: häälestus, makespan |
+|---|---|---|
+| 2 tk (24) | 16–17 %, 2,9–3,2 h | 14 %, 3,2 h |
+| 4 tk (48, näidis) | 16–20 %, 4,5–5,1 h | 6–9 %, 5,1–5,4 h |
+| 8 tk (96) | 19–22 %, 7,7–8,0 h | 4 %, 11,3–12,1 h |
+| Kellani 8 h, partii 4 / 8 ringiratast | 23–26 %, 12,9–13,6 tk/h | 13–14 % / 6–8 %, 11,9–12,3 / 9,4–10,0 tk/h |
+
+L9: Partii järjest annab treipinkidele alla 60 % Segamini häälestusajast (kõik 5 seemet).
+
+## Leiud
+
+1. **Partii järjest vähendab häälestust, aga makespan kasvab.** Üks tüüp korraga koormab ainult oma marsruudi pinke (nt 4 Korpust → 5-teljelised, teised ootavad). Allhanketehases on häälestus 10–15 min, aga tüüpide marsruudid on erinevad – tasakaalu kadu on suurem kui häälestuse võit. 11c leid 2 ootus („päris tehases tehtaks partiid“) kehtib siis, kui häälestus on pikk või marsruudid sarnased. Hea küsimus 2.0 nõustajale: partii suurus ja järjekord (nt kaks tüüpi korraga, erinevate pinkidega).
+2. **`Batch` tähendab Kinnitustehases tükke kastis** (4545) – Partii järjest või Partiid lõpuni sellega pole mõistlik (Kellani + Partii järjest: ainult Polt M8, 30 kasti). Mudelit ei muudetud; Workpiece data vihje selgitab välja tähendust.
+3. **Ülempiir 2T on lühikese kestusega tihe**: Näidis-PTS, T = 30 min – Tehas tühjaks katkes 1:00:00, süsteemi jäi 6 (tühjenemine võtab ~1,5 h). 8 h juures varu suur (pikim D 2,8 h).
+4. **Lõpetamise ajal on ummiku tuvastus B-s ja C-s välja lülitatud** – muidu peaks täis puhvri sissetulev detail, mida pink ei võta, „ummikuks“ ja pargitaks.
+5. **Brauseris leitud ja parandatud**: Model data vihje rida oli EGA-s liiga pikk (lõigati); Static „Lõpp“ rida ja Dynamic läbilaskevõime rida olid üle 74 märgi (murtud kaheks); EGA olekurida hüppas T-l ühelt realt kahele (`GeneralWorst`); pausi ajal kadus „lõpetab“ („lõpetab, paus“). Testid lisatud (L11, L12).
+
+## Brauseris (no-store server, testmudelid `fmss.recent`-is)
+
+| Kontroll | Tulemus |
+|---|---|
+| EGA, Model data | read „Lõpp“ (Tehas tühjaks ▸) ja „Tüüpide järjekord“ (Segamini ▸), vihje 5 rida mahub ✔ |
+| EGA, Tehas tühjaks T = 30 min, M | kokkuvõte: „Lõpp „Tehas tühjaks“: lõpetamine katkes kell 1:00:00, süsteemi jäi 6“ (enne lühendamist), läbilaskevõime „0…0:30:00“ ✔ |
+| EGA, Tehas tühjaks T = 5 min, N | olekurida „0:05:31/0:05:00 ×10 lõpetab, paus …“ ✔ |
+| kaasaegne, Tehas tühjaks | kokkuvõte lõpetamise reaga ✔ |
+| kaasaegne, Partiid lõpuni (3 tk, Partii järjest) | olekurida „valmis 0/6“ … „6/6“; kokkuvõte „Tellimus (Partii järjest) täidetud: 6 / 6, aeg 0:47:12“; aruanne – olek „tellimus täidetud“, Static Lõpp ja tellimuse read ✔ (enne murdmist üks rida liiga pikk) |
+| EGA, File → Load → Allhanketehas, M | „Tellimus (Partii järjest) täidetud: 48 / 48, aeg 5:20:58“ (sama mis Node'is), kokkuvõte koos nuppudega mahub; aruanne EGA aknas, read mahuvad ✔ |
+| avaekraan | „versioon 1.4“ ✔ |
+| `site/index.html` | osa „Kuidas simulatsioon lõpeb“ tabeliga, nupp „Ava FMSS 1.4“ ✔ |
+| konsool | vigu pole ✔ |
+
+**Mida see EI kontrolli:** animatsiooni nähtava paaniga (peidetud paanis on `requestAnimationFrame` aeglane – kasutati sammu `N`); C ja B kokkuvõtet EGA-s brauseris (sama kood, test L12); 1.4 saiti GitHub Pages'is (push ja tag v1.4 alles tulevad).

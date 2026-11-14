@@ -81,6 +81,15 @@ export const BUFFER_DISCIPLINES = ['FIFO', 'FILO', 'RANDOM']; // [O] puhvri dist
 //     Mean ± Dev (vaikimisi); Triangular – kolmnurkne, tipp Mean juures, otsad Mean ± Dev;
 //     Normal – normaaljaotus σ = Dev, lõigatud vahemikku Mean ± 3·Dev.
 export const DISTRIBUTIONS = ['Uniform', 'Triangular', 'Normal'];
+// [U] END_MODES – simulatsiooni lõpurežiim (Sim.EndMode, etapp 11d, DISAIN.md 20): Time – kell T
+//     (vaikimisi); FinishOps – pärast T pinkides alustatud töö lõpuni; Ship – lisaks alustatud sõidud
+//     ja valmis detailid välja; Drain – kõik sees olev lõpuni; Order – tellimus (igast tüübist Batch).
+export const END_MODES = ['Time', 'FinishOps', 'Ship', 'Drain', 'Order'];
+// [U] ENDING_MODES – lõpurežiimid, kus pärast kella T tuleb lõpetamine (ENDING).
+export const ENDING_MODES = ['FinishOps', 'Ship', 'Drain'];
+// [O] ORDER_SEQUENCES – mis tüüpi detail tuua (originaal.md 7, II.1 ja II.2; Sim.OrderSequence):
+//     Mixed – kõige vähem sisse toodud tüüp (vaikimisi); Batch – üht tüüpi järjest (partii kaupa).
+export const ORDER_SEQUENCES = ['Mixed', 'Batch'];
 // [O] OPERATIONS – tööpinkide operatsioonid (tabel 4.2, originaal.md 2.2). Simulatsioonile on
 //     oluline ainult see, et need on erinevad; redaktor pakub neid valikuks (uus pink saab esimese).
 export const OPERATIONS = ['treimine', 'puurimine', 'sisetreimine', 'freesimine', 'lihvimine',
@@ -240,7 +249,7 @@ export function CheckModel(model) {
     if (!checkObject(workpiece, path)) return;
     checkString(workpiece.Name, `${path}.Name`);
     checkNumber(workpiece.Priority, `${path}.Priority`, { integer: true, min: 1 });
-    if (workpiece.Batch !== undefined) checkNumber(workpiece.Batch, `${path}.Batch`, { integer: true, min: 1 });
+    if (workpiece.Batch !== undefined) checkNumber(workpiece.Batch, `${path}.Batch`, { integer: true, min: 0 });
     if (!checkArray(workpiece.Routes, `${path}.Routes`)) return;
     if (workpiece.Routes.length === 0) fail(`${path}.Routes`, Texts.CheckEmptyString);
     workpiece.Routes.forEach((route, j) => {
@@ -329,6 +338,8 @@ export function CheckModel(model) {
     checkNumber(model.Sim.Kl, 'Sim.Kl', { above: 0, max: 1 });
     checkNumber(model.Sim.StallTime, 'Sim.StallTime', { integer: true, min: 1 });
     if (model.Sim.Distribution !== undefined) checkOneOf(model.Sim.Distribution, 'Sim.Distribution', DISTRIBUTIONS);
+    if (model.Sim.EndMode !== undefined) checkOneOf(model.Sim.EndMode, 'Sim.EndMode', END_MODES);
+    if (model.Sim.OrderSequence !== undefined) checkOneOf(model.Sim.OrderSequence, 'Sim.OrderSequence', ORDER_SEQUENCES);
   }
 
   return errors;

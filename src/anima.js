@@ -17,7 +17,7 @@
 // vaade (View): ikooni laius CW ja kõrgus CH pikslites. EGA-s on CH < CW, sest EGA pikslid on
 // kõrged – nii on ikoon ekraanil ruudukujuline.
 
-import { IconTypes, DIRECTIONS, CellTrack } from './fms_glb.js';
+import { IconTypes, DIRECTIONS, CellTrack, ENDING_MODES } from './fms_glb.js';
 import { Texts, FormatText } from './fms_lng.js';
 import { ROW_HEIGHT } from './fms_theme.js';
 import { SimInit, SimStep, SimState, SimReport } from './fms_sim.js';
@@ -1054,6 +1054,7 @@ function SimStatus(anim, state) {
   let mode = Texts.AnimModePause;
   if (state.DEADLOCK) mode = Texts.AnimModeDeadlock;
   else if (state.SIMULATION_DONE) mode = Texts.AnimModeDone;
+  else if (state.ENDING) mode = anim.Running ? Texts.AnimModeEnding : Texts.AnimModeEndingPause;   // pärast kella T (lõpurežiim B–D, 11d)
   else if (anim.Running && anim.Max) mode = Texts.AnimModeMax;
   else if (anim.Running) mode = Texts.AnimModeRun;
   const time = Math.max(1, state.SYSTEM_TIME);
@@ -1071,15 +1072,21 @@ function SimStatus(anim, state) {
       ? FormatText(Texts.AnimTrackStopped, { Name: track.Name, Count: track.StopCount })
       : FormatText(Texts.AnimTrackMoving, { Name: track.Name });
   });
-  const general = FormatText(Texts.AnimStatus, {
+  const generalText = modeText => FormatText(Texts.AnimStatus, {
     Time: ClockText(state.SYSTEM_TIME), Duration: ClockText(anim.Network.Sim.Duration),
-    Speed: anim.Max ? Texts.AnimModeMax : SpeedText(anim.Speed), Mode: mode,
-    InSystem: state.Stats.Created - state.Stats.Completed - state.Stats.Scrapped, Completed: state.Stats.Completed,
+    Speed: anim.Max ? Texts.AnimModeMax : SpeedText(anim.Speed), Mode: modeText,
+    InSystem: state.Stats.Created - state.Stats.Completed - state.Stats.Scrapped,
+    // lõpurežiim Order (11d): valmis / tellitud
+    Completed: state.Network.Sim.EndMode === 'Order'
+      ? `${state.Stats.Completed}/${state.Workpieces.reduce((sum, type) => sum + (type.Batch ?? 1), 0)}` : state.Stats.Completed,
     Throughput: (state.Stats.Completed / (time / 3600)).toFixed(1).replace('.', ','),
   }) + (state.MachineArray.some(machine => machine.CrashMean > 0)   // rikked (etapp 8): alati, et rida ei hüppaks
     ? FormatText(Texts.AnimMachinesDown, { Count: state.MachineArray.filter(machine => machine.State === 'DOWN').length, Scrapped: state.Stats.Scrapped })
     : '');
-  return { General: general, Tracks: tracks.join(', '), Worst: worst.join(', '),
+  const general = generalText(mode);
+  // lõpurežiim B–D (11d): EGA rea kõrgus arvestab kohe pikima olekuga, et rida pärast T ei hüppaks
+  const generalWorst = ENDING_MODES.includes(state.Network.Sim.EndMode) ? generalText(Texts.AnimModeEndingPause) : general;
+  return { General: general, GeneralWorst: generalWorst, Tracks: tracks.join(', '), Worst: worst.join(', '),
            Text: `${general}  ${tracks.join(', ')}` };
 }
 
@@ -1094,7 +1101,7 @@ function FitText(theme, text, width) {
 // [U] EgaStatusRows – EGA olekurida: üks rida, kui see mahub ka radade kõige pikema tekstiga, muidu
 //     kaks (teisel real rajad, vajadusel lühendatud). Tagastab read. Kutsub: AnimatorPainter.
 function EgaStatusRows(theme, status, width) {
-  if (theme.TextWidth(`${status.General}  ${status.Worst}`) <= width) return [status.Text];
+  if (theme.TextWidth(`${status.GeneralWorst ?? status.General}  ${status.Worst}`) <= width) return [status.Text];
   return [FitText(theme, status.General, width), FitText(theme, status.Tracks, width)];
 }
 
