@@ -8,7 +8,7 @@
 #   VÄLJUND/v1/         versioon 1 (1.0, 1.1 …): index.html, src/, fonts/ – git-ref'ist (vaikimisi tööpuu);
 #                       models/ alati praegusest harust (näidiseid saab lisada koodi muutmata, etapp 11)
 #
-# Veebis kutsub seda .github/workflows/pages.yml viimase 1.x tag'iga (praegu v1.4). Kohalik kontroll:
+# Veebis kutsub seda .github/workflows/pages.yml viimase 1.x tag'iga (praegu v1.5). Kohalik kontroll:
 #   tools/site.sh /tmp/fmss-site && (cd /tmp/fmss-site && python3 -m http.server 8000)
 set -eu
 

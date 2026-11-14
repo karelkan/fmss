@@ -1,0 +1,2885 @@
+{
+  "Meta": {
+    "Name": "Mootoriosade tehas",
+    "Version": 1
+  },
+  "Scale": 250,
+  "Layout": {
+    "Dim": {
+      "X": 39,
+      "Y": 20
+    },
+    "Cells": [
+      {
+        "X": 4,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 2
+      },
+      {
+        "X": 8,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 3
+      },
+      {
+        "X": 10,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 4
+      },
+      {
+        "X": 12,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 5
+      },
+      {
+        "X": 24,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 10
+      },
+      {
+        "X": 26,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 11
+      },
+      {
+        "X": 28,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 12
+      },
+      {
+        "X": 30,
+        "Y": 0,
+        "T": "MachToolDown",
+        "N": 13
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 2
+      },
+      {
+        "X": 8,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 3
+      },
+      {
+        "X": 10,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 4
+      },
+      {
+        "X": 12,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 5
+      },
+      {
+        "X": 24,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 10
+      },
+      {
+        "X": 26,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 11
+      },
+      {
+        "X": 28,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 12
+      },
+      {
+        "X": 30,
+        "Y": 1,
+        "T": "InOutBuf",
+        "N": 13
+      },
+      {
+        "X": 2,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 10,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 1
+      },
+      {
+        "X": 13,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 14,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1,
+        "Dir": "E"
+      },
+      {
+        "X": 15,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 16,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 17,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 18,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 1
+      },
+      {
+        "X": 22,
+        "Y": 2,
+        "T": "ArcSE",
+        "N": 2
+      },
+      {
+        "X": 23,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 24,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 25,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 26,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 27,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 28,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 29,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 30,
+        "Y": 2,
+        "T": "TeeN",
+        "N": 2
+      },
+      {
+        "X": 31,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 32,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 33,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2,
+        "Dir": "E"
+      },
+      {
+        "X": 34,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 35,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 36,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 37,
+        "Y": 2,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 38,
+        "Y": 2,
+        "T": "ArcSW",
+        "N": 2
+      },
+      {
+        "X": 2,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 1
+      },
+      {
+        "X": 18,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 1
+      },
+      {
+        "X": 22,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 2
+      },
+      {
+        "X": 38,
+        "Y": 3,
+        "T": "VertTr",
+        "N": 2
+      },
+      {
+        "X": 2,
+        "Y": 4,
+        "T": "ArcNE",
+        "N": 1
+      },
+      {
+        "X": 3,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 4,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 5,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 6,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 7,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 8,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 9,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 10,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 11,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 12,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 13,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 14,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 15,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 16,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 1
+      },
+      {
+        "X": 17,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 1
+      },
+      {
+        "X": 18,
+        "Y": 4,
+        "T": "ArcNW",
+        "N": 1
+      },
+      {
+        "X": 22,
+        "Y": 4,
+        "T": "ArcNE",
+        "N": 2
+      },
+      {
+        "X": 23,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 24,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 25,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 26,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 27,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 28,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 29,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 30,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 31,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 32,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 33,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 34,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 35,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 36,
+        "Y": 4,
+        "T": "TeeS",
+        "N": 2
+      },
+      {
+        "X": 37,
+        "Y": 4,
+        "T": "HorTr",
+        "N": 2
+      },
+      {
+        "X": 38,
+        "Y": 4,
+        "T": "ArcNW",
+        "N": 2
+      },
+      {
+        "X": 4,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 6
+      },
+      {
+        "X": 6,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 7
+      },
+      {
+        "X": 8,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 8
+      },
+      {
+        "X": 10,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 9
+      },
+      {
+        "X": 12,
+        "Y": 5,
+        "T": "VertCon"
+      },
+      {
+        "X": 14,
+        "Y": 5,
+        "T": "VertCon"
+      },
+      {
+        "X": 16,
+        "Y": 5,
+        "T": "VertCon"
+      },
+      {
+        "X": 24,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 14
+      },
+      {
+        "X": 26,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 15
+      },
+      {
+        "X": 28,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 16
+      },
+      {
+        "X": 30,
+        "Y": 5,
+        "T": "InOutBuf",
+        "N": 17
+      },
+      {
+        "X": 32,
+        "Y": 5,
+        "T": "VertCon"
+      },
+      {
+        "X": 34,
+        "Y": 5,
+        "T": "VertCon"
+      },
+      {
+        "X": 36,
+        "Y": 5,
+        "T": "VertCon"
+      },
+      {
+        "X": 4,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 6
+      },
+      {
+        "X": 6,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 7
+      },
+      {
+        "X": 8,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 8
+      },
+      {
+        "X": 10,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 9
+      },
+      {
+        "X": 12,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 14,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 16,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 24,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 14
+      },
+      {
+        "X": 26,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 15
+      },
+      {
+        "X": 28,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 16
+      },
+      {
+        "X": 30,
+        "Y": 6,
+        "T": "MachToolUp",
+        "N": 17
+      },
+      {
+        "X": 32,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 34,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 36,
+        "Y": 6,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 2,
+        "Y": 7,
+        "T": "ArcSE",
+        "N": 3
+      },
+      {
+        "X": 3,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 4,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 5,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 6,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 7,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 8,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 9,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 10,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 11,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 12,
+        "Y": 7,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 13,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 14,
+        "Y": 7,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 15,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 16,
+        "Y": 7,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 17,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 18,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 19,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 20,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 21,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 22,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 23,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 24,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 25,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 26,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 27,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 28,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 29,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 30,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 31,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 32,
+        "Y": 7,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 33,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 34,
+        "Y": 7,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 35,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 36,
+        "Y": 7,
+        "T": "TeeN",
+        "N": 3
+      },
+      {
+        "X": 37,
+        "Y": 7,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "E"
+      },
+      {
+        "X": 38,
+        "Y": 7,
+        "T": "ArcSW",
+        "N": 3
+      },
+      {
+        "X": 2,
+        "Y": 8,
+        "T": "VertTr",
+        "N": 3,
+        "Dir": "N"
+      },
+      {
+        "X": 38,
+        "Y": 8,
+        "T": "VertTr",
+        "N": 3,
+        "Dir": "S"
+      },
+      {
+        "X": 0,
+        "Y": 9,
+        "T": "FromCS"
+      },
+      {
+        "X": 1,
+        "Y": 9,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 2,
+        "Y": 9,
+        "T": "TeeW",
+        "N": 3
+      },
+      {
+        "X": 38,
+        "Y": 9,
+        "T": "VertTr",
+        "N": 3,
+        "Dir": "S"
+      },
+      {
+        "X": 2,
+        "Y": 10,
+        "T": "VertTr",
+        "N": 3,
+        "Dir": "N"
+      },
+      {
+        "X": 38,
+        "Y": 10,
+        "T": "VertTr",
+        "N": 3,
+        "Dir": "S"
+      },
+      {
+        "X": 2,
+        "Y": 11,
+        "T": "ArcNE",
+        "N": 3
+      },
+      {
+        "X": 3,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 4,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 5,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 6,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 7,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 8,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 9,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 10,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 11,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 12,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 13,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 14,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 15,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 16,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 17,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 18,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 19,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 20,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 21,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 22,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 23,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 24,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 25,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 26,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 27,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 28,
+        "Y": 11,
+        "T": "TeeS",
+        "N": 3
+      },
+      {
+        "X": 29,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 30,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 31,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 32,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 33,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 34,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 35,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 36,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 37,
+        "Y": 11,
+        "T": "HorTr",
+        "N": 3,
+        "Dir": "W"
+      },
+      {
+        "X": 38,
+        "Y": 11,
+        "T": "ArcNW",
+        "N": 3
+      },
+      {
+        "X": 4,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 18
+      },
+      {
+        "X": 6,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 19
+      },
+      {
+        "X": 8,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 20
+      },
+      {
+        "X": 10,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 21
+      },
+      {
+        "X": 12,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 22
+      },
+      {
+        "X": 14,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 23
+      },
+      {
+        "X": 16,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 24
+      },
+      {
+        "X": 18,
+        "Y": 12,
+        "T": "InOutBuf",
+        "N": 25
+      },
+      {
+        "X": 20,
+        "Y": 12,
+        "T": "VertCon"
+      },
+      {
+        "X": 22,
+        "Y": 12,
+        "T": "VertCon"
+      },
+      {
+        "X": 24,
+        "Y": 12,
+        "T": "VertCon"
+      },
+      {
+        "X": 26,
+        "Y": 12,
+        "T": "VertCon"
+      },
+      {
+        "X": 28,
+        "Y": 12,
+        "T": "VertCon"
+      },
+      {
+        "X": 4,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 18
+      },
+      {
+        "X": 6,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 19
+      },
+      {
+        "X": 8,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 20
+      },
+      {
+        "X": 10,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 21
+      },
+      {
+        "X": 12,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 22
+      },
+      {
+        "X": 14,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 23
+      },
+      {
+        "X": 16,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 24
+      },
+      {
+        "X": 18,
+        "Y": 13,
+        "T": "MachToolUp",
+        "N": 25
+      },
+      {
+        "X": 20,
+        "Y": 13,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 22,
+        "Y": 13,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 24,
+        "Y": 13,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 26,
+        "Y": 13,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 28,
+        "Y": 13,
+        "T": "VertTr",
+        "Dot": true
+      },
+      {
+        "X": 12,
+        "Y": 14,
+        "T": "ArcSE",
+        "N": 4
+      },
+      {
+        "X": 13,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 14,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 15,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 16,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4,
+        "Dir": "E"
+      },
+      {
+        "X": 17,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 18,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 19,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 20,
+        "Y": 14,
+        "T": "TeeN",
+        "N": 4
+      },
+      {
+        "X": 21,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 22,
+        "Y": 14,
+        "T": "TeeN",
+        "N": 4
+      },
+      {
+        "X": 23,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 24,
+        "Y": 14,
+        "T": "TeeN",
+        "N": 4
+      },
+      {
+        "X": 25,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 26,
+        "Y": 14,
+        "T": "TeeN",
+        "N": 4
+      },
+      {
+        "X": 27,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 28,
+        "Y": 14,
+        "T": "TeeN",
+        "N": 4
+      },
+      {
+        "X": 29,
+        "Y": 14,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 30,
+        "Y": 14,
+        "T": "ArcSW",
+        "N": 4
+      },
+      {
+        "X": 12,
+        "Y": 15,
+        "T": "VertTr",
+        "N": 4
+      },
+      {
+        "X": 30,
+        "Y": 15,
+        "T": "TeeE",
+        "N": 4
+      },
+      {
+        "X": 31,
+        "Y": 15,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 32,
+        "Y": 15,
+        "T": "ToCS"
+      },
+      {
+        "X": 12,
+        "Y": 16,
+        "T": "VertTr",
+        "N": 4
+      },
+      {
+        "X": 30,
+        "Y": 16,
+        "T": "TeeE",
+        "N": 4
+      },
+      {
+        "X": 31,
+        "Y": 16,
+        "T": "HorTr",
+        "Dot": true
+      },
+      {
+        "X": 32,
+        "Y": 16,
+        "T": "SysOut"
+      },
+      {
+        "X": 12,
+        "Y": 17,
+        "T": "ArcNE",
+        "N": 4
+      },
+      {
+        "X": 13,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 14,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 15,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 16,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 17,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 18,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 19,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 20,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 21,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 22,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 23,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 24,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 25,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 26,
+        "Y": 17,
+        "T": "TeeS",
+        "N": 4
+      },
+      {
+        "X": 27,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 28,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 29,
+        "Y": 17,
+        "T": "HorTr",
+        "N": 4
+      },
+      {
+        "X": 30,
+        "Y": 17,
+        "T": "ArcNW",
+        "N": 4
+      },
+      {
+        "X": 14,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 26
+      },
+      {
+        "X": 16,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 27
+      },
+      {
+        "X": 18,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 28
+      },
+      {
+        "X": 20,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 29
+      },
+      {
+        "X": 22,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 30
+      },
+      {
+        "X": 24,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 31
+      },
+      {
+        "X": 26,
+        "Y": 18,
+        "T": "InOutBuf",
+        "N": 32
+      },
+      {
+        "X": 14,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 26
+      },
+      {
+        "X": 16,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 27
+      },
+      {
+        "X": 18,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 28
+      },
+      {
+        "X": 20,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 29
+      },
+      {
+        "X": 22,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 30
+      },
+      {
+        "X": 24,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 31
+      },
+      {
+        "X": 26,
+        "Y": 19,
+        "T": "MachToolUp",
+        "N": 32
+      }
+    ]
+  },
+  "EdgeLengths": [],
+  "Tracks": [
+    {
+      "Name": "Võllid",
+      "Mode": "Continuous",
+      "Carts": 8,
+      "PlacesPerCart": 1,
+      "Speed": 30,
+      "LoadTime": 10,
+      "AccessTime": 0
+    },
+    {
+      "Name": "Hammasrattad",
+      "Mode": "Continuous",
+      "Carts": 8,
+      "PlacesPerCart": 1,
+      "Speed": 30,
+      "LoadTime": 10,
+      "AccessTime": 0
+    },
+    {
+      "Name": "AGV",
+      "Mode": "Discrete",
+      "Carts": 6,
+      "PlacesPerCart": 1,
+      "Speed": 80,
+      "LoadTime": 20,
+      "AccessTime": 0
+    },
+    {
+      "Name": "Viimistlus",
+      "Mode": "Continuous",
+      "Carts": 14,
+      "PlacesPerCart": 1,
+      "Speed": 40,
+      "LoadTime": 10,
+      "AccessTime": 0
+    }
+  ],
+  "Machines": [
+    {
+      "Name": "TR1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine (võll)"
+      ],
+      "CrashMean": 54000,
+      "RepairMean": 1200,
+      "RepairDev": 400
+    },
+    {
+      "Name": "TR2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine (võll)"
+      ],
+      "CrashMean": 54000,
+      "RepairMean": 1200,
+      "RepairDev": 400
+    },
+    {
+      "Name": "TR3",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine (võll)"
+      ],
+      "CrashMean": 54000,
+      "RepairMean": 1200,
+      "RepairDev": 400
+    },
+    {
+      "Name": "TR4",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine (võll)"
+      ],
+      "CrashMean": 54000,
+      "RepairMean": 1200,
+      "RepairDev": 400
+    },
+    {
+      "Name": "FR1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "freesimine (kiilsoon)"
+      ]
+    },
+    {
+      "Name": "PU1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "sügavpuurimine"
+      ]
+    },
+    {
+      "Name": "LV1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "välislihvimine"
+      ]
+    },
+    {
+      "Name": "LV2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "välislihvimine"
+      ]
+    },
+    {
+      "Name": "NL1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "nukkide lihvimine"
+      ]
+    },
+    {
+      "Name": "TR5",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine (ratas)"
+      ],
+      "CrashMean": 54000,
+      "RepairMean": 1200,
+      "RepairDev": 400
+    },
+    {
+      "Name": "TR6",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "treimine (ratas)"
+      ],
+      "CrashMean": 54000,
+      "RepairMean": 1200,
+      "RepairDev": 400
+    },
+    {
+      "Name": "HF1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "hambafreesimine"
+      ]
+    },
+    {
+      "Name": "HF2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "hambafreesimine"
+      ]
+    },
+    {
+      "Name": "HL1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "hammaste lihvimine"
+      ]
+    },
+    {
+      "Name": "VT1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "freesimine (väike korpus)"
+      ]
+    },
+    {
+      "Name": "VT2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "freesimine (väike korpus)"
+      ]
+    },
+    {
+      "Name": "SL1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "sisselihvimine"
+      ]
+    },
+    {
+      "Name": "HMC1",
+      "Model": "",
+      "LoadTime": 60,
+      "SetupTime": 900,
+      "Ops": [
+        "freesimine (plokk)",
+        "freesimine (pea)"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "HMC2",
+      "Model": "",
+      "LoadTime": 60,
+      "SetupTime": 900,
+      "Ops": [
+        "freesimine (plokk)",
+        "freesimine (pea)"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "HMC3",
+      "Model": "",
+      "LoadTime": 60,
+      "SetupTime": 900,
+      "Ops": [
+        "freesimine (plokk)",
+        "freesimine (pea)"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "HMC4",
+      "Model": "",
+      "LoadTime": 60,
+      "SetupTime": 900,
+      "Ops": [
+        "freesimine (plokk)",
+        "freesimine (pea)"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "HMC5",
+      "Model": "",
+      "LoadTime": 40,
+      "SetupTime": 300,
+      "Ops": [
+        "freesimine (Al korpus)"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "HMC6",
+      "Model": "",
+      "LoadTime": 40,
+      "SetupTime": 300,
+      "Ops": [
+        "freesimine (Al korpus)"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "HN1",
+      "Model": "",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "hoonimine"
+      ]
+    },
+    {
+      "Name": "5X1",
+      "Model": "",
+      "LoadTime": 60,
+      "SetupTime": 0,
+      "Ops": [
+        "klapipesad"
+      ],
+      "CrashMean": 36000,
+      "RepairMean": 1800,
+      "RepairDev": 600
+    },
+    {
+      "Name": "SI1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "silumine"
+      ]
+    },
+    {
+      "Name": "PE1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "pesemine"
+      ]
+    },
+    {
+      "Name": "PE2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "pesemine"
+      ]
+    },
+    {
+      "Name": "LT1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "lekketest"
+      ]
+    },
+    {
+      "Name": "TB1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "tasakaalustamine"
+      ]
+    },
+    {
+      "Name": "KMM1",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "mõõtmine"
+      ]
+    },
+    {
+      "Name": "KMM2",
+      "Model": "",
+      "LoadTime": 20,
+      "SetupTime": 0,
+      "Ops": [
+        "mõõtmine"
+      ]
+    }
+  ],
+  "Buffers": [
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 2,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 3,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    },
+    {
+      "Capacity": 4,
+      "Discipline": "FIFO",
+      "LoadTime": 5
+    }
+  ],
+  "Storage": {
+    "Capacity": 40,
+    "LoadTime": 20
+  },
+  "Workpieces": [
+    {
+      "Name": "Silindriplokk",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (plokk)",
+              "Mean": 2400,
+              "Dev": 192
+            },
+            {
+              "Op": "hoonimine",
+              "Mean": 900,
+              "Dev": 72
+            },
+            {
+              "Op": "silumine",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 360,
+              "Dev": 29
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 720,
+              "Dev": 58
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Plokikaas",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (pea)",
+              "Mean": 1800,
+              "Dev": 144
+            },
+            {
+              "Op": "klapipesad",
+              "Mean": 1200,
+              "Dev": 96
+            },
+            {
+              "Op": "silumine",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 480,
+              "Dev": 38
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Väntvõll",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (võll)",
+              "Mean": 900,
+              "Dev": 72
+            },
+            {
+              "Op": "sügavpuurimine",
+              "Mean": 600,
+              "Dev": 48
+            },
+            {
+              "Op": "välislihvimine",
+              "Mean": 1200,
+              "Dev": 96
+            },
+            {
+              "Op": "tasakaalustamine",
+              "Mean": 360,
+              "Dev": 29
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 180,
+              "Dev": 14
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 360,
+              "Dev": 29
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Nukkvõll",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (võll)",
+              "Mean": 600,
+              "Dev": 48
+            },
+            {
+              "Op": "nukkide lihvimine",
+              "Mean": 1080,
+              "Dev": 86
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 300,
+              "Dev": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Tasakaaluvõll",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (võll)",
+              "Mean": 480,
+              "Dev": 38
+            },
+            {
+              "Op": "välislihvimine",
+              "Mean": 600,
+              "Dev": 48
+            },
+            {
+              "Op": "tasakaalustamine",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Ajamivõll",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (võll)",
+              "Mean": 540,
+              "Dev": 43
+            },
+            {
+              "Op": "freesimine (kiilsoon)",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "välislihvimine",
+              "Mean": 480,
+              "Dev": 38
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Keps",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (väike korpus)",
+              "Mean": 480,
+              "Dev": 38
+            },
+            {
+              "Op": "sisselihvimine",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 180,
+              "Dev": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Hooratas",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (ratas)",
+              "Mean": 600,
+              "Dev": 48
+            },
+            {
+              "Op": "freesimine (väike korpus)",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "tasakaalustamine",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Väntvõlli ratas",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (ratas)",
+              "Mean": 300,
+              "Dev": 24
+            },
+            {
+              "Op": "hambafreesimine",
+              "Mean": 480,
+              "Dev": 38
+            },
+            {
+              "Op": "hammaste lihvimine",
+              "Mean": 420,
+              "Dev": 34
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Nukkvõlli ratas",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (ratas)",
+              "Mean": 360,
+              "Dev": 29
+            },
+            {
+              "Op": "hambafreesimine",
+              "Mean": 600,
+              "Dev": 48
+            },
+            {
+              "Op": "hammaste lihvimine",
+              "Mean": 480,
+              "Dev": 38
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 180,
+              "Dev": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Õlipumba ratas",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "treimine (ratas)",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "hambafreesimine",
+              "Mean": 360,
+              "Dev": 29
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Õlivann",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (Al korpus)",
+              "Mean": 900,
+              "Dev": 72
+            },
+            {
+              "Op": "silumine",
+              "Mean": 180,
+              "Dev": 14
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 180,
+              "Dev": 14
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 240,
+              "Dev": 19
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Ajamikaas",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (Al korpus)",
+              "Mean": 1200,
+              "Dev": 96
+            },
+            {
+              "Op": "silumine",
+              "Mean": 180,
+              "Dev": 14
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 180,
+              "Dev": 14
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 300,
+              "Dev": 24
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Õlipumba korpus",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (väike korpus)",
+              "Mean": 600,
+              "Dev": 48
+            },
+            {
+              "Op": "sisselihvimine",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 180,
+              "Dev": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Veepumba korpus",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (Al korpus)",
+              "Mean": 720,
+              "Dev": 58
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 180,
+              "Dev": 14
+            }
+          ]
+        },
+        {
+          "Priority": 2,
+          "Ops": [
+            {
+              "Op": "freesimine (väike korpus)",
+              "Mean": 900,
+              "Dev": 72
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 120,
+              "Dev": 10
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 180,
+              "Dev": 14
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "Väljalaskekollektor",
+      "Priority": 1,
+      "Batch": 4,
+      "Routes": [
+        {
+          "Priority": 1,
+          "Ops": [
+            {
+              "Op": "freesimine (Al korpus)",
+              "Mean": 900,
+              "Dev": 72
+            },
+            {
+              "Op": "silumine",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "pesemine",
+              "Mean": 180,
+              "Dev": 14
+            },
+            {
+              "Op": "lekketest",
+              "Mean": 240,
+              "Dev": 19
+            },
+            {
+              "Op": "mõõtmine",
+              "Mean": 300,
+              "Dev": 24
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Sim": {
+    "Seed": 1,
+    "Duration": 28800,
+    "Kl": 0.2,
+    "StallTime": 900,
+    "Distribution": "Triangular"
+  }
+}

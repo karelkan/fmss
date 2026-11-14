@@ -762,18 +762,21 @@ function ReportInput(input) {
 
 // [U] SimSummaryLines – simulatsiooni kokkuvõte dialoogi ridadeks (Simulate, fms.js). Pinke ja puhvreid
 //     näidatakse kuni SIM_SHOWN_OBJECTS, aga vähem, kui muidu ei mahuks maxLines reale (EGA-s 19 rida –
-//     suures mudelis jäid nupud ekraani alla, etapp 11c leid 6); ülejäänud „… ja veel n“, täielik info aruandes.
+//     suures mudelis jäid nupud ekraani alla, etapp 11c leid 6); ülejäänud „… ja veel n“, täielik info
+//     aruandes. Kui ka ühega ei mahu, on konnektorite kohta üks koondrida (1.5: Mootoriosade tehas, 11 konnektorit).
 export function SimSummaryLines(report, warnings, maxLines = Infinity) {
   let lines = [];
-  for (let shown = SIM_SHOWN_OBJECTS; shown >= 1; shown--) {
-    lines = SummaryLinesShown(report, warnings, shown);
-    if (lines.length <= maxLines) break;
+  for (const collapse of [false, true]) {
+    for (let shown = SIM_SHOWN_OBJECTS; shown >= 1; shown--) {
+      lines = SummaryLinesShown(report, warnings, shown, collapse);
+      if (lines.length <= maxLines) return lines;
+    }
   }
   return lines;
 }
 
-// Kokkuvõtte read, kui pinke ja puhvreid näidatakse kuni shown tükki.
-function SummaryLinesShown(report, warnings, shown) {
+// Kokkuvõtte read, kui pinke ja puhvreid näidatakse kuni shown tükki; collapse – konnektorid ühe koondreana.
+function SummaryLinesShown(report, warnings, shown, collapse = false) {
   const limited = (items, format) => {
     const lines = items.slice(0, shown).map(format);
     if (items.length > shown) lines.push(FormatText(Texts.SimMore, { Count: items.length - shown }));
@@ -828,7 +831,11 @@ function SummaryLinesShown(report, warnings, shown) {
         ...places,
       ];
     }),
-    ...report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector)),
+    ...(collapse && report.Connectors.length > 1
+      ? [FormatText(Texts.SimConnectorsTotal, {
+          Count: report.Connectors.length,
+          Transfers: report.Connectors.reduce((sum, connector) => sum + connector.Transfers, 0) })]
+      : report.Connectors.map((connector) => FormatText(Texts.SimConnector, connector))),
   );
   if (report.StorageCount !== null) lines.push(FormatText(Texts.SimStorage, { Count: report.StorageCount, Parked: report.Parked }));
   for (const warning of warnings) lines.push({ Text: FormatText(Texts.SimWarning, { Message: warning.Message }), Role: 'Error' });

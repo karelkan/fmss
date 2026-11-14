@@ -846,3 +846,58 @@ Dokument `site/doc/index.html` (saidil `/doc/`), [DISAIN.md](DISAIN.md) osa 21. 
 3. **Ekraanipildid** tehti lõuendist (`toBlob`) – EGA 960 × 720 (4 : 3), kaasaegne 1280 × 720. Peidetud paanis on `requestAnimationFrame` aeglane, seepärast juhiti animaatorit klahvisündmustega.
 
 **Mida see EI kontrolli:** teksti sisulist õigsust automaatselt – selle peab autor üle lugema; pilte (need võivad vananeda, kui liides muutub – test kontrollib ainult, et failid on olemas); saiti GitHub Pages'is (push alles tuleb).
+
+---
+
+# Etapp 12b: Mootoriosade tehas (versioon 1.5)
+
+Seitsmes näidis `models/mootor.fms.json` – suurim mudel ja koormustest. Mudelifail tehti ajutise generaatoriga (osakonnad ringidena, pingid ja konnektorid jaamadena); repos on ainult tulemus. Simulaator ei muutunud; muutus Simulate kokkuvõte (`SimSummaryLines`, DISAIN.md osa 18). Testid: `test/publish.test.js` L1, L4 (8 h, invariandid), `test/end.test.js` L4, L5, `test/report.test.js` 1.3/1.5; kokku `npm test` 224/224.
+
+## Mudel
+
+Neli osakonda, ruudustik 39 × 20 (mahub redaktorisse), `Scale` 250, jaotus kolmnurkne, kõrvalekalle 8 %. Tööajad on **hinnatud** (mootoriosade mehaanilise töötluse tavalised suurusjärgud, 11c allikate vaimus), mudel on õppenäide.
+
+| Osakond | Rada | Pingid |
+|---|---|---|
+| A võllid | konveier, 8 alust, 30 cm/s | TR1–TR4 treipink (rikked), FR1 kiilsoonte frees, PU1 sügavpuurimine, LV1–LV2 välislihvpink, NL1 nukkvõlli lihvpink |
+| B hammasrattad ja väikedetailid | konveier, 8 alust, 30 cm/s | TR5–TR6 treipink (rikked), HF1–HF2 hambafrees, HL1 hammaste lihvpink, VT1–VT2 vertikaalne töötluskeskus, SL1 sisselihvpink |
+| C korpused ja transport | AGV, ühesuunaline ring, 6 käru, 80 cm/s; FromCS | HMC1–HMC4 (plokk / pea, häälestus 15 min), HMC5–HMC6 (Al korpused), HN1 hoonimine, 5X1 klapipesad (rikked) |
+| D viimistlus ja kontroll | konveier, 14 alust, 40 cm/s; ToCS, SysOut | SI1 silumine, PE1–PE2 pesumasin, LT1 lekketest, TB1 tasakaalustus, KMM1–KMM2 mõõtmine |
+
+Konnektorid: A ↔ C 3, B ↔ C 3, C ↔ D 5 (paralleelsed). 16 tüüpi: silindriplokk, plokikaas, väntvõll, nukkvõll, tasakaaluvõll, ajamivõll, keps, hooratas, kolm hammasratast, õlivann, ajamikaas, õlipumba ja veepumba korpus (alternatiivne marsruut), väljalaskekollektor. `Kl` 0,2.
+
+## Kitsaskohtade otsimine (seeme 1, 24 h)
+
+| Samm | Läbilaskevõime | Mõõtmine |
+|---|---|---|
+| üks konnektor osakonna kohta, konveierid 5–6 alust 20 cm/s | 4,0 tk/h | pingid 80–95 % jõude, sissetulevates puhvrites keskmiselt 17 detaili; viimistluse puhvrid broneeringuid täis (3,3 / 4), kuigi füüsiliselt tühjad |
+| viimistluse puhvrid 4 → 12 | 9,3–9,5 | ei aidanud – ainult detaile süsteemis rohkem |
+| `Kl` 0,3 → 0,6 | 9,2–9,5 | ei aidanud |
+| 3 paralleelset konnektorit osakonna kohta | 8,1 (8 h) | C ↔ D konnektorid 100 % hõivatud – broneering kogu tee ajaks (DISAIN.md 2.3) |
+| C ↔ D 5 konnektorit | 9,9 | konnektoris seisab detail 55–86 % ajast – ootab viimistluse konveierit (105 m ring, 20 cm/s ≈ 9 min ring, iga detail 4–6 sõitu) |
+| A/B 8 alust 30 cm/s, D 14 alust 40 cm/s | 19,8 | viimistluse konveier seisab 37 % (iga laadimine peatab ringi); pingid 13–71 % |
+| `Kl` 0,3 → 0,2 | 19,7 | tsükliaeg 126 → 94 min (Little'i seadus) |
+
+## Tulemused
+
+| Kontroll | Tulemus |
+|---|---|
+| 8 h, seemned 1–5, invariandid igal sekundil | ilma ummikuta ja parkimisteta, 16,9–18,1 tk/h, tsükliaeg 93–95 min ✔ |
+| 24 h, seemned 1–5 | 19,7–19,9 tk/h, tsükliaeg 92–95 min, rikkeid 7–16 ✔ |
+| tellimus 4 tk tüübist (64), invariandid | Segamini 4:53, Partii järjest 6:07 (sama muster mis 11d leid 1) ✔ |
+| Tehas tühjaks (D) | lõpetamine 2:57, süsteem tühi ✔ |
+| L4 (B, C, D lõpuseis tabeli järgi), L5 (tellimus 3 tk) | ✔ |
+| arvutusaeg | 8 h ~0,9 s, 24 h ~1,5 s (koos invariantidega 8 h ~0,9 s) |
+| redaktor (brauser, kaasaegne) | „kontroll korras“ |
+
+## Leiud
+
+1. **Konnektori broneering kogu tee ajaks on suures mudelis peamine kitsaskoht** (teadaolev piirang 3, DISAIN.md 2.3, 7a leid 2). Kui kõik detailid lähevad läbi samade konnektorite (siin viimistlusse), on need kogu aeg kinni. Mudelis aitavad paralleelsed konnektorid; simulaatoris oleks lahendus konnektori mahutavus > 1 või broneering alles lähenedes – idee 2.0-le.
+2. **Pikk pidev konveier on transpordi kitsaskoht**, sest iga laadimine peatab kogu ringi (11c leid 5). Kiirus ja aluste arv mõjuvad rohkem kui puhvrid.
+3. **Puhvrite suurendamine ei aita, kui piirab transport** – see tõstab ainult detailide arvu süsteemis (`Kl` loeb kohti).
+4. **EGA kokkuvõte ei mahtunud ekraanile** (29 rida, lubatud 19): pinkide ja puhvrite lühendamine (1.3) ei piisanud, sest kõik 11 konnektorit olid eraldi real. **Parandus (versioon 1.5)**: kui ka ühe pingi ja puhvriga ei mahu, on konnektorite kohta üks koondrida. Kuue varasema näidise kokkuvõte (nii piiriga kui ilma) on bitt-täpselt sama mis 1.4-s (võrreldi HEAD-koodiga); test 1.3/1.5.
+5. Generaatori esimene versioon pani suunanooled ka ringi kaartele; dokumentatsiooni joonise tööriist (`LayoutSvg`) joonistab noole lahtri keskele, mis kaarel jääb rajast kõrvale. Kaartelt noolte eemaldamine mudelit ei muuda (lõigul on nool sirgel).
+
+**Brauseris** (no-store server): Load-nimekirjas „Mootoriosade tehas (32 pinki)“; redaktoris „kontroll korras“; animaator mõlemas välimuses (kaasaegne kerib ja suumib, mudel ei mahu tervikuna ekraanile); EGA kokkuvõte (M → lõpp) on 19 real, nupud nähtaval, rida „konnektoreid 11, ülekandeid kokku 379“.
+
+**Mida see EI kontrolli:** `/v1/` saiti enne tag'i `v1.5` – näidis tuleb `main`-ist, kood tag'ist, seega push ja tag `v1.5` tuleb teha koos (muidu näitaks `/v1/` uut näidist 1.4 koodiga, mille EGA kokkuvõte ei mahu).

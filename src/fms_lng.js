@@ -184,7 +184,7 @@ export const Texts = {
   DesktopModelCounts: 'Koosseis',
   DesktopModelCountsValue: 'radu {Tracks}, tööpinke {Machines}, puhvreid {Buffers}, detailitüüpe {Workpieces}',
   DesktopModelGridValue: '{X} × {Y} ikooni',
-  DesktopVersion: 'versioon 1.4',
+  DesktopVersion: 'versioon 1.5',
   DesktopUntitled: 'Nimetu',
   DesktopChanged: ' (muudetud)',
 
@@ -283,6 +283,7 @@ export const Texts = {
   SimCarts: '  {Name}: {Count} käru, Collision {Collisions}',
   SimCartsShares: '    koormaga {Loaded}, tühjalt {Empty}, laadib {Loading}, ootab {Waiting}',
   SimConnector: '  {Name}: ülekandeid {Transfers}',
+  SimConnectorsTotal: '  konnektoreid {Count}, ülekandeid kokku {Transfers}',
   SimPlaces: '    kohti {Places}: keskmiselt {Avg} detaili, kuni {Max}, kogumissõite {Pooled}',
   SimStorage: 'Kesklaos valmis detaile {Count}; ummiku tõttu pargitud {Parked}',
   SimMore: '  … ja veel {Count}',

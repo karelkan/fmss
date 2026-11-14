@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FMSS – dokumentatsioon</title>
-  <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Dokumentatsioon: teooria, tarkvara arhitektuur, andmeobjektid ja protseduurid, valideerimine. Versioon 1.4.">
+  <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Dokumentatsioon: teooria, tarkvara arhitektuur, andmeobjektid ja protseduurid, valideerimine. Versioon 1.5.">
   <!-- FMSS dokumentatsioon (etapp 12). Saidil /doc/ (tools/site.sh kopeerib kausta site/doc/).
        Alus: DISAIN.md (sõnastik osa 12), VALIDEERIMINE.md, originaal.md. Joonised on käsitsi tehtud SVG,
-       värvid CSS-muutujatest (hele, tume, print). Kirjeldab versiooni 1.4. -->
+       värvid CSS-muutujatest (hele, tume, print). Kirjeldab versiooni 1.5. -->
   <style>
     @font-face {
       font-family: 'FMSS EGA';
@@ -223,7 +223,7 @@
 <nav class="topbar" aria-label="Saidi navigeerimine">
   <b>FMSS · dokumentatsioon</b>
   <a href="../">Avaleht</a>
-  <a href="../v1/">Ava FMSS 1.4</a>
+  <a href="../v1/">Ava FMSS 1.5</a>
   <a href="https://github.com/karelkan/fmss">Lähtekood</a>
   <span class="note">Prinditav: brauseri „Prindi → Salvesta PDF-ina“</span>
 </nav>
@@ -237,7 +237,7 @@
   <div>
     <h1>FMSS</h1>
     <p class="subtitle">Paindautomatiseeritud tootmise simulatsioonisüsteem</p>
-    <p class="kind">Diplomiprojekt 1993 · uus versioon brauseris 2026 · dokumentatsioon versioonile 1.4</p>
+    <p class="kind">Diplomiprojekt 1993 · uus versioon brauseris 2026 · dokumentatsioon versioonile 1.5</p>
     <div class="dos" role="img" aria-label="FMSS avaekraan: alustatud 1993, valmis 2026"><span class="w">C:\FMSS&gt;FMS</span>
 
 <span class="y">FMSS</span>  Alustatud 1993 … valmis 2026
@@ -406,6 +406,7 @@
       <tr><td>1.2</td><td>Parandus: teede arvutuse ümardusviga.</td></tr>
       <tr><td>1.3</td><td>Kolm suurt näidismudelit; kokkuvõte mahub EGA ekraanile.</td></tr>
       <tr><td>1.4</td><td>Simulatsiooni lõpurežiim ja tellimuse (partiide) simuleerimine.</td></tr>
+      <tr><td>1.5</td><td>Seitsmes näidis – Mootoriosade tehas (32 pinki); kokkuvõte mahub EGA ekraanile ka paljude konnektoritega.</td></tr>
     </table>
   </div>
 
@@ -1448,7 +1449,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     build-sammu ega väliseid teeke pole.
   </p>
   <div class="table-wrap">
-    <p class="caption">Tabel 5.1. Moodulid (kaust <code>src/</code>, versioon 1.4)</p>
+    <p class="caption">Tabel 5.1. Moodulid (kaust <code>src/</code>, versioon 1.5)</p>
     <table>
       <tr><th>Moodul</th><th>Originaalis</th><th>Sisu</th><th class="num">Ridu</th></tr>
       <tr><td><code>fms.js</code></td><td><code>FMS.PAS</code></td><td>peaprogramm: menüüd, failid, töölaud, Simulate</td><td class="num">693</td></tr>
@@ -1456,11 +1457,11 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td><code>anima.js</code></td><td><code>ANIMA.INC</code></td><td>animaator, ruudustiku joonistamine, Event List ekraanil</td><td class="num">1666</td></tr>
       <tr><td><code>fms_ed.js</code></td><td><code>FMS_ED1.PAS</code></td><td>redaktor: Layout ja View</td><td class="num">1193</td></tr>
       <tr><td><code>fms_ed_data.js</code></td><td><code>FMS_ED1.PAS</code></td><td>redaktori vormid: Config, Transport, Workpiece data, Storage data, Model data</td><td class="num">454</td></tr>
-      <tr><td><code>fms_rep.js</code></td><td><code>FMS_REP1.PAS</code></td><td>aruanded: Static, Dynamic, Output; Simulate kokkuvõte</td><td class="num">837</td></tr>
+      <tr><td><code>fms_rep.js</code></td><td><code>FMS_REP1.PAS</code></td><td>aruanded: Static, Dynamic, Output; Simulate kokkuvõte</td><td class="num">844</td></tr>
       <tr><td><code>windows.js</code></td><td><code>WINDOWS.PAS</code></td><td>graafikateek: menüüd, dialoogid, vormid, klaviatuur ja hiir</td><td class="num">909</td></tr>
       <tr><td><code>fms_theme.js</code></td><td>–</td><td>välimused: EGA ja kaasaegne (hele, tume)</td><td class="num">743</td></tr>
       <tr><td><code>fms_glb.js</code></td><td><code>FMS_GLB1.PAS</code></td><td>globaalsed tüübid ja konstandid, ikoonid, <code>CheckModel</code></td><td class="num">346</td></tr>
-      <tr><td><code>fms_lng.js</code></td><td><code>FMS_LNG.INC</code></td><td>kõik kasutajale näidatavad tekstid (eesti keeles)</td><td class="num">640</td></tr>
+      <tr><td><code>fms_lng.js</code></td><td><code>FMS_LNG.INC</code></td><td>kõik kasutajale näidatavad tekstid (eesti keeles)</td><td class="num">641</td></tr>
       <tr><td><code>fms_file.js</code></td><td><code>FMS_FILE.PAS</code></td><td>failid: laadimine, salvestamine, näidiste nimekiri</td><td class="num">143</td></tr>
       <tr><td><code>fms_opt.js</code></td><td><code>FMS_OPT.PAS</code></td><td>keskkonna seaded (originaalis <code>FMSS.CFG</code>)</td><td class="num">41</td></tr>
     </table>
@@ -2324,11 +2325,12 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td>11b Parandus</td><td>suur mudel</td><td><code>ShortestPaths</code> ümardusviga leiti Kinnitustehasega ja parandati (<code>PATH_TIME_EPSILON</code>)</td></tr>
       <tr><td>11c Mudelid</td><td>3 suurt tootmissüsteemi</td><td>5 seemet × 8 h ilma ummikuta; simulatsioon jääb analüütilise ülempiiri alla seletatava vahega</td></tr>
       <tr><td>11d Lõpurežiim</td><td>viis režiimi, tellimus</td><td>vaikimisi bitt-täpselt sama mis 1.3; lõpuseis vastab tabelile kõigis näidistes; partii järjest vähendab häälestust, makespan kasvab</td></tr>
+      <tr><td>12 Mootoriosade tehas (1.5)</td><td>32 pinki, 11 konnektorit, 16 tüüpi</td><td>5 seemet × 24 h ilma ummikuta (~19,8 tk/h); kitsaskohad leiti mõõtmisega (konnektorid, viimistluse konveier); EGA kokkuvõte ei mahtunud (29 rida) – parandatud koondreaga</td></tr>
     </table>
   </div>
 
   <h3 id="s8-3">8.3 Testid</h3>
-  <p>Testid jooksevad Node'iga ilma brauserita (<code>npm test</code>); versioonis 1.4 on neid 221.</p>
+  <p>Testid jooksevad Node'iga ilma brauserita (<code>npm test</code>); versioonis 1.5 on neid 224.</p>
   <div class="table-wrap">
     <p class="caption">Tabel 8.2. Testifailid</p>
     <table>
@@ -2340,11 +2342,11 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td><code>test/agv.test.js</code></td><td>diskreetsed rajad, tsoonid, <code>Collision</code></td><td class="num">25</td></tr>
       <tr><td><code>test/places.test.js</code></td><td>mitu detaili alusel ja kärul</td><td class="num">7</td></tr>
       <tr><td><code>test/crash.test.js</code></td><td>rikked, remont, jaotused</td><td class="num">13</td></tr>
-      <tr><td><code>test/end.test.js</code></td><td>lõpurežiim ja tellimus</td><td class="num">22</td></tr>
+      <tr><td><code>test/end.test.js</code></td><td>lõpurežiim ja tellimus</td><td class="num">24</td></tr>
       <tr><td><code>test/anima.test.js</code></td><td>animaatori geomeetria, Event List, kerimine ja suum</td><td class="num">18</td></tr>
       <tr><td><code>test/editor.test.js</code></td><td>redaktor ja vormid</td><td class="num">38</td></tr>
       <tr><td><code>test/report.test.js</code></td><td>aruanded ja kokkuvõte</td><td class="num">8</td></tr>
-      <tr><td><code>test/publish.test.js</code></td><td>sait, näidismudelid, suhtelised teed</td><td class="num">11</td></tr>
+      <tr><td><code>test/publish.test.js</code></td><td>sait, näidismudelid, suhtelised teed</td><td class="num">12</td></tr>
       <tr><td><code>test/doc.test.js</code></td><td>see dokument: sõnastik, käsitlejad, joonised mudelitest, viited, sait</td><td class="num">6</td></tr>
     </table>
   </div>
@@ -2362,8 +2364,8 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 <section class="chapter" id="naidismudelid">
   <h2>9 Näidismudelid</h2>
   <p>
-    Rakendusega tuleb kaasa kuus näidist (File → Load); nimekiri on failis <code>models/index.json</code>.
-    Kolm väiksemat näitavad simulaatori võimalusi, kolm suurt (12–16 tööpinki) on avalike allikate põhjal
+    Rakendusega tuleb kaasa seitse näidist (File → Load); nimekiri on failis <code>models/index.json</code>.
+    Kolm väiksemat näitavad simulaatori võimalusi, neli suurt (12–32 tööpinki) on avalike allikate põhjal
     koostatud õppenäited. Suurtes mudelites on jaotus kolmnurkne ja kõrvalekalle 5–10 %; allikad ja
     hinnangud on VALIDEERIMINE.md etapis 11c.
   </p>
@@ -2377,6 +2379,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td>Kinnitustehas</td><td>poldid ja mutrid: 16 masinat, 8 tüüpi, detail on kast; üks konveier 14 alusega</td><td class="num">67</td><td class="num">8,4</td><td class="num">2:54:52</td><td>konveier – seisab iga laadimise ajal</td></tr>
       <tr><td>Allhanketehas</td><td>CNC-töötlus: 15 pinki, 12 tüüpi, kolm osakonda, kolm konveierit konnektoritega; tellimus 4 tk tüübist, partii järjest</td><td class="num">48</td><td class="num">9,0</td><td class="num">1:46:05</td><td>treipinkide häälestus; makespan 5:20:58</td></tr>
       <tr><td>Reduktori FMS</td><td>võllid, hammasrattad, korpus ja kaas: 12 pinki, 7 tüüpi, 4 AGV-d ühesuunalisel ringil, rikked</td><td class="num">65</td><td class="num">8,1</td><td class="num">2:23:02</td><td>korpuse töötlus, HMC1 94 %</td></tr>
+      <tr><td>Mootoriosade tehas</td><td>32 pinki neljas osakonnas (võllid, hammasrattad, korpused, viimistlus): kolm konveierit ja kuue AGV-ga ring, 11 konnektorit, 16 tüüpi, rikked</td><td class="num">144</td><td class="num">18,0</td><td class="num">1:34:19</td><td>viimistluse konveier (seisab 36 %)</td></tr>
     </table>
   </div>
   <p>
@@ -2548,6 +2551,15 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
   </figure>
 
   <p>
+    <b>Mootoriosade tehas</b> (versioon 1.5) on suurim näidis ja ka koormustest. Selle kavandamisel tuli läbilaskevõimet
+    otsida samm-sammult: esimene versioon andis ainult 4 tk/h, kuigi pingid olid 80–95 % ajast jõude. Põhjus oli
+    konnektor, mis on broneeritud kogu tee ajaks (peatükk 10.2): kõik detailid lähevad viimistlusse ja sinna viivad
+    konnektorid olid 100 % ajast kinni. Paralleelsed konnektorid andsid 8–10 tk/h; järgmisena piiras viimistluse
+    konveier (105 m ring, iga detail teeb seal 4–6 sõitu) ning kiiremad konveierid ja rohkem aluseid andsid umbes
+    20 tk/h püsiseisundis. Puhvrite suurendamine ei aidanud ja koormustegur <code>Kl</code> 0,2 andis sama
+    läbilaskevõime mis 0,3, aga lühema tsükliaja (94 vs 126 min) – Little'i seadus praktikas.
+  </p>
+  <p>
     Suurte mudelitega leiti ka simulaatori ja liidese vigu (teede ümardusviga, EGA kokkuvõtte kõrgus) ning
     disaini teadlik hind: ummiku vältimise reegel hoiab broneeringuid kaua ja vajab ühistel pinkidel
     suuremaid puhvreid (Allhanketehases +35 % läbilaskevõimet, kui ühiste pinkide puhvrid suurendati).
@@ -2569,16 +2581,16 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     iga lahendus kontrolliti enne teostust.
   </p>
   <p>
-    Versioon 1.4 töötab brauseris kahe välimusega (EGA ja kaasaegne), sellel on redaktor, animaator ja
-    aruanded ning kuus näidismudelit. Simulaatoris on umbes 3400 rida, kogu rakenduses umbes 11 300 rida
-    JavaScripti ilma väliste teekideta; 221 testi kontrollivad invariante igal simuleeritud sekundil.
+    Versioon 1.5 töötab brauseris kahe välimusega (EGA ja kaasaegne), sellel on redaktor, animaator ja
+    aruanded ning seitse näidismudelit. Simulaatoris on umbes 3400 rida, kogu rakenduses umbes 11 100 rida
+    JavaScripti ilma väliste teekideta; 224 testi kontrollivad invariante igal simuleeritud sekundil.
   </p>
 
   <h3 id="s10-2">10.2 Teadaolevad piirangud</h3>
   <ol>
     <li>Kahesuunalisel ringil kolme või enama käruga oleks vaja mitme sammu planeerimist; kohalikud reeglid lahendust ei leia (3.3).</li>
     <li>Parkimiskohti (<code>Parking</code>), tsoonide tükeldamist (<code>ZoneLength</code>) ja dispetšerireegleid (<code>Dispatch</code>) pole tehtud; vaba käru jääb paigale ja tsoon on terve sõlm või lõik.</li>
-    <li>Konnektor on broneeritud kogu tee ajaks; suurel koormusel võib see piirata (umbes ¾ konnektori hõivatusest on broneering).</li>
+    <li>Konnektor on broneeritud kogu tee ajaks; suurel koormusel piirab see (Mootoriosade tehases esialgu peamine kitsaskoht – lahendus mudelis on paralleelsed konnektorid).</li>
     <li>Kaasaegse juhtriba olekurida lühendatakse mitme raja või rikete korral.</li>
     <li>Rike on ainult tööpingil ja töötlemise ajal; transpordi-, puhvri- ja konnektoririket ning kvaliteedipraaki pole.</li>
     <li>Aruande allalaadimist faili pole brauseris päriselt käivitatud.</li>
@@ -2619,7 +2631,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 </section>
 
 <footer>
-  <p>© K. Kannel 1993, 2026. Kõik õigused kaitstud. Dokument kirjeldab FMSS-i versiooni 1.4. Tarkvara ja dokumentatsioon on arendatud koos Claude'iga (Anthropic).</p>
+  <p>© K. Kannel 1993, 2026. Kõik õigused kaitstud. Dokument kirjeldab FMSS-i versiooni 1.5. Tarkvara ja dokumentatsioon on arendatud koos Claude'iga (Anthropic).</p>
   <p>Lähtekood ja disainidokumendid: <a href="https://github.com/karelkan/fmss">github.com/karelkan/fmss</a> (DISAIN.md, VALIDEERIMINE.md).</p>
 </footer>
 

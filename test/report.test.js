@@ -341,9 +341,9 @@ test('P7: lõppseis samm-sammult (nagu animaatoris) on sama mis SimRun-iga', () 
 // ---------------------------------------------------------------------
 // 1.3 (etapp 11c leid 6): Simulate kokkuvõte mahub dialoogi – EGA-s 19 rida
 // ---------------------------------------------------------------------
-test('1.3: kokkuvõte – suures mudelis vähem pinke ja puhvreid, et mahuks; väikeses kõik nagu enne', () => {
+test('1.3, 1.5: kokkuvõte – suures mudelis vähem pinke ja puhvreid (ja konnektorid koondreana), et mahuks; väikeses kõik nagu enne', () => {
   const EGA_LINES = 19;   // MessageBoxMaxLines: 350 / 14 − 6
-  for (const file of ['kinnitus.fms.json', 'allhange.fms.json', 'reduktor.fms.json']) {
+  for (const file of ['kinnitus.fms.json', 'allhange.fms.json', 'reduktor.fms.json', 'mootor.fms.json']) {
     const report = SimRun(Enumerate(ReadModel(file)).Network, {});
     const full = SimSummaryLines(report, []);
     const fitted = SimSummaryLines(report, [], EGA_LINES);
@@ -353,6 +353,11 @@ test('1.3: kokkuvõte – suures mudelis vähem pinke ja puhvreid, et mahuks; v�
     assert.ok(shown >= 1, `${file}: vähemalt üks pink`);
     assert.ok(fitted.some(line => typeof line === 'string' && line.includes('ja veel')), `${file}: „… ja veel“`);
   }
+  // 1.5: 11 konnektoriga mudelis on konnektorite kohta üks koondrida; ilma piirita kõik read nagu enne
+  const engine = SimRun(Enumerate(ReadModel('mootor.fms.json')).Network, {});
+  const total = engine.Connectors.reduce((sum, connector) => sum + connector.Transfers, 0);
+  assert.ok(SimSummaryLines(engine, [], EGA_LINES).includes(`  konnektoreid 11, ülekandeid kokku ${total}`));
+  assert.equal(SimSummaryLines(engine, []).filter(line => /^  CON\d+: ülekandeid/.test(line)).length, 11);
   for (const file of ['demo.fms.json', 'agv.fms.json']) {
     const report = SimRun(Enumerate(ReadModel(file)).Network, {});
     assert.deepEqual(SimSummaryLines(report, [], EGA_LINES), SimSummaryLines(report, []), file);

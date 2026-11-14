@@ -4,5 +4,6 @@
   { "File": "agv.fms.json", "Name": "Näidis-AGV (diskreetne rada)" },
   { "File": "kinnitus.fms.json", "Name": "Kinnitustehas (poldid ja mutrid)" },
   { "File": "allhange.fms.json", "Name": "Allhanketehas (CNC-töötlus)" },
-  { "File": "reduktor.fms.json", "Name": "Reduktori FMS (AGV-d ja rikked)" }
+  { "File": "reduktor.fms.json", "Name": "Reduktori FMS (AGV-d ja rikked)" },
+  { "File": "mootor.fms.json", "Name": "Mootoriosade tehas (32 pinki)" }
 ]

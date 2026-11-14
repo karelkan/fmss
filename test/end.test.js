@@ -153,7 +153,7 @@ test('L3: Order – kell T enne tellimuse lõppu: tulemus nagu Time, tellimus j�
 //   B: ükski detail pole pingis; C: lisaks alused / kärud ja konnektorid tühjad ja ükski valmis
 //   detail ega praak pole süsteemis; D: süsteem tühi. Pärast T uusi ei tooda (Created nagu Time-is).
 // ---------------------------------------------------------------------
-for (const file of ['demo.fms.json', 'rike.fms.json', 'agv.fms.json', 'kinnitus.fms.json', 'allhange.fms.json', 'reduktor.fms.json']) {
+for (const file of ['demo.fms.json', 'rike.fms.json', 'agv.fms.json', 'kinnitus.fms.json', 'allhange.fms.json', 'reduktor.fms.json', 'mootor.fms.json']) {
   test(`L4: ${file} – lõpuseis B, C, D vastab tabelile`, () => {
     const model = WithSim(ReadModel(file), { EndMode: 'Time' });
     const time = Run(model, {}).Report;
@@ -188,7 +188,7 @@ for (const file of ['demo.fms.json', 'rike.fms.json', 'agv.fms.json', 'kinnitus.
 // ---------------------------------------------------------------------
 // L5. Order: tellimus täidetakse, süsteem tühi – kõik näidised, mõlemad järjekorrad.
 // ---------------------------------------------------------------------
-for (const file of ['demo.fms.json', 'rike.fms.json', 'agv.fms.json', 'reduktor.fms.json']) {
+for (const file of ['demo.fms.json', 'rike.fms.json', 'agv.fms.json', 'reduktor.fms.json', 'mootor.fms.json']) {
   test(`L5: ${file} – Order (Segamini ja Partii järjest): igast tüübist Batch tükki, süsteem tühi`, () => {
     for (const sequence of ['Mixed', 'Batch']) {
       const { Report: report } = Run(ReadModel(file), { EndMode: 'Order', OrderSequence: sequence }, 3);
