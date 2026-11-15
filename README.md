@@ -43,6 +43,7 @@ tools/site.sh /tmp/fmss-site
 | [PLAAN_TOOD_V2.md](PLAAN_TOOD_V2.md) | versiooni 2 plaan: otsused, etapid ja **ootel tööd** (osa 8) |
 | [DISAIN_V2.md](DISAIN_V2.md) | versiooni 2 disaini muudatused ja uute nimede sõnastik |
 | [VALIDEERIMINE.md](VALIDEERIMINE.md) | valideerimise tulemused ja leiud |
+| [AJALUGU.md](AJALUGU.md) | taastamise lugu: etapid 0–12, otsused ja õppetunnid |
 
 ## Seis
 
@@ -68,6 +69,7 @@ tools/site.sh /tmp/fmss-site
   - [x] 11b. Versioon 1.2 – parandus: `ShortestPaths` ümardas aega igal sammul ja suletud konveieril võis tee tulla vahejaama kaudu (0,001 s „kiirem“) – simulatsioon katkes erindiga (leiti mudeliga A); `PATH_TIME_EPSILON` – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11b
   - [x] 11c. Mudelid: Kinnitustehas (16 pinki, 8 tüüpi, konveier), Allhanketehas (15 pinki, 12 tüüpi, 3 konveierit konnektoritega), Reduktori FMS (12 pinki, 7 tüüpi, 4 AGV-d, rikked) – `models/`, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11c. Versioon 1.3: Simulate kokkuvõte mahub EGA-s ekraanile (`SimSummaryLines`, `MessageBoxMaxLines`)
 - [x] 11d. Versioon 1.4 – simulatsiooni lõpurežiim `Sim.EndMode`: Kellani, Kellani ja pink tühi, Kellani ja liin tühi, Tehas tühjaks (pärast kestust lõpetamine, kuni 2 × kestus), Partiid lõpuni (tellimus – igast tüübist „Partii, tk“, originaali reegel „partiidena“, praak asendatakse, tulemus makespan); tüüpide järjekord `Sim.OrderSequence` Segamini / Partii järjest (originaali II.2); läbilaskevõime ja rakendatus perioodi 0…T järgi; Model data vorm, animaatori „lõpetab“, kokkuvõte ja aruanne; Allhanketehas on tellimus (48 tk, partii järjest) – [DISAIN.md](DISAIN.md) osa 20, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 11d
+- [x] 11e. Taastamise ajalugu ([AJALUGU.md](AJALUGU.md)): kuidas jõuti esimesest vestlusest etapini 12 – iga etapi olulised otsused ja leiud, mis puudus originaalist, õppetunnid
 - [x] 12. Dokumentatsioon: diplomitööga sarnane dokument saidil `/doc/` (`site/doc/index.html`, prinditav PDF-iks) – teooria koos täiendustega, arhitektuur 21 joonisega (SVG, mudelite paigutus `tools/layout_svg.js`-iga), kirjed, EventHandlerid ja sõnastik, valideerimine, näidismudelid; avalehelt viide; test `test/doc.test.js` hoiab selle koodi ja sõnastikuga kooskõlas – [DISAIN.md](DISAIN.md) osa 21, [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12
   - [x] Versioon 1.5 – seitsmes näidis **Mootoriosade tehas** (`models/mootor.fms.json`: 32 pinki, 3 konveierit + kuue AGV-ga ring, 11 konnektorit, 16 tüüpi, rikked); EGA kokkuvõttes konnektorite koondrida – [VALIDEERIMINE.md](VALIDEERIMINE.md) etapp 12b, [DISAIN.md](DISAIN.md) osa 18, 19
   - [x] Dokumentatsioon 1.1 (tarkvara 1.5 – versiooni 1 viimane): uus peatükk 6 **Planner** – operatiivjuhtimise teooria, originaali reeglid, vastavus (tegemata reeglid → [PLAAN_TOOD_V2.md](PLAAN_TOOD_V2.md) 4.12), realisatsioon pseudokoodina, näide Näidis-PTS-i logist; parandatud marsruudi valiku ja `FindBuf` / `FindSysPos` kirjeldus ([DISAIN.md](DISAIN.md) 5.2, 21)
