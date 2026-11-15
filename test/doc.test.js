@@ -54,7 +54,7 @@ test('D1 iga DISAIN.md sõnastiku rida on dokumendis samade nimede ja tunnusega'
   assert.deepEqual(doc, [], 'dokumendis on ridu, mida DISAIN.md-s pole');
 });
 
-test('D2 iga EventHandler (fms_sim.js) on dokumendi tabelis 7.2', () => {
+test('D2 iga EventHandler (fms_sim.js) on dokumendi tabelis 8.2', () => {
   const source = Read('core/fms_sim.js');
   const block = source.match(/const EventHandlers = \{([\s\S]*?)\};/)[1];
   const handlers = [...block.matchAll(/(\w+): (\w+Proc)/g)].map(match => [match[2], match[1]]);
@@ -62,7 +62,7 @@ test('D2 iga EventHandler (fms_sim.js) on dokumendi tabelis 7.2', () => {
   const doc = DocTableRows('handlers');
   for (const [proc, event] of handlers) {
     const row = doc.find(cells => cells[0] === proc);
-    assert.ok(row, `tabelis 7.2 puudub ${proc}`);
+    assert.ok(row, `tabelis 8.2 puudub ${proc}`);
     assert.equal(row[1], event, `${proc} sündmus`);
     const header = source.match(new RegExp(`// (\\[[^\\]]+\\]) ${proc} `));
     assert.ok(header, `${proc} päisekommentaar`);
@@ -102,13 +102,15 @@ test('D4 sisukorra lingid, viited joonistele ja tabelitele, pildid', () => {
 
 test('D5 dokument kirjeldab praegust versiooni', () => {
   const [major, minor] = JSON.parse(Read('package.json')).version.split('.');
-  assert.ok(DOC.includes(`dokumentatsioon versioonile ${major}.${minor}`), 'tiitelleht');
+  // dokumentatsioonil on oma versioon (1.1), mis kirjeldab tarkvara versiooni package.json-ist
+  assert.ok(/dokumentatsioon \d+\.\d+ \(tarkvara versioon /.test(DOC), 'tiitellehel dokumendi versioon');
+  assert.ok(DOC.includes(`(tarkvara versioon ${major}.${minor})`), 'tiitelleht');
   assert.ok(DOC.includes(`kirjeldab FMSS-i versiooni ${major}.${minor}`), 'jalus');
-  // tabel 8.2: testide arv failide kaupa annab kokku tekstis oleva arvu
+  // tabel 9.2: testide arv failide kaupa annab kokku tekstis oleva arvu
   const testCount = Number(DOC.match(/versioonis \d+\.\d+ on neid (\d+)/)[1]);
-  const table = DOC.slice(DOC.indexOf('Tabel 8.2.'), DOC.indexOf('</table>', DOC.indexOf('Tabel 8.2.')));
+  const table = DOC.slice(DOC.indexOf('Tabel 9.2.'), DOC.indexOf('</table>', DOC.indexOf('Tabel 9.2.')));
   const listed = [...table.matchAll(/<td class="num">(\d+)<\/td>/g)].reduce((sum, match) => sum + Number(match[1]), 0);
-  assert.equal(listed, testCount, 'tabel 8.2 kokku');
+  assert.equal(listed, testCount, 'tabel 9.2 kokku');
 });
 
 test('D6 tools/site.sh paneb dokumendi saidile /doc/ ja avaleht viitab sellele', () => {

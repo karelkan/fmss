@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FMSS – dokumentatsioon</title>
-  <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Dokumentatsioon: teooria, tarkvara arhitektuur, andmeobjektid ja protseduurid, valideerimine. Versioon 1.5.">
+  <meta name="description" content="FMSS – paindautomatiseeritud tootmise simulatsioonisüsteem. Dokumentatsioon: teooria, tarkvara arhitektuur, andmeobjektid ja protseduurid, valideerimine. Dokumentatsioon 1.1, tarkvara versioon 1.5.">
   <!-- FMSS dokumentatsioon (etapp 12). Saidil /doc/ (tools/site.sh kopeerib kausta site/doc/).
        Alus: DISAIN.md (sõnastik osa 12), VALIDEERIMINE.md, originaal.md. Joonised on käsitsi tehtud SVG,
-       värvid CSS-muutujatest (hele, tume, print). Kirjeldab versiooni 1.5. -->
+       värvid CSS-muutujatest (hele, tume, print). Dokumentatsioon 1.1 kirjeldab tarkvara versiooni 1.5 (1.x enam ei arendata). -->
   <style>
     @font-face {
       font-family: 'FMSS EGA';
@@ -211,7 +211,9 @@
       h2 { margin-top: 0; }
       h2, h3, h4 { break-after: avoid; }
       figure, pre, .formula, tr { break-inside: avoid; }
-      .caption { break-after: avoid; }
+      .caption { break-after: avoid; page-break-after: avoid; }
+      .table-wrap { break-inside: auto; }
+      .table-wrap > table tr:first-child, .table-wrap > table tr:nth-child(2) { break-before: avoid; page-break-before: avoid; }
       pre { white-space: pre-wrap; font-size: 8.5pt; }
       .table-wrap { overflow: visible; }
     }
@@ -237,7 +239,7 @@
   <div>
     <h1>FMSS</h1>
     <p class="subtitle">Paindautomatiseeritud tootmise simulatsioonisüsteem</p>
-    <p class="kind">Diplomiprojekt 1993 · uus versioon brauseris 2026 · dokumentatsioon versioonile 1.5</p>
+    <p class="kind">Diplomiprojekt 1993 · uus versioon brauseris 2026 · dokumentatsioon 1.1 (tarkvara versioon 1.5)</p>
     <div class="dos" role="img" aria-label="FMSS avaekraan: alustatud 1993, valmis 2026"><span class="w">C:\FMSS&gt;FMS</span>
 
 <span class="y">FMSS</span>  Alustatud 1993 … valmis 2026
@@ -329,35 +331,44 @@
         <li><a href="#s5-7">5.7 Joonistamine ja välimused</a></li>
       </ol>
     </li>
-    <li><a href="#kasutajaliides">6 Kasutajaliides</a>
+    <li><a href="#planner">6 Planner</a>
       <ol>
-        <li><a href="#s6-1">6.1 Peamenüü</a></li>
-        <li><a href="#s6-2">6.2 Redaktor</a></li>
-        <li><a href="#s6-3">6.3 Animaator</a></li>
-        <li><a href="#s6-4">6.4 Kokkuvõte ja aruanded</a></li>
+        <li><a href="#s6-1">6.1 Operatiivjuhtimine paindtootmissüsteemis</a></li>
+        <li><a href="#s6-2">6.2 Originaali Planner</a></li>
+        <li><a href="#s6-3">6.3 Vastavus: mis on tehtud</a></li>
+        <li><a href="#s6-4">6.4 Realisatsioon</a></li>
+        <li><a href="#s6-5">6.5 Näide: Näidis-PTS esimesed minutid</a></li>
       </ol>
     </li>
-    <li><a href="#loetelud">7 Andmeobjektid, protseduurid ja EventHandlerid</a>
+    <li><a href="#kasutajaliides">7 Kasutajaliides</a>
       <ol>
-        <li><a href="#s7-1">7.1 Kirjed</a></li>
-        <li><a href="#s7-2">7.2 EventHandlerid</a></li>
-        <li><a href="#s7-3">7.3 Sõnastik – globaalsed nimed</a></li>
+        <li><a href="#s7-1">7.1 Peamenüü</a></li>
+        <li><a href="#s7-2">7.2 Redaktor</a></li>
+        <li><a href="#s7-3">7.3 Animaator</a></li>
+        <li><a href="#s7-4">7.4 Kokkuvõte ja aruanded</a></li>
       </ol>
     </li>
-    <li><a href="#valideerimine">8 Valideerimine</a>
+    <li><a href="#loetelud">8 Andmeobjektid, protseduurid ja EventHandlerid</a>
       <ol>
-        <li><a href="#s8-1">8.1 Meetod</a></li>
-        <li><a href="#s8-2">8.2 Tulemused etappide kaupa</a></li>
-        <li><a href="#s8-3">8.3 Testid</a></li>
-        <li><a href="#s8-4">8.4 Mida valideerimine ei kata</a></li>
+        <li><a href="#s8-1">8.1 Kirjed</a></li>
+        <li><a href="#s8-2">8.2 EventHandlerid</a></li>
+        <li><a href="#s8-3">8.3 Sõnastik – globaalsed nimed</a></li>
       </ol>
     </li>
-    <li><a href="#naidismudelid">9 Näidismudelid</a></li>
-    <li><a href="#kokkuvote">10 Kokkuvõte ja edasiarendus</a>
+    <li><a href="#valideerimine">9 Valideerimine</a>
       <ol>
-        <li><a href="#s10-1">10.1 Kokkuvõte</a></li>
-        <li><a href="#s10-2">10.2 Teadaolevad piirangud</a></li>
-        <li><a href="#s10-3">10.3 Versioon 2.0</a></li>
+        <li><a href="#s9-1">9.1 Meetod</a></li>
+        <li><a href="#s9-2">9.2 Tulemused etappide kaupa</a></li>
+        <li><a href="#s9-3">9.3 Testid</a></li>
+        <li><a href="#s9-4">9.4 Mida valideerimine ei kata</a></li>
+      </ol>
+    </li>
+    <li><a href="#naidismudelid">10 Näidismudelid</a></li>
+    <li><a href="#kokkuvote">11 Kokkuvõte ja edasiarendus</a>
+      <ol>
+        <li><a href="#s11-1">11.1 Kokkuvõte</a></li>
+        <li><a href="#s11-2">11.2 Teadaolevad piirangud</a></li>
+        <li><a href="#s11-3">11.3 Versioon 2.0</a></li>
       </ol>
     </li>
     <li><a href="#kirjandus">Kirjandus</a></li>
@@ -409,6 +420,11 @@
       <tr><td>1.5</td><td>Seitsmes näidis – Mootoriosade tehas (32 pinki); kokkuvõte mahub EGA ekraanile ka paljude konnektoritega.</td></tr>
     </table>
   </div>
+  <p>
+    Versioon 1.5 on versiooni 1 viimane: edasi arendatakse versiooni 2.0. Dokumentatsioonil on oma versioon –
+    <b>1.0</b> (november 2026) kirjeldas tarkvara 1.4–1.5, <b>1.1</b> lisas Planneri peatüki (peatükk 6) ja parandas
+    marsruudi valiku ning protseduuride <code>FindBuf</code> ja <code>FindSysPos</code> kirjelduse.
+  </p>
 
   <h3 id="s1-2">1.2 Mis jäi 1993 pooleli</h3>
   <p>
@@ -461,11 +477,12 @@
     <li><b>Peatükk 2</b> – teooria: paindtootmissüsteemi mõiste, diskreetsündmuste simulatsioon, tsükliaeg ja näitajad.</li>
     <li><b>Peatükk 3</b> – täiendused originaalile: rajavõrgu graaf, ummikud, AGV-d, mitu detaili alusel, rikked, lõpurežiim.</li>
     <li><b>Peatükk 4</b> – mudel: komponendid, ikoonid, mudelifail ja andmekontroll.</li>
-    <li><b>Peatükk 5</b> – tarkvara arhitektuur: moodulid, andmevoog, peatsükkel, sündmused, olekumasinad, Planner.</li>
-    <li><b>Peatükk 6</b> – kasutajaliides: redaktor, animaator, aruanded.</li>
-    <li><b>Peatükk 7</b> – loetelud: andmeobjektid (kirjed), protseduurid ja EventHandlerid.</li>
-    <li><b>Peatükid 8–9</b> – valideerimine ja näidismudelid.</li>
-    <li><b>Peatükk 10</b> – kokkuvõte, piirangud ja versioon 2.0.</li>
+    <li><b>Peatükk 5</b> – tarkvara arhitektuur: moodulid, andmevoog, peatsükkel, sündmused, olekumasinad.</li>
+    <li><b>Peatükk 6</b> – Planner: operatiivjuhtimise teooria, originaali reeglid, vastavus, realisatsioon ja näide.</li>
+    <li><b>Peatükk 7</b> – kasutajaliides: redaktor, animaator, aruanded.</li>
+    <li><b>Peatükk 8</b> – loetelud: andmeobjektid (kirjed), protseduurid ja EventHandlerid.</li>
+    <li><b>Peatükid 9–10</b> – valideerimine ja näidismudelid.</li>
+    <li><b>Peatükk 11</b> – kokkuvõte, piirangud ja versioon 2.0.</li>
   </ul>
 </section>
 
@@ -574,7 +591,7 @@
     Operatiivtaseme juhtimine – <b>Planner</b> – otsustab, millal ja mis tüüpi detail süsteemi tuua, millise
     marsruudi detail saab, millisesse pinki ta järgmisena läheb, millal ta välja saadetakse ning mis saab
     kokkupõrke ohu ja rikke korral (lk 41–44). Diplomitöö andis nende otsuste kriteeriumid loeteluna;
-    uues versioonis on need teostatud ja täiendatud (peatükid 3 ja 5).
+    uues versioonis on need suures osas teostatud ja täiendatud (peatükk 6).
   </p>
 
   <h3 id="s2-2">2.2 Diskreetsündmuste simulatsioon</h3>
@@ -741,7 +758,7 @@ until SIMULATION_DONE</pre>
     <b>korratav</b>: sama mudel ja seeme annavad bitt-täpselt sama tulemuse. Rikete jaoks on igal pingil
     oma juhuarvujada, nii et rikete sisselülitamine ei muuda operatsioonide kestusi – võrreldakse sama
     juhuslikkuse juures (<i>common random numbers</i> [1]). Statistiliste järelduste jaoks jooksutatakse
-    sama mudelit mitme seemnega (peatükk 8).
+    sama mudelit mitme seemnega (peatükk 9).
   </p>
 
   <h3 id="s2-3">2.3 Tsükliaeg ja süsteemi näitajad</h3>
@@ -822,7 +839,7 @@ until SIMULATION_DONE</pre>
     Diplomitöö kirjeldas objekte, sündmusi ja Planneri otsustusreegleid, aga mitte seda, kuidas need
     koos töötavad. Selles peatükis on lahendused, mis tuli uues versioonis välja mõelda või mida
     originaalis polnud. Iga lahendus kontrolliti enne teostust prototüübi või testidega; tulemused on
-    peatükis 8.
+    peatükis 9.
   </p>
 
   <h3 id="s3-1">3.1 Rajavõrgu graaf <span class="tag tag-o">[O nimi, U sisu]</span></h3>
@@ -1239,7 +1256,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     valmis detailid on eraldi real.
   </p>
   <p>
-    Huvitav tulemus tuli Allhanketehase mudelist (peatükk 9): <b>partii järjest vähendab häälestust, aga
+    Huvitav tulemus tuli Allhanketehase mudelist (peatükk 10): <b>partii järjest vähendab häälestust, aga
     tellimuse täitmise aeg kasvab</b>. Tellimusega 4 tükki igast tüübist langes treipinkide häälestuse
     osakaal 16–20 %-lt 6–9 %-le, aga makespan kasvas 4,5–5,1 tunnilt 5,1–5,4 tunnile, sest üks tüüp korraga
     koormab ainult oma marsruudi pinke ja teised ootavad. Partii eelis kehtib siis, kui häälestus on pikk
@@ -1582,7 +1599,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     </table>
   </div>
   <p>
-    Testides lülitab <code>options.CheckInvariants</code> sisse invariantide kontrolli igal sekundil (peatükk 8).
+    Testides lülitab <code>options.CheckInvariants</code> sisse invariantide kontrolli igal sekundil (peatükk 9).
     Globaalsed olekud (<code>SYSTEM_TIME</code>, <code>FirstAtMoment</code>, <code>MachineArray</code> jne) on
     mooduli sees nagu Pascali unit'i muutujad; väljast neid ei muudeta.
   </p>
@@ -1772,75 +1789,11 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 
   <h3 id="s5-6">5.6 Planner <span class="tag tag-o">[O]</span> <span class="tag tag-t">[T]</span></h3>
   <p>
-    Diplomitöös olid Planneri reeglid loeteluna (lk 41–44), algoritm jäi tegemata. Uues versioonis teeb
-    Planner igal kutsel <b>täieliku ülevaatuse</b> alati samas järjekorras (joonis 5.6). See on lihtsam ja
-    töökindlam kui põhjusest sõltuv loogika ning piisavalt kiire. Broneeringud ja pingi laadimise alguse
-    seab Planner kohe, sest need peavad kehtima samal hetkel, mitte alles sündmuse ajal.
+    Operatiivtaseme otsused teeb <code>Planner</code>: millal ja mis tüüpi detail süsteemi tuua, millise marsruudi
+    ja pingi detail saab ning millise ootava detaili pink võtab. Sündmuste käsitlejad kutsuvad teda alati, kui
+    midagi vabanes või saabus, ja iga kutse teeb samad kolm sammu. Planneri teooria, originaali reeglid,
+    realisatsioon ja näide on eraldi peatükis 6.
   </p>
-
-  <figure id="joonis-5-6">
-    <svg viewBox="0 0 780 250" role="img" aria-labelledby="j56-title">
-      <title id="j56-title">Planneri kolm sammu: LoadMachines, AssignDestinations ja AdmitWorkpieces; kutse põhjused vasakul, tulemused paremal.</title>
-      <defs>
-        <marker id="j56-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
-      </defs>
-      <rect class="box-dash" x="10" y="20" width="160" height="200" rx="6"/>
-      <text x="90" y="42" text-anchor="middle" class="t-b">Planner(põhjus)</text>
-      <text x="22" y="70" class="t-dim">• simulatsiooni algus</text>
-      <text x="22" y="94" class="t-dim">• detail puhvri</text>
-      <text x="32" y="110" class="t-dim">sissetuleval kohal</text>
-      <text x="22" y="134" class="t-dim">• pink vabanes</text>
-      <text x="22" y="158" class="t-dim">• detail väljaminevas</text>
-      <text x="32" y="174" class="t-dim">kohas</text>
-      <text x="22" y="198" class="t-dim">• detail lahkus</text>
-      <path class="ln" d="M170,120 H192" marker-end="url(#j56-ah)"/>
-      <!-- sammud -->
-      <rect class="box-acc" x="194" y="20" width="176" height="200" rx="6"/>
-      <text x="282" y="44" text-anchor="middle" class="t-b">1 LoadMachines</text>
-      <text x="206" y="72" class="t-dim">vaba pink võtab puhvrist</text>
-      <text x="206" y="88" class="t-dim">distsipliini järjekorras</text>
-      <text x="206" y="104" class="t-dim">esimese detaili, millega</text>
-      <text x="206" y="120" class="t-dim">saab alustada:</text>
-      <text x="206" y="144" class="t-dim">väljaminev koht ja järgmise</text>
-      <text x="206" y="160" class="t-dim">pingi koht broneeritakse</text>
-      <text x="206" y="196" class="t-mono t-dim">→ Load (puhver → pink)</text>
-      <path class="ln" d="M370,120 H392" marker-end="url(#j56-ah)"/>
-      <rect class="box-acc" x="394" y="20" width="186" height="200" rx="6"/>
-      <text x="487" y="44" text-anchor="middle" class="t-b">2 AssignDestinations</text>
-      <text x="406" y="72" class="t-dim">ootavale detailile sihtkoht:</text>
-      <text x="406" y="88" class="t-dim">FindMach (vaba → pole rikkes</text>
-      <text x="406" y="104" class="t-dim">→ lühim järjekord → lähim),</text>
-      <text x="406" y="120" class="t-dim">valmis detailile OutSys;</text>
-      <text x="406" y="144" class="t-dim">koht broneeritakse ja</text>
-      <text x="406" y="160" class="t-dim">detail läheb teele (Depart)</text>
-      <text x="406" y="196" class="t-mono t-dim">→ OutSys, transport</text>
-      <path class="ln" d="M580,120 H602" marker-end="url(#j56-ah)"/>
-      <rect class="box-acc" x="604" y="20" width="166" height="200" rx="6"/>
-      <text x="687" y="44" text-anchor="middle" class="t-b">3 AdmitWorkpieces</text>
-      <text x="616" y="72" class="t-dim">uus detail, kui</text>
-      <text x="616" y="88" class="t-dim">Ndet / Nkohti &lt; Kl;</text>
-      <text x="616" y="112" class="t-dim">tüüp: ChooseType</text>
-      <text x="616" y="128" class="t-dim">(Segamini / Partii</text>
-      <text x="616" y="144" class="t-dim">järjest, tellimus)</text>
-      <text x="616" y="196" class="t-mono t-dim">→ InSys</text>
-      <text x="10" y="244" class="t-dim">Pargitud detailid tulevad tagasi FromCS kaudu samas sammus 2 nagu uued.</text>
-    </svg>
-    <figcaption><b>Joonis 5.6.</b> Planneri täielik ülevaatus. Sammud on alati selles järjekorras: kõigepealt vabastatakse pingid, siis liigutatakse ootavad detailid ja alles siis tuuakse uusi.</figcaption>
-  </figure>
-
-  <div class="table-wrap">
-    <p class="caption">Tabel 5.4. Planneri otsused</p>
-    <table>
-      <tr><th>Otsus</th><th>Reegel</th><th></th></tr>
-      <tr><td>Millal tuua uus detail</td><td><code>Ndet / (Ntm + Nmt + Nbuf + Ncon) &lt; Kl</code>, vaikimisi <code>Kl</code> = 0,85: detailide arv kohtade arvu suhtes (alused, pingid, puhvrikohad, konnektorid); lisaks igal lahkumisel</td><td><span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></td></tr>
-      <tr><td>Mis tüüpi</td><td>kõige vähem sisse toodud (Segamini) või üks tüüp korraga (Partii järjest); tellimuse režiimis kuni kogus on sees</td><td><span class="tag tag-o">[O]</span></td></tr>
-      <tr><td>Marsruut</td><td>enim hetkel vabade pinkide operatsioone → lähim esimese operatsiooni pink → enim operatsioone samas pingis → prioriteet</td><td><span class="tag tag-o">[O]</span></td></tr>
-      <tr><td>Järgmine pink</td><td>teeb operatsiooni, puhvris vaba koht, tee viib sinna; vaba pink → pole rikkes → lühim järjekord → lähim (tee aeg)</td><td><span class="tag tag-t">[T]</span></td></tr>
-      <tr><td>Järgmine operatsioon</td><td>kui saab teha samas pingis, tehakse seal</td><td><span class="tag tag-o">[O]</span></td></tr>
-      <tr><td>Väljasaatmine</td><td>valmis detail kesklattu (<code>ToCS</code>), kui seal on ruumi, muidu <code>SysOut</code>; praak alati <code>SysOut</code></td><td><span class="tag tag-t">[T]</span></td></tr>
-      <tr><td>Pingi laadimine</td><td>puhvri distsipliini järgi (FIFO, FILO, RANDOM) esimene detail, millega saab alustada</td><td><span class="tag tag-o">[O]</span> <span class="tag tag-t">[T]</span></td></tr>
-    </table>
-  </div>
 
   <h3 id="s5-7">5.7 Joonistamine ja välimused <span class="tag tag-u">[U]</span></h3>
   <p>
@@ -1854,9 +1807,397 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
   </p>
 </section>
 
+<!-- ============================================================ 6 planner -->
+<section class="chapter" id="planner">
+  <h2>6 Planner</h2>
+  <p>
+    Planner on simulaatori operatiivtaseme juhtimine – diplomitöö sõnul „simulatsiooni operatiivtaseme keskne
+    algoritm“ (lk 41). Sündmuste käsitlejad muudavad objektide olekut, aga otsused – millal tuua uus detail,
+    millise marsruudi ta saab, millisesse pinki ta järgmisena läheb, millise detaili pink võtab – teeb Planner.
+    Selles peatükis on otsuste teoreetiline taust, originaali Planner, selle vastavus uue versiooniga,
+    realisatsioon ja näide simulaatori päris logist.
+  </p>
+
+  <h3 id="s6-1">6.1 Operatiivjuhtimine paindtootmissüsteemis</h3>
+  <h4>Planeerimine ja juhtimine</h4>
+  <p>
+    Paindtootmissüsteemi otsused jagatakse tavaliselt kahte tasemesse. <b>Planeerimine</b> eelneb tootmisele:
+    Stecke [9] eristab viit planeerimisülesannet – milliseid detailitüüpe koos toota, kuidas pingid rühmitada,
+    millises vahekorras tüüpe toota, kuidas jaotada piiratud ressursid (alused, rakised) ja kuidas jaotada
+    operatsioonid ning instrumendid pinkide vahel (<i>loading</i>). <b>Operatiivne juhtimine</b> toimub tootmise
+    ajal: hetkeseisu põhjal otsustatakse, mis järgmiseks juhtub. FMSS-is vastab planeerimisele mudel ise
+    (pingid ja nende operatsioonid, marsruudid, puhvrid, alused) ja diplomitöö planeerimistase Adviser
+    (peatükk 2.1); operatiivjuhtimine on Planner.
+  </p>
+  <h4>Jaotusreeglid</h4>
+  <p>
+    Operatiivotsused tehakse enamasti <b>jaotusreeglitega</b> (<i>dispatching rules</i>): kohalike prioriteedireeglitega,
+    mis valivad ootavate hulgast ühe hetkeseisu järgi, ilma kogu tulevikku ette planeerimata – näiteks
+    „esimesena saabunu enne“ (FIFO), „lühim operatsioon enne“ või „lähim pink“. Panwalkar ja Iskander [10] kogusid
+    üle saja sellise reegli ja liigitasid need. Reeglite mõju sõltub süsteemist, seepärast hinnatakse neid
+    tavaliselt simulatsiooniga; paindtootmissüsteemi laadimis- ja juhtimisreegleid uurisid simulatsiooniga
+    näiteks Stecke ja Solberg [11]. Jaotusreeglid sobivad simulaatorisse hästi: need on kiired, deterministlikud
+    ja neid saab katsetes vahetada. Diplomitöö Planneri kriteeriumid ongi jaotusreeglid.
+  </p>
+  <h4>Operatiivotsuste liigid</h4>
+  <ol>
+    <li><b>Sissetoomine</b> (<i>order release</i>) – millal ja mis tüüpi detail süsteemi tuua. Kui detaile tuuakse
+      lihtsalt plaani järgi („tõukav“ süsteem), kasvab kitsaskoha ees järjekord. Alternatiiv on hoida süsteemis
+      piiratud arv detaile: CONWIP-süsteemis [12] tuuakse uus detail alles siis, kui mõni lahkub. Little'i
+      seaduse järgi (peatükk 2.3) määrab detailide arv siis tsükliaja, kui kitsaskoht on küllastunud.
+      Diplomitöö reegel – koormustegur <code>Kl</code> ja „uus detail alati, kui mõni lahkus“ – on sama mõttega.</li>
+    <li><b>Marsruut</b> (<i>routing</i>) – millist alternatiivset marsruuti ja millist pinki operatsiooni jaoks
+      kasutada. See on marsruudi paindlikkus Browne jt [3] mõttes. Otsuse võib teha sisenemisel (staatiline) või
+      iga operatsiooni ees (dünaamiline).</li>
+    <li><b>Järjestus pingi ees</b> (<i>sequencing</i>) – millise ootava detaili pink võtab (puhvri distsipliin).</li>
+    <li><b>Transport</b> – milline transpordivahend sõidu teeb. Egbelu ja Tanchoco [13] eristavad tööjaama
+      algatatud valikut (vaba sõiduk valitakse soovi järgi, nt lähim) ja sõiduki algatatud valikut (vabanenud
+      sõiduk valib järgmise töö).</li>
+    <li><b>Erandid</b> – rikked ja ummikud. Ummikute vältimine broneerimisega on kirjeldatud peatükis 3.2.</li>
+  </ol>
+
+  <h3 id="s6-2">6.2 Originaali Planner <span class="tag tag-o">[O]</span></h3>
+  <p>
+    Diplomitöö (lk 41–44) andis Plannerile kuus ülesannet ja igaühele kriteeriumide loetelu. Algoritm ise jäi
+    tegemata (lk 41: valmis olid <code>MinuteMan</code>, <code>GetEvent</code>, <code>PutEvent</code>,
+    <code>ProgTM</code>, <code>FindMach</code>, <code>FindPal</code>).
+  </p>
+  <ol>
+    <li><b>Süsteemi koormamine detailidega</b> – „üks olulisemaid lõike kogu süsteemi töös“, kahe alamülesandega.
+      <br><i>I. Millal tuua</i>: (1) süsteemi üldine koormus langeb alla piiri
+      <code>Ndet / (Ntm + Nmt + Nbuf) &lt; Kl</code>, eksperthinnanguna <code>Kl</code> ≈ 0,85; (2) mõne alamsüsteemi
+      (transport, pingid, puhvrid) koormus langeb alla piiri; (3) alati, kui mõni detail on lahkunud;
+      (4) kindlate ajavahemike tagant; (5) ajakava järgi; (6) partiidena.
+      <br><i>II. Mis tüüpi</i> (kui hetk on määratud statistiliselt): (1) kõige vähem töödeldud tüüp – „garanteerime
+      enam-vähem üheaegse lõpetamise“; (2) üht tüüpi järjest – lühikesed ajad, „kuid üldine tsükkel läheb
+      pikaks“; (3) tüüp, mille marsruudis on enim vabu pinke. Ajakava ja partii korral on tüüp ette antud.</li>
+    <li><b>Marsruudi valik</b> detaili saabumisel: (1) enim operatsioone, mille pingid on hetkel vabad;
+      (2) esimese operatsiooni pink on lähim; (3) võimalikult palju operatsioone samal pingil. Võrdsete
+      võimaluste korral otsustab prioriteet.</li>
+    <li><b>Väljasaatmine</b>, kui kõik operatsioonid on tehtud – valik on ainult väljundpositsioonide vahel.</li>
+    <li><b>Järgmise operatsiooni valik</b>: kui seda saab teha samas pingis, tehakse seal; muidu leitakse järgmine
+      sobiv pink ja tee selleni.</li>
+    <li><b>Konfliktid</b>: kahe käru ohtliku lähenemise korral kärud seisatakse ja Planner otsustab, kes läheb
+      edasi; tavaliselt programmeeritakse kärud ümber.</li>
+    <li><b>Erandid</b>: rike võib toimuda igal hetkel; seade seiskub remondi ajaks; rike pingis teeb töödeldava
+      detaili praagiks.</li>
+  </ol>
+
+  <h3 id="s6-3">6.3 Vastavus: mis on tehtud</h3>
+  <p>
+    Tabelis on originaali reeglid ja nende teostus versioonis 1.5. Tegemata reeglid on versiooni 2.0 tööde
+    nimekirjas (peatükk 11.3): need muudaksid simulaatori tulemusi ja versiooni 1 enam ei arendata.
+  </p>
+  <div class="table-wrap">
+    <p class="caption">Tabel 6.1. Originaali Planner ja selle teostus</p>
+    <table>
+      <tr><th>Ülesanne</th><th>Originaali kriteerium</th><th>FMSS 1.5</th></tr>
+      <tr><td rowspan="4">1 I millal tuua</td><td>1 üldkoormus &lt; <code>Kl</code></td><td>tehtud – <code>AdmitWorkpieces</code>; valemis ka konnektorid ja <code>Ntm</code> on aluste arv (peatükk 3.4) <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></td></tr>
+      <tr><td>3 pärast lahkumist</td><td>tehtud kaudselt – Planner kutsutakse igal lahkumisel ja kontrollib piiri uuesti</td></tr>
+      <tr><td>6 partiidena</td><td>tellimuse režiim <code>Sim.EndMode</code> = <code>Order</code> (peatükk 3.6) <span class="tag tag-u">[U]</span></td></tr>
+      <tr><td>2 alamsüsteemi koormus, 4 intervall, 5 ajakava</td><td><b>tegemata</b> (V2)</td></tr>
+      <tr><td rowspan="2">1 II mis tüüpi</td><td>1 vähim töödeldud, 2 üht tüüpi järjest</td><td>tehtud – <code>ChooseType</code>: Segamini, Partii järjest</td></tr>
+      <tr><td>3 enim vabu pinke marsruudis</td><td><b>tegemata</b> (V2)</td></tr>
+      <tr><td rowspan="2">2 marsruut</td><td>1 enim vabade pinkide operatsioone; viigi korral prioriteet</td><td>tehtud – <code>ChooseRoute</code> sisenemisel</td></tr>
+      <tr><td>2 lähim esimese operatsiooni pink, 3 enim operatsioone samal pingil</td><td><b>tegemata</b> (V2) – vt näide 6.5</td></tr>
+      <tr><td>3 väljasaatmine</td><td>väljundpositsioonide vahel</td><td><code>OutSysProc</code>: kesklattu, kui seal on ruumi üle ummikuvaru, muidu <code>SysOut</code>; praak alati <code>SysOut</code>. Eraldi protseduuri <code>FindSysPos</code> pole <span class="tag tag-t">[T]</span></td></tr>
+      <tr><td>4 järgmine operatsioon</td><td>samas pingis, muidu sobiv pink ja tee</td><td><code>ProcessProc</code> (samas pingis); <code>FindMach</code> (pink – tema sisendpuhver on sihtkoht, eraldi <code>FindBuf</code>-i pole) ja <code>Depart</code> (tee) <span class="tag tag-t">[T]</span></td></tr>
+      <tr><td>5 konfliktid</td><td>kärud seisatakse, Planner otsustab</td><td><b>teisiti</b>: kokkupõrkeid välditakse tsoonide ja plokkidega; vastastikuse ootamise lahendab <code>CollisionProc</code> transpordi juhtimises (peatükk 3.3) <span class="tag tag-u">[U]</span></td></tr>
+      <tr><td>6 erandid</td><td>rike, praak välja</td><td><code>CrashProc</code>; <code>FindMach</code> eelistab tervet pinki; Planner kutsutakse (peatükk 3.5)</td></tr>
+      <tr><td>uued</td><td>–</td><td>pingi laadimine puhvrist (<code>LoadMachines</code>), broneerimine, ummiku vältimine ja avastamine (peatükk 3.2), käru valik (<code>FindPal</code>) <span class="tag tag-u">[U]</span></td></tr>
+    </table>
+  </div>
+
+  <h3 id="s6-4">6.4 Realisatsioon <span class="tag tag-t">[T]</span> <span class="tag tag-u">[U]</span></h3>
+
+  <h4>Kutsepunktid</h4>
+  <p>
+    Planner on üks protseduur <code>Planner(põhjus)</code> (<code>core/fms_sim.js</code>). Seda kutsuvad sündmuste
+    käsitlejad, kui midagi vabanes või saabus, ja <code>SimInit</code> alguses. Sündmusi lisavad ainult
+    käsitlejad ja Planner <span class="tag tag-o">[O]</span>.
+  </p>
+  <div class="table-wrap">
+    <p class="caption">Tabel 6.2. Planneri kutsepunktid</p>
+    <table>
+      <tr><th>Põhjus</th><th>Kes kutsub</th><th>Mis juhtus</th></tr>
+      <tr><td><code>Init</code></td><td><code>SimInit</code></td><td>simulatsiooni algus</td></tr>
+      <tr><td><code>InSys</code></td><td><code>InSysProc</code></td><td>uus detail jõudis <code>FromCS</code>-i ja sai marsruudi</td></tr>
+      <tr><td><code>PalletUnloaded</code></td><td><code>LoadProc</code> → <code>AfterPalletAtStation</code></td><td>detail laaditi aluselt maha – puhvrisse, lattu, väljundisse või konnektorisse</td></tr>
+      <tr><td><code>BufferFreed</code></td><td><code>LoadProc</code> (jaam → alus)</td><td>detail läks alusele – puhvri väljaminev koht, <code>FromCS</code> või konnektor vabanes</td></tr>
+      <tr><td><code>MachineLoaded</code></td><td><code>LoadProc</code> (puhver → pink)</td><td>puhvri sissetulev koht vabanes</td></tr>
+      <tr><td><code>MachineFree</code></td><td><code>LoadProc</code> (pink → puhver)</td><td>pink vabanes (ka pärast remonti)</td></tr>
+      <tr><td><code>MachineDown</code></td><td><code>CrashProc</code></td><td>pink läks rikki, järgmise pingi broneering vabanes</td></tr>
+    </table>
+  </div>
+
+  <h4>Täielik ülevaatus</h4>
+  <p>
+    Põhjus on ainult info – Planner teeb igal kutsel <b>täieliku ülevaatuse</b> alati samas järjekorras
+    (joonis 6.1). Põhjusest sõltuv loogika („pink vabanes → vaata ainult seda pinki“) oleks kiirem, aga sellest
+    jääks kergesti mõni juhtum välja: üks vabanenud koht võib lubada alustada hoopis teisel pingil. Täielik
+    ülevaatus on lihtne ja töökindel ning piisavalt kiire – Näidis-PTS-is on 8 tunni jooksul 756 Planneri kutset
+    ja simulatsioon võtab alla sekundi.
+  </p>
+  <p>
+    Järjekord on oluline. <b>Kõigepealt pingid</b>: kui pink võtab puhvrist detaili, vabaneb puhvri sissetulev koht
+    ja järgmine samm saab sinna detaili saata. <b>Siis ootavad detailid</b> (vanim enne), alles <b>siis uued</b> – nii
+    ei möödu süsteemi toodud uus detail kauem oodanud detailist. Broneeringud ja pingi laadimise alguse seab
+    Planner kohe, mitte alles sündmuse ajal, sest järgmine samm peab neid juba arvestama.
+  </p>
+
+  <figure id="joonis-6-1">
+    <svg viewBox="0 0 780 250" role="img" aria-labelledby="j61-title">
+      <title id="j61-title">Planneri kolm sammu: LoadMachines, AssignDestinations ja AdmitWorkpieces; kutse põhjused vasakul, tulemused paremal.</title>
+      <defs>
+        <marker id="j61-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
+      </defs>
+      <rect class="box-dash" x="10" y="20" width="160" height="200" rx="6"/>
+      <text x="90" y="42" text-anchor="middle" class="t-b">Planner(põhjus)</text>
+      <text x="22" y="70" class="t-dim">• simulatsiooni algus</text>
+      <text x="22" y="94" class="t-dim">• detail puhvri</text>
+      <text x="32" y="110" class="t-dim">sissetuleval kohal</text>
+      <text x="22" y="134" class="t-dim">• pink vabanes</text>
+      <text x="22" y="158" class="t-dim">• detail väljaminevas</text>
+      <text x="32" y="174" class="t-dim">kohas</text>
+      <text x="22" y="198" class="t-dim">• detail lahkus</text>
+      <path class="ln" d="M170,120 H192" marker-end="url(#j61-ah)"/>
+      <!-- sammud -->
+      <rect class="box-acc" x="194" y="20" width="176" height="200" rx="6"/>
+      <text x="282" y="44" text-anchor="middle" class="t-b">1 LoadMachines</text>
+      <text x="206" y="72" class="t-dim">vaba pink võtab puhvrist</text>
+      <text x="206" y="88" class="t-dim">distsipliini järjekorras</text>
+      <text x="206" y="104" class="t-dim">esimese detaili, millega</text>
+      <text x="206" y="120" class="t-dim">saab alustada:</text>
+      <text x="206" y="144" class="t-dim">väljaminev koht ja järgmise</text>
+      <text x="206" y="160" class="t-dim">pingi koht broneeritakse</text>
+      <text x="206" y="196" class="t-mono t-dim">→ Load (puhver → pink)</text>
+      <path class="ln" d="M370,120 H392" marker-end="url(#j61-ah)"/>
+      <rect class="box-acc" x="394" y="20" width="186" height="200" rx="6"/>
+      <text x="487" y="44" text-anchor="middle" class="t-b">2 AssignDestinations</text>
+      <text x="406" y="72" class="t-dim">ootavale detailile sihtkoht:</text>
+      <text x="406" y="88" class="t-dim">FindMach (vaba → pole rikkes</text>
+      <text x="406" y="104" class="t-dim">→ lühim järjekord → lähim),</text>
+      <text x="406" y="120" class="t-dim">valmis detailile OutSys;</text>
+      <text x="406" y="144" class="t-dim">koht broneeritakse ja</text>
+      <text x="406" y="160" class="t-dim">detail läheb teele (Depart)</text>
+      <text x="406" y="196" class="t-mono t-dim">→ OutSys, transport</text>
+      <path class="ln" d="M580,120 H602" marker-end="url(#j61-ah)"/>
+      <rect class="box-acc" x="604" y="20" width="166" height="200" rx="6"/>
+      <text x="687" y="44" text-anchor="middle" class="t-b">3 AdmitWorkpieces</text>
+      <text x="616" y="72" class="t-dim">uus detail, kui</text>
+      <text x="616" y="88" class="t-dim">Ndet / Nkohti &lt; Kl;</text>
+      <text x="616" y="112" class="t-dim">tüüp: ChooseType</text>
+      <text x="616" y="128" class="t-dim">(Segamini / Partii</text>
+      <text x="616" y="144" class="t-dim">järjest, tellimus)</text>
+      <text x="616" y="196" class="t-mono t-dim">→ InSys</text>
+      <text x="10" y="244" class="t-dim">Pargitud detailid tulevad tagasi FromCS kaudu samas sammus 2 nagu uued.</text>
+    </svg>
+    <figcaption><b>Joonis 6.1.</b> Planneri täielik ülevaatus. Sammud on alati selles järjekorras: kõigepealt vabastatakse pingid, siis liigutatakse ootavad detailid ja alles siis tuuakse uusi.</figcaption>
+  </figure>
+
+  <h4>Sammud</h4>
+  <p>Pseudokood on originaali stiilis (Pascal); tegelikud nimed on samad mis koodis.</p>
+<pre>procedure Planner(pohjus);
+begin
+  if not StopNewOps then LoadMachines;              { 1 pingid võtavad puhvrist }
+  if not TransportStopped then AssignDestinations;  { 2 ootajad saavad sihtkoha }
+  if not ENDING then AdmitWorkpieces;               { 3 uued detailid }
+end;
+
+procedure LoadMachines;
+  for iga pink olekus IDLE do
+    ootavad := sisendpuhvri detailid olekus WAIT_MACHINE;
+    if ootavad tühi or väljaminevat kohta pole then continue;
+    for detail in OrderByDiscipline(ootavad) do     { FIFO, FILO, RANDOM }
+      jargmine := NextOpElsewhere(detail, pink);    { op, mida pink ei tee }
+      if jargmine = nil then begin vali; break end;
+      p := FindMach(detail, jargmine, mitte see pink);
+      if p leitud then begin
+        vali; broneeri koht p puhvris;              { PlannedDestination }
+        break
+      end;
+    end;
+    if valitud then begin
+      broneeri väljaminev koht; pink := LOADING;
+      PutEvent(Load puhver → pink, SYSTEM_TIME + LoadTime)
+    end;
+
+procedure AssignDestinations;
+  for detail in (WAIT_DEST või PARKED, vanim enne) do
+    if sihtkoht olemas then Depart(detail)          { konnektor oli kinni }
+    else if marsruut tehtud then PutEvent(OutSys)   { OutSysProc: ladu/SysOut }
+    else begin
+      p := FindMach(detail, CurrentOp(detail));
+      if p leitud then begin
+        broneeri koht p puhvris;
+        if pargitud then tõsta FromCS järjekorda;
+        Depart(detail)                              { tee, konnektorid }
+      end
+    end;
+
+procedure AdmitWorkpieces;
+  while Ndet / Nkohti &lt; Kl do begin    { alused + pingid + puhvrikohad + konnektorid }
+    tyyp := ChooseType; if tyyp = nil then break;
+    loo detail olekus ENTERING; PutEvent(InSys, SYSTEM_TIME)
+  end;</pre>
+  <p>
+    <code>LoadMachines</code> on koht, kus töötab ummiku vältimise reegel (peatükk 3.2): pink ei alusta detailiga,
+    kui detaili järgmise pingi puhvris pole talle kohta. Kui distsipliini järgi esimesega alustada ei saa,
+    proovitakse järgmist ootavat detaili. <code>InSysProc</code> valib uuele detailile marsruudi
+    (<code>ChooseRoute</code>) ja kutsub siis Planneri.
+  </p>
+
+  <h4>Kriteeriumid</h4>
+  <p>
+    Mitme kriteeriumiga valikud on tehtud <b>leksikograafilise võtmena</b>: iga kandidaadi kohta arvutatakse
+    arvude loend ja valitakse väikseim, võrreldes loendeid vasakult paremale (<code>CompareScores</code>). Esimene
+    kriteerium otsustab; järgmist vaadatakse ainult viigi korral. Nii on originaali „eelistus … siis …“ otse
+    koodis näha ja kriteeriume on lihtne lisada.
+  </p>
+  <div class="table-wrap">
+    <p class="caption">Tabel 6.3. Planneri otsused ja kriteeriumid</p>
+    <table>
+      <tr><th>Otsus</th><th>Protseduur</th><th>Reegel (väiksem võti parem)</th><th></th></tr>
+      <tr><td>Millal tuua uus detail</td><td><code>AdmitWorkpieces</code></td><td><code>Ndet / (Ntm + Nmt + Nbuf + Ncon) &lt; Kl</code>, vaikimisi <code>Kl</code> = 0,85; kontroll igal Planneri kutsel (ka lahkumisel)</td><td><span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></td></tr>
+      <tr><td>Mis tüüpi</td><td><code>ChooseType</code></td><td>Segamini: kõige vähem sisse toodud tüüp; Partii järjest: tüübid prioriteedi järjekorras, <code>Batch</code> tükki järjest; tellimuse režiimis kuni kogus on sees; partii 0 – tüüpi ei tooda</td><td><span class="tag tag-o">[O]</span> <span class="tag tag-t">[T]</span></td></tr>
+      <tr><td>Marsruut</td><td><code>ChooseRoute</code></td><td>(− vabade pinkide operatsioonide arv, prioriteet). Originaali kriteeriumid 2–3 on tegemata</td><td><span class="tag tag-o">[O]</span></td></tr>
+      <tr><td>Järgmine pink</td><td><code>FindMach</code></td><td>kandidaadid: teeb operatsiooni, puhvris on vaba koht, tee viib sinna; võti (pink pole vaba või järjekord pole tühi, pink on rikkes, järjekord + hõivatus, tee aeg)</td><td><span class="tag tag-t">[T]</span></td></tr>
+      <tr><td>Järgmine operatsioon</td><td><code>ProcessProc</code></td><td>kui pink teeb järgmise operatsiooni, tehakse see seal (häälestus 0, kui operatsioon sama)</td><td><span class="tag tag-o">[O]</span></td></tr>
+      <tr><td>Detail pingi ees</td><td><code>LoadMachines</code></td><td>puhvri distsipliini järjekorras (FIFO, FILO, RANDOM) esimene, millega saab alustada</td><td><span class="tag tag-o">[O]</span> <span class="tag tag-t">[T]</span></td></tr>
+      <tr><td>Väljasaatmine</td><td><code>OutSysProc</code></td><td>kesklattu, kui seal on ruumi üle ummikuvaru (<code>PARKING_RESERVE</code>), muidu <code>SysOut</code>; praak alati <code>SysOut</code></td><td><span class="tag tag-t">[T]</span></td></tr>
+    </table>
+  </div>
+
+  <h4>Broneeringud</h4>
+  <p>
+    Planneri otsus on <b>broneering</b>: koht loetakse hõivatuks hetkest, kui detail selle saab
+    (<code>ReserveSlot</code>), ja vabaneb, kui detail kohale jõuab (<code>ReleaseSlot</code> laadimise lõpus).
+    <code>LoadMachines</code> broneerib pingi väljamineva koha ja vajadusel järgmise pingi koha
+    (<code>PlannedDestination</code> – pärast töötlemist läheb detail sinna ilma Planneri uue otsuseta);
+    <code>AssignDestinations</code> broneerib sihtpingi puhvrikoha. <code>Depart</code> leiab vaba tee
+    (<code>FreePath</code>) ja broneerib korraga kõik selle konnektorid; kui vaba teed pole, jääb detail ootama ja
+    järgmine Planneri kutse proovib uuesti. Broneeringute tõttu ei ole alusel kunagi detaili, kellel pole
+    kuhu minna – see on ummikute vältimise alus.
+  </p>
+
+  <h4>Otsused väljaspool Plannerit</h4>
+  <p>
+    Kõiki juhtimisotsuseid ei tee Planner (joonis 6.2). Osa on käsitlejates, sest need kuuluvad konkreetse
+    sündmuse juurde: marsruudi valik (<code>InSysProc</code>), väljundi valik (<code>OutSysProc</code>) ja ette
+    broneeritud sihtkohta minek (<code>LoadProc</code>). <b>Transpordi juhtimine</b> töötab igal sekundil
+    <code>MinuteMan</code>-i osana: käru valik (<code>FindPal</code> – tööjaama algatatud „kiireim käru“, lisaks
+    sõiduki algatatud valik <code>CartPickupCandidate</code>), käru tee (<code>ProgTM</code>), tsoonid ja plokid ning
+    vastastikune ootamine (<code>CollisionProc</code>). <b>Ummiku avastamine</b> (<code>DetectDeadlock</code>) töötab
+    peatsüklis pärast sündmusi; pargitud detaili toob hiljem tagasi Planner nagu iga ootava detaili.
+  </p>
+
+  <figure id="joonis-6-2">
+    <svg viewBox="0 0 780 300" role="img" aria-labelledby="j62-title">
+      <title id="j62-title">Juhtimise kihid: sündmused kutsuvad Plannerit, mis broneerib ja lisab sündmusi; käsitlejates on marsruudi ja väljundi valik; transpordi juhtimine ja ummiku avastamine töötavad igal sekundil.</title>
+      <defs>
+        <marker id="j62-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0,0 L10,5 L0,10 z"/></marker>
+        <marker id="j62-ah-acc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-acc" d="M0,0 L10,5 L0,10 z"/></marker>
+      </defs>
+      <!-- sündmused -->
+      <rect class="box" x="10" y="20" width="200" height="120" rx="6"/>
+      <text x="110" y="42" text-anchor="middle" class="t-b">Sündmuste käsitlejad</text>
+      <text x="22" y="66" class="t-mono t-small">InSysProc</text><text x="120" y="66" class="t-dim t-small">ChooseRoute</text>
+      <text x="22" y="86" class="t-mono t-small">OutSysProc</text><text x="120" y="86" class="t-dim t-small">ToCS / SysOut</text>
+      <text x="22" y="106" class="t-mono t-small">LoadProc</text><text x="120" y="106" class="t-dim t-small">Depart (ette</text>
+      <text x="120" y="122" class="t-dim t-small">broneeritud)</text>
+      <!-- planner -->
+      <rect class="box-acc" x="290" y="20" width="200" height="120" rx="6"/>
+      <text x="390" y="42" text-anchor="middle" class="t-b">Planner(põhjus)</text>
+      <text x="302" y="66" class="t-small">1 LoadMachines</text>
+      <text x="302" y="86" class="t-small">2 AssignDestinations</text>
+      <text x="302" y="106" class="t-small">3 AdmitWorkpieces</text>
+      <text x="302" y="126" class="t-dim t-small">FindMach, ChooseType</text>
+      <path class="ln-acc" d="M210,60 H288" marker-end="url(#j62-ah-acc)"/>
+      <text x="250" y="54" text-anchor="middle" class="t-acc t-small">põhjus</text>
+      <path class="ln" d="M290,110 H212" marker-end="url(#j62-ah)"/>
+      <text x="250" y="104" text-anchor="middle" class="t-dim t-small">sündmused</text>
+      <!-- broneeringud -->
+      <rect class="box" x="570" y="20" width="200" height="120" rx="6"/>
+      <text x="670" y="42" text-anchor="middle" class="t-b">Broneeringud</text>
+      <text x="582" y="66" class="t-dim t-small">puhvrikohad (ReserveSlot)</text>
+      <text x="582" y="86" class="t-dim t-small">tee konnektorid (Depart)</text>
+      <text x="582" y="106" class="t-dim t-small">järgmise pingi koht</text>
+      <text x="582" y="122" class="t-dim t-small">(PlannedDestination)</text>
+      <path class="ln" d="M490,80 H568" marker-end="url(#j62-ah)"/>
+      <!-- igal sekundil -->
+      <text x="10" y="176" class="t-dim">igal sekundil (peatsükkel)</text>
+      <rect class="box-dash" x="10" y="186" width="370" height="100" rx="6"/>
+      <text x="195" y="208" text-anchor="middle" class="t-b">Transpordi juhtimine (MinuteMan)</text>
+      <text x="22" y="232" class="t-small">FindPal – käru valik; CartPickupCandidate</text>
+      <text x="22" y="252" class="t-small">ProgTM – tee; tsoonid ja plokid</text>
+      <text x="22" y="272" class="t-small">CollisionProc – vastastikune ootamine</text>
+      <rect class="box-dash" x="400" y="186" width="370" height="100" rx="6"/>
+      <text x="585" y="208" text-anchor="middle" class="t-b">Ummiku avastamine (DetectDeadlock)</text>
+      <text x="412" y="232" class="t-small">püsipunkt: millised puhvrid saavad edasi</text>
+      <text x="412" y="252" class="t-small">kauem oodanud detail pargitakse kesklattu</text>
+      <text x="412" y="272" class="t-small">tagasi toob Planner (AssignDestinations)</text>
+      <path class="ln" d="M670,140 V184" marker-end="url(#j62-ah)"/>
+      <text x="678" y="166" class="t-dim t-small">kasutab</text>
+      <path class="ln" d="M600,140 V160 H195 V184" marker-end="url(#j62-ah)"/>
+      <text x="300" y="156" class="t-dim t-small">sõidusoovid (detail ootab alust)</text>
+    </svg>
+    <figcaption><b>Joonis 6.2.</b> Juhtimise kihid. Planner teeb sihtkohtade, pinkide ja sissetoomise otsused; transport ja ummikud on eraldi kihid, mis kasutavad Planneri broneeringuid.</figcaption>
+  </figure>
+
+  <h4>Planner ja lõpurežiim</h4>
+  <p>
+    Pärast kella <i>T</i> (peatükk 3.6) lülitab lõpurežiim Planneri samme välja: <b>Kellani ja pink tühi</b> – pingid
+    ei alusta (<code>StopNewOps</code>) ja sihtkohti ei anta (<code>TransportStopped</code>); <b>Kellani ja liin tühi</b> –
+    pingid ei alusta, sihtkoha saavad ainult valmis detailid ja praak; kõigis lõpetamisega režiimides uusi detaile
+    ei tooda (<code>ENDING</code>). Tellimuse režiimis toob <code>ChooseType</code> ainult tüüpe, mille tellitud kogus
+    pole veel sees.
+  </p>
+
+  <h4>Planneri piirid ja versioon 2.0</h4>
+  <p>
+    Versioonis 1.5 on Planner üks protseduur, aga koos käsitlejate, transpordi ja ummiku avastamisega on
+    juhtimine osa 3400-realisest moodulist <code>fms_sim.js</code> ning osa otsuseid on käsitlejates. Versiooni 2.0
+    tööde nimekirjas on: Planner eraldi moodulina, mis teeb kõik otsused (käsitlejad ainult teatavad, mis juhtus);
+    originaali tegemata reeglid valikuliste seadetena; ning nende hindamine simulatsiooniga nagu jaotusreeglite
+    puhul tavaks (peatükk 6.1).
+  </p>
+
+  <h3 id="s6-5">6.5 Näide: Näidis-PTS esimesed minutid</h3>
+  <p>
+    Tabelis on Näidis-PTS (peatükk 10) esimesed 13 minutit simulaatori logist (seeme 1). Mudelis on 6 alust,
+    2 pinki ja 2 puhvrit kolme kohaga – kokku 14 kohta. MT1 teeb treimist ja puurimist, MT2 freesimist ja
+    puurimist; Võllil on kaks marsruuti (treimine → freesimine, prioriteet 1; treimine → puurimine, prioriteet 2),
+    Äärikul üks (freesimine → puurimine).
+  </p>
+  <div class="table-wrap">
+    <p class="caption">Tabel 6.4. Planneri otsused Näidis-PTS-is (aeg sekundites)</p>
+    <table>
+      <tr><th class="num">t</th><th>Sündmus</th><th>Planner ja otsus</th></tr>
+      <tr><td class="num">0</td><td><code>SimInit</code></td><td><code>Init</code> → <code>AdmitWorkpieces</code>: 12 / 14 = 0,86 ≥ 0,85, seega tuuakse 12 detaili (12 × <code>InSys</code>)</td></tr>
+      <tr><td class="num">0</td><td>12 × <code>InSys</code></td><td><code>ChooseRoute</code>: Võllil on mõlemal marsruudil kaks vaba pingi operatsiooni – viik, prioriteet valib esimese (treimine → freesimine). Iga <code>InSys</code> kutsub Planneri; <code>AssignDestinations</code> broneerib WP0, WP2, WP4 (Võll) jaoks BUF1 ja WP1, WP3, WP5 (Äärik) jaoks BUF2 kolm kohta. Puhvrid on broneeringuid täis, WP6…WP11 ootavad sihtkohta. Alguses 13 Planneri kutset</td></tr>
+      <tr><td class="num">18</td><td><code>StopMov</code></td><td>alus on <code>FromCS</code> jaamas, WP0 laaditakse alusele (Planner ei osale)</td></tr>
+      <tr><td class="num">38</td><td><code>Load</code></td><td>WP0 on alusel → <code>BufferFreed</code>; uusi otsuseid pole (puhvrid on broneeritud)</td></tr>
+      <tr><td class="num">221</td><td><code>Load</code></td><td>WP1 jõudis BUF2-sse → <code>PalletUnloaded</code> → <code>LoadMachines</code>: MT2 on vaba, Ääriku mõlemad operatsioonid teeb MT2 ise, järgmist pinki pole vaja → <code>Load</code> WP1 → MT2</td></tr>
+      <tr><td class="num">239</td><td><code>Load</code></td><td>WP0 jõudis BUF1-sse → <code>LoadMachines</code>: MT1 on vaba, aga WP0 järgmine operatsioon (freesimine) on ainult MT2-s ja BUF2 kolm kohta on broneeritud → <code>FindMach</code> ei leia kohta, <b>MT1 ei alusta</b></td></tr>
+      <tr><td class="num">241</td><td><code>Load</code></td><td>WP1 on MT2-s → häälestus (90 s), seejärel freesimine ja samas pingis puurimine</td></tr>
+      <tr><td class="num">759</td><td><code>Load</code></td><td>WP1 on BUF2 väljaminevas kohas → <code>MachineFree</code> → MT2 võtab WP3; WP1 marsruut on tehtud → <code>OutSys</code></td></tr>
+      <tr><td class="num">775</td><td><code>Load</code></td><td>WP1 läks alusele (sihtkoht kesklaos) → <code>BufferFreed</code> → BUF2-s on koht → <code>LoadMachines</code> broneerib selle WP0-le ja <b>MT1 alustab</b></td></tr>
+    </table>
+  </div>
+  <p>
+    MT1 ootas 536 sekundit, kuigi temal oli töö olemas. Põhjus on kahe reegli koosmõju: ummiku vältimise reegel
+    ei lase alustada, kui järgmise pingi puhvris pole kohta, ja marsruudi valik vaatab ainult vabade pinkide arvu.
+    Võlli teise marsruudi mõlemad operatsioonid teeb MT1 ise – originaali kolmas kriteerium („võimalikult palju
+    operatsioone samal pingil“) oleks valinud selle ja MT1 oleks saanud alustada kohe. Sama koosmõju selgitab,
+    miks Näidis-PTS-is on MT2 kitsaskoht (99 %) ja MT1 rakendatus ainult umbes 60 % (peatükk 9). See on hea
+    näide, miks jaotusreegleid tuleb hinnata simulatsiooniga ja miks puuduvad kriteeriumid on versiooni 2.0
+    nimekirjas.
+  </p>
+</section>
+
 <!-- ============================================================ 6 kasutajaliides -->
 <section class="chapter" id="kasutajaliides">
-  <h2>6 Kasutajaliides</h2>
+  <h2>7 Kasutajaliides</h2>
   <p>
     Liides järgib diplomitöö kuuendat peatükki: peamenüü üleval, alammenüüd vertikaalselt, kõik on
     tehtav nii klaviatuurilt kui ka hiirega. Menüüde nimed on ingliskeelsed nagu originaalis, vihjed,
@@ -1864,9 +2205,9 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     välimust igal ajal. Lühijuhend on saidi avalehel.
   </p>
 
-  <h3 id="s6-1">6.1 Peamenüü <span class="tag tag-o">[O]</span></h3>
+  <h3 id="s7-1">7.1 Peamenüü <span class="tag tag-o">[O]</span></h3>
   <div class="table-wrap">
-    <p class="caption">Tabel 6.1. Peamenüü (diplomitöö joon. 6.1–6.2)</p>
+    <p class="caption">Tabel 7.1. Peamenüü (diplomitöö joon. 6.1–6.2)</p>
     <table>
       <tr><th>Menüü</th><th>Punktid</th><th>Märkus</th></tr>
       <tr><td><b>File</b></td><td>Load, Pick, New, Save, Write as</td><td>Load avab näidise või faili arvutist, Save laadib faili alla, Pick – 10 viimast mudelit brauseri mälus. Directory, Change dir, Rename ja Delete on hallid (brauseris pole ketast).</td></tr>
@@ -1879,14 +2220,14 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     </table>
   </div>
 
-  <figure id="joonis-6-1">
+  <figure id="joonis-7-1">
     <img src="img/ega-menu.png" width="960" height="720" alt="EGA välimus: menüü Edit avatud, all mudeli Näidis-PTS kokkuvõte." loading="lazy">
-    <figcaption><b>Joonis 6.1.</b> EGA välimus (640 × 350, 16 värvi): menüü Edit ja töölaual laaditud mudeli kokkuvõte.</figcaption>
+    <figcaption><b>Joonis 7.1.</b> EGA välimus (640 × 350, 16 värvi): menüü Edit ja töölaual laaditud mudeli kokkuvõte.</figcaption>
   </figure>
 
-  <h3 id="s6-2">6.2 Redaktor <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></h3>
+  <h3 id="s7-2">7.2 Redaktor <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></h3>
   <p>
-    <b>Layout</b> on originaali moodi kaks osa: üleval ruudustik, all ikoonipalett (joonis 6.2). Paletist valitud
+    <b>Layout</b> on originaali moodi kaks osa: üleval ruudustik, all ikoonipalett (joonis 7.2). Paletist valitud
     ikooni saab panna ruudule klõpsuga, aga rada joonistatakse uues versioonis <b>lohistades</b>: iga lahter
     saab küljed, kust rada sisse ja välja läheb, ja ikoon (sirge, kaar, hargnemine, ristmik) valitakse ise
     <span class="tag tag-u">[U]</span>. Punktiir objektist rajale tekitab hargnemise ehk jaama, üle teise raja
@@ -1900,12 +2241,12 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     kohale joonisel. Salvestamata muudatuse korral küsivad Load, Pick, New ja Quit kinnitust.
   </p>
 
-  <figure id="joonis-6-2">
+  <figure id="joonis-7-2">
     <img src="img/modern-editor.png" width="1280" height="720" alt="Kaasaegne välimus: redaktor Layout, ruudustikul Näidis-PTS, all ikoonipalett." loading="lazy">
-    <figcaption><b>Joonis 6.2.</b> Redaktor kaasaegses välimuses: Näidis-PTS ruudustikul, all palett (tööriistad ja originaali ikoonid), paremal üleval „kontroll korras“.</figcaption>
+    <figcaption><b>Joonis 7.2.</b> Redaktor kaasaegses välimuses: Näidis-PTS ruudustikul, all palett (tööriistad ja originaali ikoonid), paremal üleval „kontroll korras“.</figcaption>
   </figure>
 
-  <h3 id="s6-3">6.3 Animaator <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></h3>
+  <h3 id="s7-3">7.3 Animaator <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></h3>
   <p>
     <b>Simulate</b> avab animaatori pausil. Kell liigub täissekundite kaupa; kiirus on ×1 … ×1000 simulatsiooni
     sekundit reaalses sekundis või maksimumkiirus ilma joonistamiseta (8 tundi alla sekundi). Saab liikuda
@@ -1923,19 +2264,19 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     nagu diplomitöö joonisel 5.2).
   </p>
 
-  <figure id="joonis-6-3">
+  <figure id="joonis-7-3">
     <img src="img/ega-anim.png" width="960" height="720" alt="EGA animaator: Reduktori FMS, osa mudelist nähtav, kärud ringteel, tööpingid TR1 ja TR2 töötavad." loading="lazy">
-    <figcaption><b>Joonis 6.3.</b> Animaator EGA välimuses: Reduktori FMS (12 pinki) ei mahu ekraanile ja seda keritakse; ikoon on alati 48 × 35 punkti nagu originaalis.</figcaption>
+    <figcaption><b>Joonis 7.3.</b> Animaator EGA välimuses: Reduktori FMS (12 pinki) ei mahu ekraanile ja seda keritakse; ikoon on alati 48 × 35 punkti nagu originaalis.</figcaption>
   </figure>
 
-  <figure id="joonis-6-4">
+  <figure id="joonis-7-4">
     <img src="img/modern-anim.png" width="1280" height="720" alt="Kaasaegne animaator: juhtriba, Reduktori FMS ringtee nelja AGV-ga ja all Event List sündmuste kaartidega." loading="lazy">
-    <figcaption><b>Joonis 6.4.</b> Sama hetk kaasaegses välimuses: juhtriba, kärud ja broneeritud plokid (ringid), all Event List (<code>Load WP5</code>, <code>Process WP0</code>, <code>Process WP1</code>).</figcaption>
+    <figcaption><b>Joonis 7.4.</b> Sama hetk kaasaegses välimuses: juhtriba, kärud ja broneeritud plokid (ringid), all Event List (<code>Load WP5</code>, <code>Process WP0</code>, <code>Process WP1</code>).</figcaption>
   </figure>
 
-  <h3 id="s6-4">6.4 Kokkuvõte ja aruanded <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></h3>
+  <h3 id="s7-4">7.4 Kokkuvõte ja aruanded <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></h3>
   <p>
-    Simulatsiooni lõpus näitab animaator kokkuvõtet (joonis 6.5) ja nupp <b>Aruanne</b> avab täieliku aruande.
+    Simulatsiooni lõpus näitab animaator kokkuvõtet (joonis 7.5) ja nupp <b>Aruanne</b> avab täieliku aruande.
     Menüüs <b>Report</b> on originaali kolm punkti: <b>Static</b> – komponentide parameetrid ja nende lõppseis
     teemade kaupa, <b>Dynamic</b> – simulatsiooni käigus kogutud statistika (tsükliaeg ja osakaalud, tüüpide
     kaupa, aegrida, sündmused) ning <b>Output</b> – ekraanile või tekstifaili. Teemad valib kasutaja. Aruanne
@@ -1943,20 +2284,20 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     Aruanne on ka ummiku ja katkestuse korral.
   </p>
 
-  <figure id="joonis-6-5">
+  <figure id="joonis-7-5">
     <img src="img/ega-summary.png" width="960" height="720" alt="EGA kokkuvõte: Reduktori FMS 8 tundi, 65 valmis, läbilaskevõime 8,1 tk/h, tsükliaja osakaalud, pinkide rakendatus." loading="lazy">
-    <figcaption><b>Joonis 6.5.</b> Simulatsiooni kokkuvõte (Reduktori FMS, 8 h, seeme 1).</figcaption>
+    <figcaption><b>Joonis 7.5.</b> Simulatsiooni kokkuvõte (Reduktori FMS, 8 h, seeme 1).</figcaption>
   </figure>
 
-  <figure id="joonis-6-6">
+  <figure id="joonis-7-6">
     <img src="img/ega-report.png" width="960" height="720" alt="EGA aruanne: tsükliaeg ja osakaalud, valem ja osade tabel tulpadega." loading="lazy">
-    <figcaption><b>Joonis 6.6.</b> Dynamic-aruanne: tsükliaeg diplomitöö valemi järgi, osad ja osakaalud.</figcaption>
+    <figcaption><b>Joonis 7.6.</b> Dynamic-aruanne: tsükliaeg diplomitöö valemi järgi, osad ja osakaalud.</figcaption>
   </figure>
 </section>
 
 <!-- ============================================================ 7 loetelud -->
 <section class="chapter" id="loetelud">
-  <h2>7 Andmeobjektid, protseduurid ja EventHandlerid</h2>
+  <h2>8 Andmeobjektid, protseduurid ja EventHandlerid</h2>
   <p>
     Selles peatükis on simulaatori olulised kirjed, sündmuste käsitlejad ja kõigi globaalsete nimede
     sõnastik. Sõnastik on sama mis disainidokumendis (DISAIN.md osa 12) ja test kontrollib, et iga sealne
@@ -1964,14 +2305,14 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     tunnus, mida protseduur teeb, kes seda kutsub ja milliseid sündmusi see lisab.
   </p>
 
-  <h3 id="s7-1">7.1 Kirjed <span class="tag tag-o">[O]</span> <span class="tag tag-t">[T]</span> <span class="tag tag-u">[U]</span></h3>
+  <h3 id="s8-1">8.1 Kirjed <span class="tag tag-o">[O]</span> <span class="tag tag-t">[T]</span> <span class="tag tag-u">[U]</span></h3>
   <p>
     Originaali andmestruktuurid (lk 51–53) jagunevad staatilisteks (parameetrid mudelist, tabel 4.2) ja
     dünaamilisteks (olek simulatsiooni ajal). Kirjed on lihtsad objektid ja massiivides; viidatakse indeksiga.
     Tabelis on dünaamilised väljad, mis lisanduvad mudeli parameetritele.
   </p>
   <div class="table-wrap">
-    <p class="caption">Tabel 7.1. Simulaatori kirjed (olek)</p>
+    <p class="caption">Tabel 8.1. Simulaatori kirjed (olek)</p>
     <table>
       <tr><th>Kirje</th><th>Väljad</th></tr>
       <tr><td>Event List kirje <span class="tag tag-o">[O]</span> <span class="tag tag-u">[U]</span></td><td><code>Event</code> (tüüp), <code>WP</code>, <code>ObjType</code>, <code>ObjCode</code>, <code>Track</code>, <code>Time</code>, <code>Next</code>; uued <code>SrcType</code>, <code>SrcCode</code> (laadimise lähteobjekt) ja <code>Pal</code> (alus või käru)</td></tr>
@@ -1987,13 +2328,13 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     </table>
   </div>
 
-  <h3 id="s7-2">7.2 EventHandlerid <span class="tag tag-o">[O]</span></h3>
+  <h3 id="s8-2">8.2 EventHandlerid <span class="tag tag-o">[O]</span></h3>
   <p>
     Käsitlejad on massiivis <code>EventHandlers</code> (sündmuse tüüp → protseduur), nagu originaalis
     protseduuritüüpi massiivis; <code>ProcEvent</code> kutsub käsitleja sündmuse tüübi järgi.
   </p>
   <div class="table-wrap">
-    <p class="caption">Tabel 7.2. EventHandlerid (<code>fms_sim.js</code>)</p>
+    <p class="caption">Tabel 8.2. EventHandlerid (<code>fms_sim.js</code>)</p>
     <table class="handlers">
       <tr><th>Käsitleja</th><th>Sündmus</th><th>Mida teeb</th><th></th></tr>
       <tr><td><code>InSysProc</code></td><td><code>InSys</code></td><td>detail jõuab <code>FromCS</code>-i, saab marsruudi (<code>ChooseRoute</code>), ootab sihtkohta; Planner</td><td><span class="tag tag-o">[O]</span></td></tr>
@@ -2010,7 +2351,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     </table>
   </div>
 
-  <h3 id="s7-3">7.3 Sõnastik – globaalsed nimed</h3>
+  <h3 id="s8-3">8.3 Sõnastik – globaalsed nimed</h3>
   <p>
     Kõik globaalsed nimed moodulite kaupa. Suur algustäht tähistab kogu programmi mõistet, suurtähtedega
     nimed on olekud ja konstandid (peatükk 1.3). „Abiprotseduurid“ on väiksemad protseduurid, mille
@@ -2083,7 +2424,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <tr><td><code>TimelinePoint</code>, <code>CompareScores</code></td><td>aegrea punkt; kriteeriumide võrdlus</td><td><span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>MinuteMan</code></td><td>liigutab konveiereid ja kärusid ühe sekundi võrra</td><td><span class="tag tag-o">[O]</span></td></tr>
       <tr><td><code>Planner</code></td><td>otsused: sissetoomine, marsruut, sihtkoht, pingi laadimine, konfliktid</td><td><span class="tag tag-o">[O]</span></td></tr>
-      <tr><td><code>FindMach</code>, <code>FindBuf</code>, <code>FindSysPos</code>, <code>FindPal</code></td><td>sobivaima pingi / puhvri / väljundi / käru otsing (<code>FindPal</code> – osa 11.3)</td><td><span class="tag tag-o">[O]</span></td></tr>
+      <tr><td><code>FindMach</code>, <code>FindBuf</code>, <code>FindSysPos</code>, <code>FindPal</code></td><td>sobivaima pingi (<code>FindMach</code>) / puhvri (<code>FindBuf</code> – eraldi protseduuri pole, sihtkoht on pingi sisendpuhver) / väljundi (<code>FindSysPos</code> – teeb <code>OutSysProc</code>) / käru (<code>FindPal</code>) otsing</td><td><span class="tag tag-o">[O]</span></td></tr>
       <tr><td><code>ProgTM</code>, <code>ProgTMOneWayInto</code>, <code>SetRoute</code></td><td>käru tee (Dijkstra raja graafis, ümbersõit); tee, mille viimane lõik on ühesuunaline; tee kärule</td><td><span class="tag tag-o">[O nimi, U sisu]</span> / <span class="tag tag-u">[U]</span> / <span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>ReserveSlot</code>, <code>ReleaseSlot</code></td><td>koha broneerimine ja vabastamine</td><td><span class="tag tag-u">[U]</span></td></tr>
       <tr><td><code>Depart</code>, <code>PathConnectors</code>, <code>FreePath</code>, <code>CanReserveConnector</code></td><td>teele minek: tee konnektorite broneerimine korraga; tee konnektorid; lühim tee vabade konnektoritega (paralleelsed konnektorid, 7b); kas konnektor on vaba</td><td><span class="tag tag-u">[U]</span></td></tr>
@@ -2275,7 +2616,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 
 <!-- ============================================================ 8 valideerimine -->
 <section class="chapter" id="valideerimine">
-  <h2>8 Valideerimine</h2>
+  <h2>9 Valideerimine</h2>
   <p>
     Kuna originaali arhitektuur ei pruugi lõpuni töötada, kontrolliti iga uut lahendust <b>enne</b>
     täisteostust ja tulemused kirjutati üles (VALIDEERIMINE.md). Esimesena tehti graafikata prototüüp
@@ -2283,7 +2624,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     kontrolliti enne animaatorit ja redaktorit.
   </p>
 
-  <h3 id="s8-1">8.1 Meetod</h3>
+  <h3 id="s9-1">9.1 Meetod</h3>
   <ul>
     <li><b>Invariandid igal sekundil.</b> Testides kontrollib <code>CheckInvariants</code> pärast iga sammu:
       detailid ei teki ega kao (sisse = valmis + praak + süsteemis); igal kohal on kõige rohkem üks detail ja
@@ -2307,9 +2648,9 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     <li><b>Brauseris</b> kontrolliti mõlemas välimuses käsitsi: joonistus, klahvid, hiir, vormid, konsoolis vigu pole.</li>
   </ul>
 
-  <h3 id="s8-2">8.2 Tulemused etappide kaupa</h3>
+  <h3 id="s9-2">9.2 Tulemused etappide kaupa</h3>
   <div class="table-wrap">
-    <p class="caption">Tabel 8.1. Valideerimise põhitulemused (täielikult VALIDEERIMINE.md)</p>
+    <p class="caption">Tabel 9.1. Valideerimise põhitulemused (täielikult VALIDEERIMINE.md)</p>
     <table>
       <tr><th>Etapp</th><th>Mida kontrolliti</th><th>Põhitulemus</th></tr>
       <tr><td>2 Prototüüp</td><td>üks pink, näidis-PTS, ristmarsruudid, korratavus</td><td>tsükliaeg 440 s nagu käsitsi; ilma vältimiseta ummistusid ristmarsruudid iga puhvri suuruse juures, vältimisega parkimisi 1–3; ooteajal põhinev ummiku tuvastus andis valehäireid ja asendati</td></tr>
@@ -2329,10 +2670,10 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     </table>
   </div>
 
-  <h3 id="s8-3">8.3 Testid</h3>
+  <h3 id="s9-3">9.3 Testid</h3>
   <p>Testid jooksevad Node'iga ilma brauserita (<code>npm test</code>); versioonis 1.5 on neid 224.</p>
   <div class="table-wrap">
-    <p class="caption">Tabel 8.2. Testifailid</p>
+    <p class="caption">Tabel 9.2. Testifailid</p>
     <table>
       <tr><th>Fail</th><th>Sisu</th><th class="num">Teste</th></tr>
       <tr><td><code>test/proto/test/sim.test.js</code></td><td>prototüüp (etapp 2)</td><td class="num">7</td></tr>
@@ -2351,7 +2692,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     </table>
   </div>
 
-  <h3 id="s8-4">8.4 Mida valideerimine ei kata</h3>
+  <h3 id="s9-4">9.4 Mida valideerimine ei kata</h3>
   <ul>
     <li>Joonistust kontrolliti silmaga, mitte automaatselt; puutetundlikku ekraani ei kontrollitud.</li>
     <li>Aruande allalaadimist faili ei ole brauseris päriselt käivitatud (testitakse faili sisu).</li>
@@ -2362,7 +2703,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 
 <!-- ============================================================ 9 näidismudelid -->
 <section class="chapter" id="naidismudelid">
-  <h2>9 Näidismudelid</h2>
+  <h2>10 Näidismudelid</h2>
   <p>
     Rakendusega tuleb kaasa seitse näidist (File → Load); nimekiri on failis <code>models/index.json</code>.
     Kolm väiksemat näitavad simulaatori võimalusi, neli suurt (12–32 tööpinki) on avalike allikate põhjal
@@ -2370,7 +2711,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     hinnangud on VALIDEERIMINE.md etapis 11c.
   </p>
   <div class="table-wrap">
-    <p class="caption">Tabel 9.1. Näidismudelid ja tulemused (8 h, seeme 1; Allhanketehas – tellimus)</p>
+    <p class="caption">Tabel 10.1. Näidismudelid ja tulemused (8 h, seeme 1; Allhanketehas – tellimus)</p>
     <table>
       <tr><th>Näidis</th><th>Koosseis</th><th class="num">Valmis</th><th class="num">tk/h</th><th class="num">Tsükliaeg</th><th>Kitsaskoht</th></tr>
       <tr><td>Näidis-PTS</td><td>diplomitöö joon. 5.5: 2 pinki, 2 tüüpi (üks alternatiivse marsruudiga), konveier 6 alusega, keskladu</td><td class="num">84</td><td class="num">10,5</td><td class="num">1:01:03</td><td>MT2 99 % (ainus freespink)</td></tr>
@@ -2389,7 +2730,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     langema – see on üks katseid, mida simulaatoriga teha.
   </p>
 
-  <figure id="joonis-9-1" class="layout-wide">
+  <figure id="joonis-10-1" class="layout-wide">
     <svg viewBox="-2 -2 840 400" role="img" aria-labelledby="j91-title">
       <title id="j91-title">Reduktori FMS paigutus: ühesuunaline ringtee, mille kohal ja all on kuus tööpinki puhvritega; vasakul FromCS, paremal ToCS ja SysOut.</title>
       <defs><pattern id="j91-grid" width="44" height="44" patternUnits="userSpaceOnUse" x="-1.2" y="-1.2"><circle class="lay-grid" cx="1.2" cy="1.2" r="1.2"/></pattern></defs>
@@ -2547,13 +2888,13 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
       <rect class="box" x="794" y="228" width="40" height="28" rx="3"/>
       <text x="814" y="245.5" text-anchor="middle" class="lay-s t-b">SysOut</text>
     </svg>
-    <figcaption><b>Joonis 9.1.</b> Reduktori FMS (<code>models/reduktor.fms.json</code>): 12 tööpinki ringtee mõlemal pool, neli AGV-d sõidavad päripäeva; vasakul FromCS, paremal ToCS ja SysOut.</figcaption>
+    <figcaption><b>Joonis 10.1.</b> Reduktori FMS (<code>models/reduktor.fms.json</code>): 12 tööpinki ringtee mõlemal pool, neli AGV-d sõidavad päripäeva; vasakul FromCS, paremal ToCS ja SysOut.</figcaption>
   </figure>
 
   <p>
     <b>Mootoriosade tehas</b> (versioon 1.5) on suurim näidis ja ka koormustest. Selle kavandamisel tuli läbilaskevõimet
     otsida samm-sammult: esimene versioon andis ainult 4 tk/h, kuigi pingid olid 80–95 % ajast jõude. Põhjus oli
-    konnektor, mis on broneeritud kogu tee ajaks (peatükk 10.2): kõik detailid lähevad viimistlusse ja sinna viivad
+    konnektor, mis on broneeritud kogu tee ajaks (peatükk 11.2): kõik detailid lähevad viimistlusse ja sinna viivad
     konnektorid olid 100 % ajast kinni. Paralleelsed konnektorid andsid 8–10 tk/h; järgmisena piiras viimistluse
     konveier (105 m ring, iga detail teeb seal 4–6 sõitu) ning kiiremad konveierid ja rohkem aluseid andsid umbes
     20 tk/h püsiseisundis. Puhvrite suurendamine ei aidanud ja koormustegur <code>Kl</code> 0,2 andis sama
@@ -2568,9 +2909,9 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 
 <!-- ============================================================ 10 kokkuvõte -->
 <section class="chapter" id="kokkuvote">
-  <h2>10 Kokkuvõte ja edasiarendus</h2>
+  <h2>11 Kokkuvõte ja edasiarendus</h2>
 
-  <h3 id="s10-1">10.1 Kokkuvõte</h3>
+  <h3 id="s11-1">11.1 Kokkuvõte</h3>
   <p>
     1993. aastal alustatud paindtootmissüsteemide simulaator on valmis. Diplomitöö raamistik – kahetasemeline
     süsteem, objektid ja parameetrid, sündmused ja nende seosed, ajaliselt järjestatud sündmuste ahelloend,
@@ -2586,7 +2927,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     JavaScripti ilma väliste teekideta; 224 testi kontrollivad invariante igal simuleeritud sekundil.
   </p>
 
-  <h3 id="s10-2">10.2 Teadaolevad piirangud</h3>
+  <h3 id="s11-2">11.2 Teadaolevad piirangud</h3>
   <ol>
     <li>Kahesuunalisel ringil kolme või enama käruga oleks vaja mitme sammu planeerimist; kohalikud reeglid lahendust ei leia (3.3).</li>
     <li>Parkimiskohti (<code>Parking</code>), tsoonide tükeldamist (<code>ZoneLength</code>) ja dispetšerireegleid (<code>Dispatch</code>) pole tehtud; vaba käru jääb paigale ja tsoon on terve sõlm või lõik.</li>
@@ -2596,13 +2937,15 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
     <li>Aruande allalaadimist faili pole brauseris päriselt käivitatud.</li>
     <li>Lõpetamise ülempiir 2<i>T</i> on lühikese kestuse korral tihe; Kinnitustehases tähendab partii tükke kastis, seega partiirežiimid seal ei sobi.</li>
     <li>Pingis on korraga üks detail.</li>
+    <li>Planneri originaali reeglitest on tegemata marsruudi kriteeriumid 2–3, sissetoomine alamsüsteemi koormuse, intervalli ja ajakava järgi ning tüübivalik „enim vabu pinke marsruudis“ (peatükk 6.3).</li>
   </ol>
 
-  <h3 id="s10-3">10.3 Versioon 2.0</h3>
+  <h3 id="s11-3">11.3 Versioon 2.0</h3>
   <ul>
     <li><b>Kaasaegne kasutajaliides.</b> EGA piirangutest (640 × 350, originaali menüüd ja vormid) loobutakse.
       Töö algab arutelust, mis on 1.0 liideses ebamugav, näidistest ja spetsifikatsioonist, mille autor
       kinnitab enne teostust. Simulaator ja mudelifail jäävad ühilduvaks.</li>
+    <li><b>Planner</b> eraldi moodulina, mis teeb kõik juhtimisotsused (käsitlejad ainult teatavad, mis juhtus), ja originaali tegemata reeglid valikuliste seadetena, hinnatuna simulatsiooniga (peatükk 6.4).</li>
     <li><b>Adviser</b> – originaali planeerimistase (LayoutChooser, LayoutFinder, kaalutabelid).</li>
     <li><b>Claude'i nõustaja.</b> Simulaatori eesmärk on aru saada, mis mida mõjutab. Keelemudel loeb
       tulemust (<code>SimReport</code>) ja mudelit, annab kokkuvõtte kitsaskohast ja selle põhjusest ning
@@ -2631,7 +2974,7 @@ Turn → Crash → Repair → Load (pink → puhver) → Planner → OutSys → 
 </section>
 
 <footer>
-  <p>© K. Kannel 1993, 2026. Kõik õigused kaitstud. Dokument kirjeldab FMSS-i versiooni 1.5. Tarkvara ja dokumentatsioon on arendatud koos Claude'iga (Anthropic).</p>
+  <p>© K. Kannel 1993, 2026. Kõik õigused kaitstud. Dokumentatsioon 1.1 kirjeldab FMSS-i versiooni 1.5. Tarkvara ja dokumentatsioon on arendatud koos Claude'iga (Anthropic).</p>
   <p>Lähtekood ja disainidokumendid: <a href="https://github.com/karelkan/fmss">github.com/karelkan/fmss</a> (DISAIN.md, VALIDEERIMINE.md).</p>
 </footer>
 
