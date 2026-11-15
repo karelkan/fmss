@@ -1,5 +1,7 @@
 // FMSS – dokumentatsioon (etapp 12): site/doc/index.html on kooskõlas koodi, DISAIN.md sõnastiku ja
 // näidismudelitega. Dokument on käsitsi kirjutatud; test annab märku, kui see jääb maha.
+// Dokumentatsioon 1.1 kirjeldab tarkvara 1.5: kood, mudelid ja versioon loetakse tag'ist v1.5 (git show),
+// DISAIN.md on külmutatud. V2 muudatused testi ei mõjuta (dokumentatsioon uueneb V2 etapis 7).
 // Käivitamine: npm test. DISAIN.md osa 21, VALIDEERIMINE.md etapp 12.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -12,6 +14,8 @@ import { LayoutSvg } from '../tools/layout_svg.js';
 const ROOT = new URL('../', import.meta.url);
 const Read = path => readFileSync(new URL(path, ROOT), 'utf8');
 const DOC = Read('site/doc/index.html');
+const DOC_TAG = 'v1.5';   // tarkvara versioon, mida dokumentatsioon 1.1 kirjeldab
+const AtTag = path => execFileSync('git', ['show', `${DOC_TAG}:${path}`], { cwd: new URL('.', ROOT).pathname, encoding: 'utf8' });
 
 // HTML-lõigu tekst: sildid ära, olemid lahti, tühikud kokku
 const PlainText = fragment => fragment.replace(/<[^>]+>/g, '')
@@ -55,7 +59,7 @@ test('D1 iga DISAIN.md sõnastiku rida on dokumendis samade nimede ja tunnusega'
 });
 
 test('D2 iga EventHandler (fms_sim.js) on dokumendi tabelis 8.2', () => {
-  const source = Read('core/fms_sim.js');
+  const source = AtTag('src/fms_sim.js');
   const block = source.match(/const EventHandlers = \{([\s\S]*?)\};/)[1];
   const handlers = [...block.matchAll(/(\w+): (\w+Proc)/g)].map(match => [match[2], match[1]]);
   assert.ok(handlers.length >= 11);
@@ -76,7 +80,7 @@ test('D3 paigutuse joonised vastavad näidismudelitele (tools/layout_svg.js)', (
   for (const [id, file] of figures) {
     const embedded = DOC.match(new RegExp(`<svg viewBox="[^"]*" role="img" aria-labelledby="${id}-title">[\\s\\S]*?</svg>`));
     assert.ok(embedded, `joonis ${id} puudub`);
-    const expected = LayoutSvg(JSON.parse(Read(file)), id);
+    const expected = LayoutSvg(JSON.parse(AtTag(file)), id);
     const actual = embedded[0].replace(new RegExp(`(<title id="${id}-title">)[^<]*`), '$1TITLE');
     assert.equal(actual, expected, `${id} (${file}) – genereeri uuesti: node tools/layout_svg.js ${file} ${id}`);
   }
@@ -101,7 +105,7 @@ test('D4 sisukorra lingid, viited joonistele ja tabelitele, pildid', () => {
 });
 
 test('D5 dokument kirjeldab praegust versiooni', () => {
-  const [major, minor] = JSON.parse(Read('package.json')).version.split('.');
+  const [major, minor] = JSON.parse(AtTag('package.json')).version.split('.');
   // dokumentatsioonil on oma versioon (1.1), mis kirjeldab tarkvara versiooni package.json-ist
   assert.ok(/dokumentatsioon \d+\.\d+ \(tarkvara versioon /.test(DOC), 'tiitellehel dokumendi versioon');
   assert.ok(DOC.includes(`(tarkvara versioon ${major}.${minor})`), 'tiitelleht');

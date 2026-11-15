@@ -85,19 +85,4 @@ Kui etapp 3 on valmis, saab etappe 4 ja 6 teha paralleelselt.
 
 ## Versioon 2.0
 
-Pärast 1.0 valmimist. Eesmärk: **kaasaegne ja mugav kasutajaliides**; EGA välimusest ja selle piirangutest (640 × 350, originaali menüüd ja vormid) loobutakse.
-
-**Spetsifikatsioon ja tööplaan: [V2.md](V2.md)** (V2 etapp 1, arutelu 2026-11-14) – otsused, võimalused, tehniline ülesehitus, kokkulepped ja etapid. Allolev on algne idee.
-
-- **Simulaator jääb**: `fms_sim.js` ei sõltu joonistamisest ja mudelifail (JSON) jääb ühilduvaks – 1.0 mudelid avanevad 2.0-s. 1.0 testid kehtivad edasi, nii et 2.0 tulemused peavad klappima 1.0-ga.
-- **Veebis** aadressil `/v2/` (tag `v2.0`), 1.0 jääb `/v1/`-le. Brauseri mälu on samal originil ühine: 2.0 kasutab oma `localStorage` võtmeid (1.0-l `fmss.recent`, `fmss.options`) – vt [DISAIN.md](DISAIN.md) osa 19.
-- **Algab diskussiooniga** – enne teostust:
-  1. arutelu: mis on 1.0 liideses ebamugav (menüüstruktuur, tööpinkide, detailide ja marsruutide sisestamine jm) ja kuidas seda tänapäeval tehakse;
-  2. näidised ja ideed (sarnased tööriistad, maketid, prototüübid), nende ülevaatus;
-  3. spetsifikatsiooni täpsustamine nende põhjal;
-  4. kasutaja **kinnitab** spetsifikatsiooni – alles siis läheb teostusse (etappideks jaotatult nagu 1.0-s).
-- **Adviser** (originaali osa: LayoutChooser, LayoutFinder, kaalutabelid) tehakse 2.0-s, uue liidese peal.
-- **Claude'i liides (LLM-nõustaja)** – kasutaja idee etapis 11: süsteemi eesmärk ongi aru saada, mis mida mõjutab ja mida tehase seadistuses häälestada. Claude loeb simulatsiooni tulemust (`SimReport`, aruanne) ja mudelit, annab sisulise kokkuvõtte (kitsaskoht ja põhjus, nt häälestus, broneeringud, transport) ja soovitused; simulaator on tema **tööriist** – ta saab teha what-if katseid (puhvri maht, `Kl`, pinkide või kärude arv, marsruudid) ja võrrelda tulemusi, nagu etapis 11 käsitsi tehti (VALIDEERIMINE.md 11c). Sobib originaali menüüsse *Advise* koos LayoutChooseri ja LayoutFinderiga. Lahtised küsimused spetsifikatsiooniks: API-võti (kasutaja oma võti brauseris või väike vahendusserver – sait on staatiline), privaatsus, kulu, sõltuvused (praegu ilma build-sammu ja sõltuvusteta).
-- **Ideed etapist 8** (1.0-s tegemata): transpordi (käru, konveier), puhvri ja konnektori rike (originaali tabel 4.5); kvaliteedipraak (tõenäosus operatsiooni kohta); rike ka jõudeolekus (kalendriaeg); laadimis- ja häälestusaegade kõrvalekalded.
-- **Iseõppiv Adviser** – autori tollane idee, dokumentatsiooni ei jõudnud (originaalis lk 65 on jätkuna mainitud Adviseri täiustamine ekspertsüsteemiga): kaalutabeleid ei anta ainult käsitsi, vaid häälestatakse simulatsioonide tulemuste põhjal. Ring: Adviser soovitab struktuuri kaalude järgi → simulaator jooksutab selle ja teised variandid läbi (eri koormused, seemned) → tulemusi võrreldakse (läbilaskevõime, tsükliaeg, rakendatus, ummikud) → kaale korrigeeritakse nii, et Adviseri järjestus läheneks simulatsiooni omale. Tänapäeval: simulatsioonipõhine optimeerimine, metamudelid (*surrogate models*), järjestuse õppimine (*learning to rank*). Eeldused on olemas: simulaator on deterministlik (seeme), kiire (8 h alla sekundi) ega sõltu liidesest; aruande näitajad tulevad `SimReport`-ist (etapp 9 – ka faili).
-  Arutelu küsimused: kas kaalud õpitakse kasutaja mudelite või ette genereeritud variantide põhjal; kuidas õpitud kaalud kasutajale lahti seletada.
+Versiooni 1 enam ei arendata (viimane tarkvaraversioon 1.5, kasutaja otsus 2026-11-15). Versiooni 2 plaan, otsused, etapid ja ootel tööd: **[PLAAN_TOOD_V2.md](PLAAN_TOOD_V2.md)**; disaini muudatused: [DISAIN_V2.md](DISAIN_V2.md). Siin varem olnud algsed ideed (simulaator jääb, `/v2/`, arutelu enne teostust, Adviser, Claude'i nõustaja, etapi 8 ideed, iseõppiv Adviser) on seal – osad 1, 4.8, 4.9, 5 ja ootel tööd T-9…T-12, T-16.

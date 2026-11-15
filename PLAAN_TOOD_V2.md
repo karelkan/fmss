@@ -1,4 +1,4 @@
-# Versioon 2.0 – spetsifikatsioon ja tööplaan
+# Versioon 2 – plaan ja ootel tööd
 
 V2 etapp 1 (arutelu, 2026-11-14). Alus: [PLAAN.md](PLAAN.md) „Versioon 2.0“, dokumentatsiooni peatükk 10 (`site/doc/`), [VALIDEERIMINE.md](VALIDEERIMINE.md) 11c–12b. Siin on kokku lepitud **suund, otsused ja etapid**. Liidese üksikasjad kinnitatakse maketi põhjal (etapp 2) ja iga etapi alguses pildi põhjal (osa 6).
 
@@ -120,9 +120,11 @@ V2 etapp 1 (arutelu, 2026-11-14). Alus: [PLAAN.md](PLAAN.md) „Versioon 2.0“,
 - **LayoutChooser**: 48 struktuurivarianti (kood OLZN …: töötlemine, paigutus, transport, side kesklaoga – originaal.md 8.6) kaartidena, kirjeldus ja skeem; kui vastav näidis on olemas, saab selle mudelina avada.
 - **LayoutFinder**: kasutaja annab kriteeriumid, kaalud tabelitest 5.1–5.4 summeeritakse; tulemus on järjestus koos põhjendusega (mis kaal mida andis). Kaalutabeleid saab muuta. Tabelid loetakse skaneeringust (`5-pts-realisatsioon.pdf` lk 2–4).
 - **Seos simulaatoriga**: variant → mudeli toorik → katsete haldur.
+- **Iseõppiv Adviser** (T-16, hiljem) – autori tollane idee, dokumentatsiooni ei jõudnud (originaalis lk 65 on jätkuna mainitud Adviseri täiustamine ekspertsüsteemiga): kaalutabeleid ei anta ainult käsitsi, vaid häälestatakse simulatsioonide tulemuste põhjal. Ring: Adviser soovitab struktuuri kaalude järgi → simulaator jooksutab selle ja teised variandid läbi (eri koormused, seemned) → tulemusi võrreldakse (läbilaskevõime, tsükliaeg, rakendatus, ummikud) → kaale korrigeeritakse nii, et Adviseri järjestus läheneks simulatsiooni omale. Tänapäeval: simulatsioonipõhine optimeerimine, metamudelid (*surrogate models*), järjestuse õppimine (*learning to rank*). Eeldused on olemas: simulaator on deterministlik (seeme), kiire (8 h alla sekundi) ega sõltu liidesest; näitajad tulevad `SimReport`-ist. Arutelu küsimused: kas kaalud õpitakse kasutaja mudelite või ette genereeritud variantide põhjal; kuidas õpitud kaalud kasutajale lahti seletada.
 
 ### 4.9 Claude'i nõustaja
 
+- **Eesmärk** (kasutaja idee etapis 11): simulaatori mõte on aru saada, mis mida mõjutab ja mida tehase seadistuses häälestada. Claude loeb tulemust ja mudelit, annab sisulise kokkuvõtte (kitsaskoht ja põhjus, nt häälestus, broneeringud, transport) ja soovitused; simulaator on tema tööriist what-if katseteks (puhvri maht, `Kl`, pinkide või kärude arv, marsruudid, partii suurus ja järjekord), nagu etappides 11c ja 12b käsitsi tehti. Kuulub menüüsse *Advise* koos LayoutChooseri ja LayoutFinderiga.
 - **Ühendus** (sait on staatiline):
   - (a) **kasutaja oma API-võti**: päring läheb brauserist otse Anthropicu API-sse, võti on ainult tema brauseris (valikuna ainult seansi ajaks), kulu tema kontol. Brauserist otsepäringu tingimused kontrollitakse etapi alguses;
   - (b) **„kopeeri küsimus“**: rakendus paneb kokku mudeli kokkuvõtte, tulemused ja juhise, kasutaja kleebib claude.ai-sse. Kulu ega sõltuvust pole, aga katseid Claude ise ei tee;
@@ -170,41 +172,73 @@ Dokumentatsioon 1.1 peatükk 6 (teooria, originaali reeglid, vastavus, realisats
 
 ## 6. Kokkulepped V2 etappides
 
-Kehtivad kõik 1.x kokkulepped (CLAUDE.md): etapp = eraldi vestlus ja commit, commit ja push ainult kasutaja loal, valideeri enne teostust, sõnastik (DISAIN.md osa 12), dokumentatsioon, README „Seis“, etapi lõpus kopeeritav prompt. Lisaks:
+Kehtivad 1.x kokkulepped (CLAUDE.md): etapp = eraldi vestlus ja commit, commit ja push ainult kasutaja loal, valideeri enne teostust, README „Seis“, etapi lõpus kopeeritav prompt. Uued globaalsed nimed lähevad [DISAIN_V2.md](DISAIN_V2.md) sõnastikku (nimetamise reeglid DISAIN.md osa 12.1). Dokumentatsiooni (`site/doc/`, versioon 1.1 → tarkvara 1.5) ei uuendata iga etapi järel; versiooni 2 dokumentatsioon tehakse, kui V2 on enam-vähem valmis (etapp 7). Lisaks:
 
 - **Pilt enne koodi**: iga liidest puudutav etapp algab 1–3 prototüübipildi või klõpsatava maketiga (privaatne leht); kasutaja annab tagasisidet, alles siis kirjutatakse kood. Etapi lõpus kuvatõmmis samast kohast võrdluseks.
 - **Abi uueneb**: iga etapp kirjutab oma ülesanded kasutusjuhendisse.
 - **Välimus**: uus asi töötab heledas ja tumedas.
-- **Prompt**: järgmise etapi prompti esimene rida on „V2 etapp N – …“.
+- **Prompt**: järgmise etapi prompti esimene rida on „V2 etapp N – …“; ootel töid ei kopeerita, vaid viidatakse osale 8.
+- **Ootel tööd**: iga uus leid, tegemata kontroll või edasi lükatud idee saab kohe osas 8 numbri (T-n); mujal ainult viide numbrile.
 
 ## 7. Etapid
 
-| Etapp | Sisu | Versioon |
-|---|---|---|
-| **1** | Arutelu ja tööplaan (see dokument) | – |
-| **2** | Maketid ja ülevaatus, siis liidese spetsifikatsiooni kinnitus: (a) tööruum, metrooskeemi ja plaani lüliti, tsehhid; (b) tabelid ja maatriks; (c) animatsioon detailide tunnuste, edenemise rõnga ja skaalaga; (d) tulemused, katsed ja nõustaja paneel; (e) visuaalne stiil – konveier, alus, AGV ja pink kahes suumis | – |
-| **3** | Karkass: kaust `v2/`, tööruum ja paneelid, failid, `fmss2.*`, simulaator Web Workeris, `/dev/`; abi raamistik (kõrvalpaneel, „?“, otsing, alustamine); Cruise → Cross; joonistuse jõudluse mõõtmine | – |
-| **3b** | Planneri moodul `core/fms_plan.js` (4.12), tulemused bitt-täpselt samad | – |
-| **4** | Tabelid ja maatriks, kontroll muutmise ajal, `Meta.Description` | – |
-| **5** | Metrooskeemi redaktor: suurem ruudustik, mitme objekti valik, kopeerimine, mallid; pikkused (lõik, kaks punkti), kõrvuti hargnemiste piirang; tsehhid | – |
-| **6a** | Joonistus: rajad, alused, kärud, pingid, detailsus suumi järgi | – |
-| **6b** | Detailid ja jälgimine: tunnused, edenemise rõngas ja skaala, detaili jälgimine, tüübi marsruut, voolujooned; Event List | – |
-| **7** | Tulemused ja katsete haldur (ka tsehhide kaupa); avaleht, dokumentatsioon, tag `v2.0`, `/v2/` | **2.0** |
-| **8** | Plaanivaade: meetrid, taustapilt ja mõõtkava, pikkused plaanilt, allalaadimine | 2.1 |
-| **9a / 9b** | Mitu sisendit, ladu ja väljundit: disain ja valideerimine (prototüüp) / teostus ja liides | 2.2 |
-| **10** | Konnektori mahutavus, konveierijaama ülekandekoht | 2.3 |
-| **10b** | Planneri reeglid valikuliste seadetena ja nende hindamine (4.12) | 2.3 |
-| **11** | Adviser | 2.4 |
-| **12** | Claude'i nõustaja | 2.5 |
-| **13** | Kasutusjuhendi ja dokumentatsiooni terviklik ülevaatus | – |
+Seis uueneb iga etapi lõpus (CLAUDE.md „Valmis etapp“); README „Seis“ on lühikokkuvõte.
+
+| Etapp | Sisu | Versioon | Seis |
+|---|---|---|---|
+| **1** | Arutelu ja tööplaan (see dokument) | – | tehtud (`e0331c8`) |
+| **2** | Maketid ja ülevaatus, siis liidese spetsifikatsiooni kinnitus: (a) tööruum, metrooskeemi ja plaani lüliti, tsehhid; (b) tabelid ja maatriks; (c) animatsioon detailide tunnuste, edenemise rõnga ja skaalaga; (d) tulemused, katsed ja nõustaja paneel; (e) visuaalne stiil – konveier, alus, AGV ja pink kahes suumis | – | pooleli – makettide ettepanek tehtud 2026-11-14, ootab kasutaja otsust |
+| **3** | Karkass: kaust `v2/`, tööruum ja paneelid, failid, `fmss2.*`, simulaator Web Workeris, `/dev/`; abi raamistik (kõrvalpaneel, „?“, otsing, alustamine); Cruise → Cross; joonistuse jõudluse mõõtmine | – | ootel |
+| **3b** | Planneri moodul `core/fms_plan.js` (4.12), tulemused bitt-täpselt samad | – | ootel |
+| **4** | Tabelid ja maatriks, kontroll muutmise ajal, `Meta.Description` | – | ootel |
+| **5** | Metrooskeemi redaktor: suurem ruudustik, mitme objekti valik, kopeerimine, mallid; pikkused (lõik, kaks punkti), kõrvuti hargnemiste piirang; tsehhid | – | ootel |
+| **6a** | Joonistus: rajad, alused, kärud, pingid, detailsus suumi järgi | – | ootel |
+| **6b** | Detailid ja jälgimine: tunnused, edenemise rõngas ja skaala, detaili jälgimine, tüübi marsruut, voolujooned; Event List | – | ootel |
+| **7** | Tulemused ja katsete haldur (ka tsehhide kaupa); avaleht, dokumentatsioon, tag `v2.0`, `/v2/` | **2.0** | ootel |
+| **8** | Plaanivaade: meetrid, taustapilt ja mõõtkava, pikkused plaanilt, allalaadimine | 2.1 | ootel |
+| **9a / 9b** | Mitu sisendit, ladu ja väljundit: disain ja valideerimine (prototüüp) / teostus ja liides | 2.2 | ootel |
+| **10** | Konnektori mahutavus, konveierijaama ülekandekoht | 2.3 | ootel |
+| **10b** | Planneri reeglid valikuliste seadetena ja nende hindamine (4.12) | 2.3 | ootel |
+| **11** | Adviser | 2.4 | ootel |
+| **12** | Claude'i nõustaja | 2.5 | ootel |
+| **13** | Kasutusjuhendi ja dokumentatsiooni terviklik ülevaatus | – | ootel |
 
 Versioonide järjekord pärast 2.0 võib muutuda; iga versioon saab oma tag'i nagu 1.x-s.
 
-## 8. Hilisemaks (2.x või edasi)
+## 8. Ootel tööd
 
-- Iseõppiv Adviser (kaalud simulatsiooni tulemustest – PLAAN.md).
-- Dokumentatsiooni peatükk 11.2: kahesuunaline ring 3+ käruga (mitme sammu planeerimine), Parking, ZoneLength, Dispatch, transpordi- ja puhvririke, kvaliteedipraak, rike jõudeolekus, pingis mitu detaili, lõpetamise ülempiir 2T.
-- Claude'i nõustaja vahendusserver.
+**Ainus koht, kus ootel tööd on kirjas** (CLAUDE.md). Uus leid, tegemata kontroll või edasi lükatud idee saab siia kohe numbri; mujal viidatakse numbrile. Tehtud töö jääb tabelisse seisuga „tehtud“ ja commitiga. Osa 4 võimalused on etappide (osa 7) sisu ja siin on neist ainult need, mis tulid leiust. Inventuur 2026-11-15: kokku korjatud PLAAN.md-st, dokumentatsiooni peatükist 11.2, VALIDEERIMINE.md leidudest ja „Mida see EI kontrolli“ lõikudest ning etappide promptidest – uusi töid juurde ei lisatud.
+
+Koht: V2 etapp (osa 7), **hiljem** (2.x või edasi) või **otsustada**.
+
+| Nr | Töö | Allikas | Koht | Seis |
+|---|---|---|---|---|
+| T-1 | Kahesuunalisel ringil 3+ käruga mitme sammu planeerimine (kohalikud reeglid lahendust ei leia) | VALIDEERIMINE 7b leid 6; dok 11.2 | hiljem | ootel |
+| T-2 | Parkimiskohad vabadele kärudele (`Parking`) | DISAIN 11.2, 11.8; dok 11.2 | hiljem | ootel |
+| T-3 | Tsooni tükeldamine (`ZoneLength`) | DISAIN 11.5, 11.8; dok 11.2 | hiljem | ootel |
+| T-4 | Käru valiku reegel valitavaks (`Dispatch`; praegu alati kiireim käru) | DISAIN 11.8; dok 11.2 | hiljem | ootel |
+| T-5 | Konnektor on broneeritud kogu tee ajaks – mahutavus > 1 või broneering alles lähenedes (osa 4.7) | VALIDEERIMINE 7a leid 2, 12b leid 1 | etapp 10 | ootel |
+| T-6 | Pidev konveier seisab iga laadimise ajal – jaama ülekandekoht (osa 4.7) | VALIDEERIMINE 11c leid 5, 12b leid 2 | etapp 10 | ootel |
+| T-7 | Planner eraldi moodulina `core/fms_plan.js` (osa 4.12) | dokumentatsioon 1.1 peatükk 6.4 | etapp 3b | ootel |
+| T-8 | Planneri originaali tegemata reeglid valikuliste seadetena ja nende hindamine (osa 4.12) | dokumentatsioon 1.1 peatükk 6.3, DISAIN 5.2 | etapp 10b | ootel |
+| T-9 | Transpordi-, puhvri- ja konnektoririke (originaali tabel 4.5) | DISAIN 17; VALIDEERIMINE 8; dok 11.2 | hiljem | ootel |
+| T-10 | Kvaliteedipraak (tõenäosus operatsiooni kohta) | DISAIN 17; dok 11.2 | hiljem | ootel |
+| T-11 | Rike ka jõudeolekus (kalendriaeg) | PLAAN „Versioon 2.0“; VALIDEERIMINE 8 | hiljem | ootel |
+| T-12 | Laadimis- ja häälestusaegade kõrvalekalded | PLAAN „Versioon 2.0“; VALIDEERIMINE 8 | hiljem | ootel |
+| T-13 | Pingis mitu detaili korraga | DISAIN 10.4; dok 11.2 | hiljem | ootel |
+| T-14 | Lõpetamise ülempiir 2T on lühikese kestuse korral tihe (valitav ülempiir) | VALIDEERIMINE 11d leid 3; dok 11.2 | hiljem | ootel |
+| T-15 | Kinnitustehases tähendab partii tükke kastis – partiirežiimid seal ei sobi (mudeli kirjeldus või andmed) | VALIDEERIMINE 11d leid 2; dok 11.2 | otsustada | ootel |
+| T-16 | Iseõppiv Adviser (kaalud simulatsiooni tulemustest) | PLAAN „Versioon 2.0“ | hiljem | ootel |
+| T-17 | Claude'i nõustaja vahendusserver | osa 4.9 | hiljem | ootel |
+| T-18 | Tulemuse või aruande allalaadimine päris brauseris kontrollimata | VALIDEERIMINE 9; dok 11.2 | etapp 7 | ootel |
+| T-19 | Puutetundlik ekraan ja puuteplaadi näpistus päris seadmel kontrollimata | VALIDEERIMINE 5, 11a | etapp 3 | ootel |
+| T-20 | Joonistust kontrollitakse ainult silmaga (automaatne kuvatõmmise võrdlus puudub) | VALIDEERIMINE 5, 6a, 6b | otsustada | ootel |
+| T-21 | Käru on punkt – kiirendus ja pikkus puuduvad | VALIDEERIMINE 7b | hiljem | ootel |
+| T-22 | Kärul olevate detailide tähtajad (soovi lisamise piir on ainult sõiduaja kasv) | VALIDEERIMINE 7c | hiljem | ootel |
+| T-23 | `AccessTime` (pöördusaeg) – tähendus ebaselge, ei kasutata | DISAIN 10.3; dokumentatsioon tabel 4.2 | otsustada | ootel |
+| T-24 | `LayoutSvg` joonistab kaare suunanoole lahtri keskele (rajast kõrvale) | VALIDEERIMINE 12b leid 5 | etapp 7 | ootel |
+| T-25 | Kaasaegse juhtriba olekurida lühendatakse mitme raja või rikete korral („..“) – V2 uues liideses ei tohi korduda | VALIDEERIMINE 7c, 8; dok 11.2 | etapp 6a | ootel |
+| T-26 | Versiooni 2 dokumentatsioon (dokumentatsioon 1.1 kirjeldab tarkvara 1.5) | kasutaja otsus 2026-11-15 | etapp 7 | ootel |
 
 ## 9. Allikad
 
