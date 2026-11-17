@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K2. Mootoriosade tehas: tellimuse täitmise aeg (keskmine, 10 seemet)</text>
+<line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">ummiku vältimine sees</text><line x1="246.6" y1="41" x2="264.6" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="270.6" y="45" font-size="12" fill="#666">ummiku vältimine väljas</text>
+<line x1="64" y1="364" x2="740" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="289" x2="740" y2="289" stroke="#e3e3e3"/><text x="56" y="293" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="214" x2="740" y2="214" stroke="#e3e3e3"/><text x="56" y="218" font-size="11" text-anchor="end" fill="#666">20</text>
+<line x1="64" y1="139" x2="740" y2="139" stroke="#e3e3e3"/><text x="56" y="143" font-size="11" text-anchor="end" fill="#666">30</text>
+<line x1="64" y1="64" x2="740" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">40</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="160.57142857142856" y1="364" x2="160.57142857142856" y2="368" stroke="#666"/><text x="160.57142857142856" y="382" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="257.1428571428571" y1="364" x2="257.1428571428571" y2="368" stroke="#666"/><text x="257.1428571428571" y="382" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="353.7142857142857" y1="364" x2="353.7142857142857" y2="368" stroke="#666"/><text x="353.7142857142857" y="382" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="450.2857142857143" y1="364" x2="450.2857142857143" y2="368" stroke="#666"/><text x="450.2857142857143" y="382" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="546.8571428571429" y1="364" x2="546.8571428571429" y2="368" stroke="#666"/><text x="546.8571428571429" y="382" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="643.4285714285714" y1="364" x2="643.4285714285714" y2="368" stroke="#666"/><text x="643.4285714285714" y="382" font-size="11" text-anchor="middle" fill="#666">7</text>
+<line x1="740" y1="364" x2="740" y2="368" stroke="#666"/><text x="740" y="382" font-size="11" text-anchor="middle" fill="#666">8</text>
+<line x1="64" y1="364" x2="740" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="402" y="406" font-size="13" text-anchor="middle" fill="#222">kõigi puhvrite maht, kohti</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,105.34479166666665 160.57142857142856,226.5385416666667 257.1428571428571,267.6370833333333 353.7142857142857,294.18937500000004 450.2857142857143,302.35041666666666 546.8571428571429,303.19083333333333 643.4285714285714,303.4352083333333 740,302.781875"/>
+<circle cx="64" cy="105.34479166666665" r="3" fill="#1f6fd1"/><circle cx="160.57142857142856" cy="226.5385416666667" r="3" fill="#1f6fd1"/><circle cx="257.1428571428571" cy="267.6370833333333" r="3" fill="#1f6fd1"/><circle cx="353.7142857142857" cy="294.18937500000004" r="3" fill="#1f6fd1"/><circle cx="450.2857142857143" cy="302.35041666666666" r="3" fill="#1f6fd1"/><circle cx="546.8571428571429" cy="303.19083333333333" r="3" fill="#1f6fd1"/><circle cx="643.4285714285714" cy="303.4352083333333" r="3" fill="#1f6fd1"/><circle cx="740" cy="302.781875" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="64,232.52125 160.57142857142856,289.698125 257.1428571428571,301.86020833333333 353.7142857142857,303.26187500000003 450.2857142857143,303.42229166666664 546.8571428571429,303.443125 643.4285714285714,303.5120833333333 740,303.5120833333333"/>
+<circle cx="64" cy="232.52125" r="3" fill="#d1342f"/><circle cx="160.57142857142856" cy="289.698125" r="3" fill="#d1342f"/><circle cx="257.1428571428571" cy="301.86020833333333" r="3" fill="#d1342f"/><circle cx="353.7142857142857" cy="303.26187500000003" r="3" fill="#d1342f"/><circle cx="450.2857142857143" cy="303.42229166666664" r="3" fill="#d1342f"/><circle cx="546.8571428571429" cy="303.443125" r="3" fill="#d1342f"/><circle cx="643.4285714285714" cy="303.5120833333333" r="3" fill="#d1342f"/><circle cx="740" cy="303.5120833333333" r="3" fill="#d1342f"/>
+</svg>
