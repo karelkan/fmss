@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K4. Partii järjest: partii suurus (24 h, häälestus nagu näidises)</text>
+<line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">Allhanketehas</text><line x1="193.8" y1="41" x2="211.8" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="217.8" y="45" font-size="12" fill="#666">Mootoriosade tehas</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="289" x2="724" y2="289" stroke="#e3e3e3"/><text x="56" y="293" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="64" y1="214" x2="724" y2="214" stroke="#e3e3e3"/><text x="56" y="218" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="139" x2="724" y2="139" stroke="#e3e3e3"/><text x="56" y="143" font-size="11" text-anchor="end" fill="#666">15</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">20</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="137.33333333333331" y1="364" x2="137.33333333333331" y2="368" stroke="#666"/><text x="137.33333333333331" y="382" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="210.66666666666666" y1="364" x2="210.66666666666666" y2="368" stroke="#666"/><text x="210.66666666666666" y="382" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="284" y1="364" x2="284" y2="368" stroke="#666"/><text x="284" y="382" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="430.6666666666667" y1="364" x2="430.6666666666667" y2="368" stroke="#666"/><text x="430.6666666666667" y="382" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="577.3333333333334" y1="364" x2="577.3333333333334" y2="368" stroke="#666"/><text x="577.3333333333334" y="382" font-size="11" text-anchor="middle" fill="#666">8</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">10</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">partii suurus, tk (1 = sama mis Segamini)</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">läbilaskevõime, tk/h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,146.31249999999994 137.33333333333331,150.93749999999997 210.66666666666666,161.6875 284,168.4375 430.6666666666667,183.81249999999997 577.3333333333334,200.56250000000003 724,213.625"/>
+<circle cx="64" cy="146.31249999999994" r="3" fill="#1f6fd1"/><circle cx="137.33333333333331" cy="150.93749999999997" r="3" fill="#1f6fd1"/><circle cx="210.66666666666666" cy="161.6875" r="3" fill="#1f6fd1"/><circle cx="284" cy="168.4375" r="3" fill="#1f6fd1"/><circle cx="430.6666666666667" cy="183.81249999999997" r="3" fill="#1f6fd1"/><circle cx="577.3333333333334" cy="200.56250000000003" r="3" fill="#1f6fd1"/><circle cx="724" cy="213.625" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="64,67 137.33333333333331,79.37499999999997 210.66666666666666,100.93749999999997 284,119.875 430.6666666666667,145.5 577.3333333333334,165.0625 724,176.5625"/>
+<circle cx="64" cy="67" r="3" fill="#d1342f"/><circle cx="137.33333333333331" cy="79.37499999999997" r="3" fill="#d1342f"/><circle cx="210.66666666666666" cy="100.93749999999997" r="3" fill="#d1342f"/><circle cx="284" cy="119.875" r="3" fill="#d1342f"/><circle cx="430.6666666666667" cy="145.5" r="3" fill="#d1342f"/><circle cx="577.3333333333334" cy="165.0625" r="3" fill="#d1342f"/><circle cx="724" cy="176.5625" r="3" fill="#d1342f"/>
+</svg>

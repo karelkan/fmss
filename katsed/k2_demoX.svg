@@ -2,26 +2,26 @@
 <rect width="760" height="420" fill="#fff"/>
 <text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K2. Näidis-PTS ristmarsruudiga: tellimuse täitmise aeg (keskmine, 10 seemet)</text>
 <line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">ummiku vältimine sees</text><line x1="246.6" y1="41" x2="264.6" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="270.6" y="45" font-size="12" fill="#666">ummiku vältimine väljas</text>
-<line x1="64" y1="364" x2="740" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
-<line x1="64" y1="264" x2="740" y2="264" stroke="#e3e3e3"/><text x="56" y="268" font-size="11" text-anchor="end" fill="#666">5</text>
-<line x1="64" y1="164" x2="740" y2="164" stroke="#e3e3e3"/><text x="56" y="168" font-size="11" text-anchor="end" fill="#666">10</text>
-<line x1="64" y1="64" x2="740" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">15</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="264" x2="724" y2="264" stroke="#e3e3e3"/><text x="56" y="268" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="64" y1="164" x2="724" y2="164" stroke="#e3e3e3"/><text x="56" y="168" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">15</text>
 <line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">1</text>
-<line x1="160.57142857142856" y1="364" x2="160.57142857142856" y2="368" stroke="#666"/><text x="160.57142857142856" y="382" font-size="11" text-anchor="middle" fill="#666">2</text>
-<line x1="257.1428571428571" y1="364" x2="257.1428571428571" y2="368" stroke="#666"/><text x="257.1428571428571" y="382" font-size="11" text-anchor="middle" fill="#666">3</text>
-<line x1="353.7142857142857" y1="364" x2="353.7142857142857" y2="368" stroke="#666"/><text x="353.7142857142857" y="382" font-size="11" text-anchor="middle" fill="#666">4</text>
-<line x1="450.2857142857143" y1="364" x2="450.2857142857143" y2="368" stroke="#666"/><text x="450.2857142857143" y="382" font-size="11" text-anchor="middle" fill="#666">5</text>
-<line x1="546.8571428571429" y1="364" x2="546.8571428571429" y2="368" stroke="#666"/><text x="546.8571428571429" y="382" font-size="11" text-anchor="middle" fill="#666">6</text>
-<line x1="643.4285714285714" y1="364" x2="643.4285714285714" y2="368" stroke="#666"/><text x="643.4285714285714" y="382" font-size="11" text-anchor="middle" fill="#666">7</text>
-<line x1="740" y1="364" x2="740" y2="368" stroke="#666"/><text x="740" y="382" font-size="11" text-anchor="middle" fill="#666">8</text>
-<line x1="64" y1="364" x2="740" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
-<text x="402" y="406" font-size="13" text-anchor="middle" fill="#222">kõigi puhvrite maht, kohti</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
-<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,73.81277777777781 160.57142857142856,192.34055555555557 257.1428571428571,227.57333333333332 353.7142857142857,227.77 450.2857142857143,227.84833333333333 546.8571428571429,227.9988888888889 643.4285714285714,258.67499999999995 740,259.2983333333333"/>
-<circle cx="64" cy="73.81277777777781" r="3" fill="#1f6fd1"/><circle cx="160.57142857142856" cy="192.34055555555557" r="3" fill="#1f6fd1"/><circle cx="257.1428571428571" cy="227.57333333333332" r="3" fill="#1f6fd1"/><circle cx="353.7142857142857" cy="227.77" r="3" fill="#1f6fd1"/><circle cx="450.2857142857143" cy="227.84833333333333" r="3" fill="#1f6fd1"/><circle cx="546.8571428571429" cy="227.9988888888889" r="3" fill="#1f6fd1"/><circle cx="643.4285714285714" cy="258.67499999999995" r="3" fill="#1f6fd1"/><circle cx="740" cy="259.2983333333333" r="3" fill="#1f6fd1"/>
-<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="450.2857142857143,247.35222222222222 546.8571428571429,256.83388888888885 643.4285714285714,259.1872222222222 740,259.1255555555556"/>
-<circle cx="450.2857142857143" cy="247.35222222222222" r="3" fill="#d1342f"/><circle cx="546.8571428571429" cy="256.83388888888885" r="3" fill="#d1342f"/><circle cx="643.4285714285714" cy="259.1872222222222" r="3" fill="#d1342f"/><circle cx="740" cy="259.1255555555556" r="3" fill="#d1342f"/>
+<line x1="158.28571428571428" y1="364" x2="158.28571428571428" y2="368" stroke="#666"/><text x="158.28571428571428" y="382" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="252.57142857142856" y1="364" x2="252.57142857142856" y2="368" stroke="#666"/><text x="252.57142857142856" y="382" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="346.85714285714283" y1="364" x2="346.85714285714283" y2="368" stroke="#666"/><text x="346.85714285714283" y="382" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="441.1428571428571" y1="364" x2="441.1428571428571" y2="368" stroke="#666"/><text x="441.1428571428571" y="382" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="535.4285714285714" y1="364" x2="535.4285714285714" y2="368" stroke="#666"/><text x="535.4285714285714" y="382" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="629.7142857142857" y1="364" x2="629.7142857142857" y2="368" stroke="#666"/><text x="629.7142857142857" y="382" font-size="11" text-anchor="middle" fill="#666">7</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">8</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">kõigi puhvrite maht, kohti</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,73.81277777777781 158.28571428571428,192.34055555555557 252.57142857142856,227.57333333333332 346.85714285714283,227.77 441.1428571428571,227.84833333333333 535.4285714285714,227.9988888888889 629.7142857142857,258.67499999999995 724,259.2983333333333"/>
+<circle cx="64" cy="73.81277777777781" r="3" fill="#1f6fd1"/><circle cx="158.28571428571428" cy="192.34055555555557" r="3" fill="#1f6fd1"/><circle cx="252.57142857142856" cy="227.57333333333332" r="3" fill="#1f6fd1"/><circle cx="346.85714285714283" cy="227.77" r="3" fill="#1f6fd1"/><circle cx="441.1428571428571" cy="227.84833333333333" r="3" fill="#1f6fd1"/><circle cx="535.4285714285714" cy="227.9988888888889" r="3" fill="#1f6fd1"/><circle cx="629.7142857142857" cy="258.67499999999995" r="3" fill="#1f6fd1"/><circle cx="724" cy="259.2983333333333" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="441.1428571428571,247.35222222222222 535.4285714285714,256.83388888888885 629.7142857142857,259.1872222222222 724,259.1255555555556"/>
+<circle cx="441.1428571428571" cy="247.35222222222222" r="3" fill="#d1342f"/><circle cx="535.4285714285714" cy="256.83388888888885" r="3" fill="#d1342f"/><circle cx="629.7142857142857" cy="259.1872222222222" r="3" fill="#d1342f"/><circle cx="724" cy="259.1255555555556" r="3" fill="#d1342f"/>
 <text x="64" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="64" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 10/10</text>
-<text x="160.57142857142856" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="160.57142857142856" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 10/10</text>
-<text x="257.1428571428571" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="257.1428571428571" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 10/10</text>
-<text x="353.7142857142857" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="353.7142857142857" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 7/10</text>
+<text x="158.28571428571428" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="158.28571428571428" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 10/10</text>
+<text x="252.57142857142856" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="252.57142857142856" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 10/10</text>
+<text x="346.85714285714283" y="340" font-size="16" font-weight="bold" text-anchor="middle" fill="#d1342f">×</text><text x="346.85714285714283" y="354" font-size="10" text-anchor="middle" fill="#d1342f">ummik 7/10</text>
 </svg>

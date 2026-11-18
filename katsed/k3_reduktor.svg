@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K3. Reduktori FMS: AGV-de arv ja kiirus</text>
+<line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">40 cm/s</text><line x1="154.2" y1="41" x2="172.2" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="178.2" y="45" font-size="12" fill="#666">80 cm/s</text><line x1="244.39999999999998" y1="41" x2="262.4" y2="41" stroke="#2a9d5c" stroke-width="2.5"/><text x="268.4" y="45" font-size="12" fill="#666">120 cm/s</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="289" x2="724" y2="289" stroke="#e3e3e3"/><text x="56" y="293" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="64" y1="214" x2="724" y2="214" stroke="#e3e3e3"/><text x="56" y="218" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="139" x2="724" y2="139" stroke="#e3e3e3"/><text x="56" y="143" font-size="11" text-anchor="end" fill="#666">15</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">20</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="174" y1="364" x2="174" y2="368" stroke="#666"/><text x="174" y="382" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="284" y1="364" x2="284" y2="368" stroke="#666"/><text x="284" y="382" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="394" y1="364" x2="394" y2="368" stroke="#666"/><text x="394" y="382" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="504" y1="364" x2="504" y2="368" stroke="#666"/><text x="504" y="382" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="614" y1="364" x2="614" y2="368" stroke="#666"/><text x="614" y="382" font-size="11" text-anchor="middle" fill="#666">7</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">8</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">AGV-de arv</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,124.49375000000003 174,180.88 284,203.57208333333332 394,212.71166666666667 504,215.495 614,217.60791666666665 724,217.77916666666664"/>
+<circle cx="64" cy="124.49375000000003" r="3" fill="#1f6fd1"/><circle cx="174" cy="180.88" r="3" fill="#1f6fd1"/><circle cx="284" cy="203.57208333333332" r="3" fill="#1f6fd1"/><circle cx="394" cy="212.71166666666667" r="3" fill="#1f6fd1"/><circle cx="504" cy="215.495" r="3" fill="#1f6fd1"/><circle cx="614" cy="217.60791666666665" r="3" fill="#1f6fd1"/><circle cx="724" cy="217.77916666666664" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="64,196.63916666666668 174,221.65666666666667 284,226.8966666666667 394,227.56333333333333 504,228.84666666666666 614,227.8779166666667 724,227.64"/>
+<circle cx="64" cy="196.63916666666668" r="3" fill="#d1342f"/><circle cx="174" cy="221.65666666666667" r="3" fill="#d1342f"/><circle cx="284" cy="226.8966666666667" r="3" fill="#d1342f"/><circle cx="394" cy="227.56333333333333" r="3" fill="#d1342f"/><circle cx="504" cy="228.84666666666666" r="3" fill="#d1342f"/><circle cx="614" cy="227.8779166666667" r="3" fill="#d1342f"/><circle cx="724" cy="227.64" r="3" fill="#d1342f"/>
+<polyline fill="none" stroke="#2a9d5c" stroke-width="2.5" points="64,216.35999999999999 174,230.20708333333337 284,231.64833333333334 394,229.695 504,232.02625000000003 614,231.44416666666666 724,231.8704166666667"/>
+<circle cx="64" cy="216.35999999999999" r="3" fill="#2a9d5c"/><circle cx="174" cy="230.20708333333337" r="3" fill="#2a9d5c"/><circle cx="284" cy="231.64833333333334" r="3" fill="#2a9d5c"/><circle cx="394" cy="229.695" r="3" fill="#2a9d5c"/><circle cx="504" cy="232.02625000000003" r="3" fill="#2a9d5c"/><circle cx="614" cy="231.44416666666666" r="3" fill="#2a9d5c"/><circle cx="724" cy="231.8704166666667" r="3" fill="#2a9d5c"/>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K3. Kinnitustehas: aluste arv ja konveieri kiirus</text>
+<line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">15 cm/s</text><line x1="154.2" y1="41" x2="172.2" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="178.2" y="45" font-size="12" fill="#666">25 cm/s</text><line x1="244.39999999999998" y1="41" x2="262.4" y2="41" stroke="#2a9d5c" stroke-width="2.5"/><text x="268.4" y="45" font-size="12" fill="#666">40 cm/s</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="289" x2="724" y2="289" stroke="#e3e3e3"/><text x="56" y="293" font-size="11" text-anchor="end" fill="#666">2</text>
+<line x1="64" y1="214" x2="724" y2="214" stroke="#e3e3e3"/><text x="56" y="218" font-size="11" text-anchor="end" fill="#666">4</text>
+<line x1="64" y1="139" x2="724" y2="139" stroke="#e3e3e3"/><text x="56" y="143" font-size="11" text-anchor="end" fill="#666">6</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">8</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">6</text>
+<line x1="146.5" y1="364" x2="146.5" y2="368" stroke="#666"/><text x="146.5" y="382" font-size="11" text-anchor="middle" fill="#666">8</text>
+<line x1="229" y1="364" x2="229" y2="368" stroke="#666"/><text x="229" y="382" font-size="11" text-anchor="middle" fill="#666">10</text>
+<line x1="311.5" y1="364" x2="311.5" y2="368" stroke="#666"/><text x="311.5" y="382" font-size="11" text-anchor="middle" fill="#666">12</text>
+<line x1="394" y1="364" x2="394" y2="368" stroke="#666"/><text x="394" y="382" font-size="11" text-anchor="middle" fill="#666">14</text>
+<line x1="476.5" y1="364" x2="476.5" y2="368" stroke="#666"/><text x="476.5" y="382" font-size="11" text-anchor="middle" fill="#666">16</text>
+<line x1="559" y1="364" x2="559" y2="368" stroke="#666"/><text x="559" y="382" font-size="11" text-anchor="middle" fill="#666">18</text>
+<line x1="641.5" y1="364" x2="641.5" y2="368" stroke="#666"/><text x="641.5" y="382" font-size="11" text-anchor="middle" fill="#666">20</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">22</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">aluste arv konveieril</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,73.46562500000002 146.5,112.234375 229,127.65833333333333 311.5,136.00625000000002 394,138.90937499999998 476.5,139.31666666666666 559,138.7208333333333 641.5,143.70625 724,141.53125000000003"/>
+<circle cx="64" cy="73.46562500000002" r="3" fill="#1f6fd1"/><circle cx="146.5" cy="112.234375" r="3" fill="#1f6fd1"/><circle cx="229" cy="127.65833333333333" r="3" fill="#1f6fd1"/><circle cx="311.5" cy="136.00625000000002" r="3" fill="#1f6fd1"/><circle cx="394" cy="138.90937499999998" r="3" fill="#1f6fd1"/><circle cx="476.5" cy="139.31666666666666" r="3" fill="#1f6fd1"/><circle cx="559" cy="138.7208333333333" r="3" fill="#1f6fd1"/><circle cx="641.5" cy="143.70625" r="3" fill="#1f6fd1"/><circle cx="724" cy="141.53125000000003" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="64,139.2572916666667 146.5,148.7625 229,155.346875 311.5,157.07083333333333 394,158.70833333333334 476.5,157.45729166666663 559,159.35520833333334 641.5,158.79062500000003 724,157.98645833333333"/>
+<circle cx="64" cy="139.2572916666667" r="3" fill="#d1342f"/><circle cx="146.5" cy="148.7625" r="3" fill="#d1342f"/><circle cx="229" cy="155.346875" r="3" fill="#d1342f"/><circle cx="311.5" cy="157.07083333333333" r="3" fill="#d1342f"/><circle cx="394" cy="158.70833333333334" r="3" fill="#d1342f"/><circle cx="476.5" cy="157.45729166666663" r="3" fill="#d1342f"/><circle cx="559" cy="159.35520833333334" r="3" fill="#d1342f"/><circle cx="641.5" cy="158.79062500000003" r="3" fill="#d1342f"/><circle cx="724" cy="157.98645833333333" r="3" fill="#d1342f"/>
+<polyline fill="none" stroke="#2a9d5c" stroke-width="2.5" points="64,158.83333333333334 146.5,165.23125 229,165.52187500000002 311.5,166.7697916666666 394,167.2989583333333 476.5,165.35208333333333 559,166.72916666666663 641.5,168.2364583333333 724,168.21770833333335"/>
+<circle cx="64" cy="158.83333333333334" r="3" fill="#2a9d5c"/><circle cx="146.5" cy="165.23125" r="3" fill="#2a9d5c"/><circle cx="229" cy="165.52187500000002" r="3" fill="#2a9d5c"/><circle cx="311.5" cy="166.7697916666666" r="3" fill="#2a9d5c"/><circle cx="394" cy="167.2989583333333" r="3" fill="#2a9d5c"/><circle cx="476.5" cy="165.35208333333333" r="3" fill="#2a9d5c"/><circle cx="559" cy="166.72916666666663" r="3" fill="#2a9d5c"/><circle cx="641.5" cy="168.2364583333333" r="3" fill="#2a9d5c"/><circle cx="724" cy="168.21770833333335" r="3" fill="#2a9d5c"/>
+</svg>

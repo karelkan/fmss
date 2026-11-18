@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K5. Reduktori FMS (70 detaili): rikete muster, käideldavus 90 %</text>
+<rect x="64" y="36" width="18" height="10" fill="#1f6fd1" opacity="0.18"/><text x="88" y="45" font-size="12" fill="#666">min–max (10 seemet)</text><line x1="214" y1="41" x2="232" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="238" y="45" font-size="12" fill="#666">keskmine</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="314" x2="724" y2="314" stroke="#e3e3e3"/><text x="56" y="318" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="64" y1="264" x2="724" y2="264" stroke="#e3e3e3"/><text x="56" y="268" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="214" x2="724" y2="214" stroke="#e3e3e3"/><text x="56" y="218" font-size="11" text-anchor="end" fill="#666">15</text>
+<line x1="64" y1="164" x2="724" y2="164" stroke="#e3e3e3"/><text x="56" y="168" font-size="11" text-anchor="end" fill="#666">20</text>
+<line x1="64" y1="113.99999999999999" x2="724" y2="113.99999999999999" stroke="#e3e3e3"/><text x="56" y="117.99999999999999" font-size="11" text-anchor="end" fill="#666">25</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">30</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">pole</text>
+<line x1="174" y1="364" x2="174" y2="368" stroke="#666"/><text x="174" y="382" font-size="11" text-anchor="middle" fill="#666">5 min</text>
+<line x1="284" y1="364" x2="284" y2="368" stroke="#666"/><text x="284" y="382" font-size="11" text-anchor="middle" fill="#666">15 min</text>
+<line x1="394" y1="364" x2="394" y2="368" stroke="#666"/><text x="394" y="382" font-size="11" text-anchor="middle" fill="#666">30 min</text>
+<line x1="504" y1="364" x2="504" y2="368" stroke="#666"/><text x="504" y="382" font-size="11" text-anchor="middle" fill="#666">1 h</text>
+<line x1="614" y1="364" x2="614" y2="368" stroke="#666"/><text x="614" y="382" font-size="11" text-anchor="middle" fill="#666">2 h</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">4 h</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">keskmine remondiaeg (rikete vahe = 9 × remondiaeg)</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
+<polygon fill="#1f6fd1" opacity="0.18" points="64,272.6972222222222 174,108.32777777777778 284,242.08888888888887 394,252.2277777777778 504,245.55555555555554 614,242.39166666666668 724,235.0111111111111 724,274.29166666666663 614,276.8 504,274.4888888888889 394,273.3222222222222 284,267.2111111111111 174,227.6861111111111 64,276.9861111111111"/>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,274.67055555555555 174,196.9088888888889 284,256.71527777777777 394,264.195 504,264.25388888888887 614,256.51666666666665 724,253.4625"/>
+<circle cx="64" cy="274.67055555555555" r="3" fill="#1f6fd1"/><circle cx="174" cy="196.9088888888889" r="3" fill="#1f6fd1"/><circle cx="284" cy="256.71527777777777" r="3" fill="#1f6fd1"/><circle cx="394" cy="264.195" r="3" fill="#1f6fd1"/><circle cx="504" cy="264.25388888888887" r="3" fill="#1f6fd1"/><circle cx="614" cy="256.51666666666665" r="3" fill="#1f6fd1"/><circle cx="724" cy="253.4625" r="3" fill="#1f6fd1"/>
+</svg>

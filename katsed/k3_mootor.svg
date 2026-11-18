@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K3. Mootoriosade tehas: konnektorid C↔D ja viimistluse konveier</text>
+<line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">20 cm/s</text><line x1="154.2" y1="41" x2="172.2" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="178.2" y="45" font-size="12" fill="#666">40 cm/s</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="304" x2="724" y2="304" stroke="#e3e3e3"/><text x="56" y="308" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="64" y1="244" x2="724" y2="244" stroke="#e3e3e3"/><text x="56" y="248" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="184" x2="724" y2="184" stroke="#e3e3e3"/><text x="56" y="188" font-size="11" text-anchor="end" fill="#666">15</text>
+<line x1="64" y1="123.99999999999999" x2="724" y2="123.99999999999999" stroke="#e3e3e3"/><text x="56" y="127.99999999999999" font-size="11" text-anchor="end" fill="#666">20</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">25</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">1</text>
+<line x1="229" y1="364" x2="229" y2="368" stroke="#666"/><text x="229" y="382" font-size="11" text-anchor="middle" fill="#666">2</text>
+<line x1="394" y1="364" x2="394" y2="368" stroke="#666"/><text x="394" y="382" font-size="11" text-anchor="middle" fill="#666">3</text>
+<line x1="559" y1="364" x2="559" y2="368" stroke="#666"/><text x="559" y="382" font-size="11" text-anchor="middle" fill="#666">4</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">5</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">konnektoreid C↔D</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">tellimuse täitmise aeg, h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,67.93300000000002 229,177.95233333333334 394,218.78866666666667 559,226.62999999999997 724,231.26566666666668"/>
+<circle cx="64" cy="67.93300000000002" r="3" fill="#1f6fd1"/><circle cx="229" cy="177.95233333333334" r="3" fill="#1f6fd1"/><circle cx="394" cy="218.78866666666667" r="3" fill="#1f6fd1"/><circle cx="559" cy="226.62999999999997" r="3" fill="#1f6fd1"/><circle cx="724" cy="231.26566666666668" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="64,81.28600000000003 229,191.525 394,233.888 559,247.047 724,253.86566666666667"/>
+<circle cx="64" cy="81.28600000000003" r="3" fill="#d1342f"/><circle cx="229" cy="191.525" r="3" fill="#d1342f"/><circle cx="394" cy="233.888" r="3" fill="#d1342f"/><circle cx="559" cy="247.047" r="3" fill="#d1342f"/><circle cx="724" cy="253.86566666666667" r="3" fill="#d1342f"/>
+</svg>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" font-family="Helvetica, Arial, sans-serif">
+<rect width="760" height="420" fill="#fff"/>
+<text x="64" y="24" font-size="16" font-weight="bold" fill="#222">K6. Puhvri distsipliin: pikim tsükliaeg (24 h, 10 seemne keskmine)</text>
+<line x1="64" y1="41" x2="82" y2="41" stroke="#1f6fd1" stroke-width="2.5"/><text x="88" y="45" font-size="12" fill="#666">Näidis-PTS</text><line x1="174" y1="41" x2="192" y2="41" stroke="#d1342f" stroke-width="2.5"/><text x="198" y="45" font-size="12" fill="#666">Reduktori FMS</text><line x1="303.8" y1="41" x2="321.8" y2="41" stroke="#2a9d5c" stroke-width="2.5"/><text x="327.8" y="45" font-size="12" fill="#666">Allhanketehas</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#e3e3e3"/><text x="56" y="368" font-size="11" text-anchor="end" fill="#666">0</text>
+<line x1="64" y1="264" x2="724" y2="264" stroke="#e3e3e3"/><text x="56" y="268" font-size="11" text-anchor="end" fill="#666">5</text>
+<line x1="64" y1="164" x2="724" y2="164" stroke="#e3e3e3"/><text x="56" y="168" font-size="11" text-anchor="end" fill="#666">10</text>
+<line x1="64" y1="64" x2="724" y2="64" stroke="#e3e3e3"/><text x="56" y="68" font-size="11" text-anchor="end" fill="#666">15</text>
+<line x1="64" y1="364" x2="64" y2="368" stroke="#666"/><text x="64" y="382" font-size="11" text-anchor="middle" fill="#666">FIFO</text>
+<line x1="394" y1="364" x2="394" y2="368" stroke="#666"/><text x="394" y="382" font-size="11" text-anchor="middle" fill="#666">FILO</text>
+<line x1="724" y1="364" x2="724" y2="368" stroke="#666"/><text x="724" y="382" font-size="11" text-anchor="middle" fill="#666">RANDOM</text>
+<line x1="64" y1="364" x2="724" y2="364" stroke="#666"/><line x1="64" y1="64" x2="64" y2="364" stroke="#666"/>
+<text x="394" y="406" font-size="13" text-anchor="middle" fill="#222">puhvri distsipliin</text><text transform="translate(18 214) rotate(-90)" font-size="13" text-anchor="middle" fill="#222">pikim tsükliaeg, h</text>
+<polyline fill="none" stroke="#1f6fd1" stroke-width="2.5" points="64,325.06944444444446 394,293.91499999999996 724,315.1633333333333"/>
+<circle cx="64" cy="325.06944444444446" r="3" fill="#1f6fd1"/><circle cx="394" cy="293.91499999999996" r="3" fill="#1f6fd1"/><circle cx="724" cy="315.1633333333333" r="3" fill="#1f6fd1"/>
+<polyline fill="none" stroke="#d1342f" stroke-width="2.5" points="64,254.3211111111111 394,64.86166666666668 724,189.65611111111107"/>
+<circle cx="64" cy="254.3211111111111" r="3" fill="#d1342f"/><circle cx="394" cy="64.86166666666668" r="3" fill="#d1342f"/><circle cx="724" cy="189.65611111111107" r="3" fill="#d1342f"/>
+<polyline fill="none" stroke="#2a9d5c" stroke-width="2.5" points="64,292.635 394,288.3277777777778 724,291.8316666666667"/>
+<circle cx="64" cy="292.635" r="3" fill="#2a9d5c"/><circle cx="394" cy="288.3277777777778" r="3" fill="#2a9d5c"/><circle cx="724" cy="291.8316666666667" r="3" fill="#2a9d5c"/>
+</svg>
